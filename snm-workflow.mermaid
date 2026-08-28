@@ -1,0 +1,155 @@
+flowchart TD
+
+%% ===================================================================
+%% SWADESHI NIWAR MILLS — WORKS PROCESS FLOW
+%% Narrow wovens, fabrics and cordage, including defence specification
+%% ===================================================================
+
+  subgraph COM["1 — COMMERCIAL"]
+    direction TB
+    A1["Enquiry or tender received"]
+    A2{"Technically feasible<br/>on our machines?"}
+    A3["Decline, with reason recorded"]
+    A4{"Construction already<br/>proven?"}
+    A5["Product development<br/>trial construction, lab dip, sample"]
+    A6["Cost sheet<br/>yarn, conversion, wastage, margin"]
+    A7["Quotation issued"]
+    A8{"Order won?"}
+    A9["Log reason lost<br/>price, lead time, capability"]
+    A10["Customer PO received"]
+
+    A1 --> A2
+    A2 -->|no| A3
+    A2 -->|yes| A4
+    A4 -->|no| A5 --> A6
+    A4 -->|yes| A6
+    A6 --> A7 --> A8
+    A8 -->|no| A9
+    A8 -->|yes| A10
+  end
+
+  subgraph ENG["2 — ENGINEERING"]
+    direction TB
+    B1["Select specification and variant<br/>MIL-W-4088K Type VIII class 1"]
+    B2["Freeze construction sheet<br/>ends, picks, denier, weave, width"]
+    B3["Generate inspection plan<br/>from the specification's requirements"]
+    B4{"First article<br/>required?"}
+    B5["First article manufacture<br/>and full test to spec"]
+    B6{"First article<br/>approved by customer?"}
+    B7["Revise construction<br/>or process, retest"]
+    B8["Construction approved<br/>revision locked"]
+
+    B1 --> B2 --> B3 --> B4
+    B4 -->|yes| B5 --> B6
+    B6 -->|no| B7 --> B5
+    B6 -->|yes| B8
+    B4 -->|no| B8
+  end
+
+  subgraph MAT["3 — MATERIALS"]
+    direction TB
+    C1["Yarn and chemical requirement<br/>calculated from construction"]
+    C2["Purchase order to supplier"]
+    C3["Goods receipt<br/>lot number assigned at the gate"]
+    C4["Incoming test<br/>denier, tenacity, shade, COA check"]
+    C5{"Yarn conforms?"}
+    C6["Quarantine and return<br/>supplier corrective action"]
+    C7["Accepted into stock<br/>lot number retained"]
+
+    C1 --> C2 --> C3 --> C4 --> C5
+    C5 -->|no| C6
+    C5 -->|yes| C7
+  end
+
+  subgraph PRD["4 — PRODUCTION"]
+    direction TB
+    D1["Job card raised<br/>quantity, delivery, machine"]
+    D2["Yarn issued against job<br/>lot numbers recorded"]
+    D3["Warping and beam preparation"]
+    D4["Loom setting and allocation"]
+    D5["Weaving or braiding"]
+    D6["In-process check every shift<br/>width, picks, ends, appearance"]
+    D7{"Within<br/>specification?"}
+    D8["Stop the loom<br/>correct the setting"]
+    D9["Off-loom greige inspection"]
+    D10{"Dyeing<br/>required?"}
+    D11["Dyeing<br/>recipe as actually dosed recorded"]
+    D12{"Coating or<br/>finishing required?"}
+    D13["Coating, curing, DWR<br/>parameters recorded"]
+    D14["Final inspection<br/>yard by yard against defect table"]
+
+    D1 --> D2 --> D3 --> D4 --> D5 --> D6 --> D7
+    D7 -->|no| D8 --> D5
+    D7 -->|yes| D9 --> D10
+    D10 -->|yes| D11 --> D12
+    D10 -->|no| D12
+    D12 -->|yes| D13 --> D14
+    D12 -->|no| D14
+  end
+
+  subgraph QUA["5 — QUALITY CONFORMANCE"]
+    direction TB
+    E1["Lot formed<br/>sample size from the sampling plan"]
+    E2["End item testing<br/>strength, weight, thickness, counts"]
+    E3{"Every specimen<br/>meets the minimum?"}
+    E4["Corrective action raised<br/>root cause, correction, prevention"]
+    E5{"Rework<br/>possible?"}
+    E6["Rework and retest"]
+    E7["Reject, or seek written concession"]
+    E8["Test certificate issued<br/>lot, spec, results, signature"]
+
+    E1 --> E2 --> E3
+    E3 -->|no| E4 --> E5
+    E5 -->|yes| E6 --> E2
+    E5 -->|no| E7
+    E3 -->|yes| E8
+  end
+
+  subgraph DES["6 — DESPATCH"]
+    direction TB
+    F1["Roll tickets and marking<br/>stock no, spec, yardage, contract"]
+    F2["Packing to specification"]
+    F3{"Any open quality<br/>hold on this job?"}
+    F4["Hold at gate<br/>owner decision required"]
+    F5["Gate pass, invoice, e-way bill"]
+    F6["Despatch<br/>LR number, transporter"]
+    F7["Delivery confirmed"]
+
+    F1 --> F2 --> F3
+    F3 -->|yes| F4
+    F3 -->|no| F5 --> F6 --> F7
+  end
+
+  subgraph IMP["7 — IMPROVEMENT LOOP"]
+    direction TB
+    G1["Customer complaint or rejection"]
+    G2["Downtime and defect analysis"]
+    G3["Corrective action register"]
+    G4["Revise construction, process<br/>or supplier"]
+
+    G1 --> G3
+    G2 --> G3
+    G3 --> G4
+  end
+
+%% ---- flow between systems ----
+  A10 --> B1
+  B8 --> C1
+  C7 --> D1
+  D14 --> E1
+  E8 --> F1
+  F7 --> G1
+  E4 --> G3
+  D6 -.->|stoppages logged| G2
+  G4 -.->|feeds back into| B2
+  F4 -.->|concession or rework| E5
+
+%% ---- styling ----
+  classDef gate fill:#F7E9CC,stroke:#9A6407,stroke-width:1.5px,color:#5A3D05
+  classDef stop fill:#F6DDD8,stroke:#A82914,stroke-width:1.5px,color:#7A1E0E
+  classDef pass fill:#DCEBD5,stroke:#3F6B34,stroke-width:1.5px,color:#2C4A24
+  classDef norm fill:#F6F4EE,stroke:#CFC8B6,color:#191C15
+
+  class A2,A4,A8,B4,B6,C5,D7,D10,D12,E3,E5,F3 gate
+  class A3,A9,C6,D8,E7,F4,G1 stop
+  class B8,C7,E8,F7 pass
