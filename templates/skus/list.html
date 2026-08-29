@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}SKU Master Register — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div x-data="{ showForm: false }">
+  
+  <!-- Header Bar -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.25rem;">SKU Master Register</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Commercial and Defence Product Specifications • Swadeshi Niwar Mills
+        </p>
+      </div>
+      <div>
+        <button 
+          type="button" 
+          class="btn btn-olive" 
+          @click="showForm = !showForm"
+        >
+          <span x-text="showForm ? '✕ Close Form' : '+ Add New SKU'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline SKU Creation Form -->
+  <div 
+    x-show="showForm" 
+    x-transition 
+    class="card" 
+    style="margin-bottom: 1.5rem; border: 2px solid var(--snm-olive); background: #ffffff;"
+  >
+    <div class="card-header">
+      <h2 style="font-size: 1.25rem; color: var(--snm-olive-dark);">Create New Product SKU</h2>
+      <span style="font-family: var(--font-mono); font-size: 0.75rem; color: #666;">
+        Automatic marketing draft triggers when Status is 'Ready' and Catalogue Visible is checked.
+      </span>
+    </div>
+
+    <form method="POST" action="/skus" hx-post="/skus">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        
+        <!-- SKU Code -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="sku_code">SKU Code *</label>
+          <input 
+            type="text" 
+            id="sku_code" 
+            name="sku_code" 
+            class="form-input" 
+            placeholder="e.g. SNM-TEST-50" 
+            required
+          >
+        </div>
+
+        <!-- Family -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="family">Product Family *</label>
+          <select id="family" name="family" class="form-input" required>
+            <option value="Narrow woven">Narrow woven</option>
+            <option value="Fabric">Fabric</option>
+            <option value="Cordage">Cordage</option>
+          </select>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="title">Title *</label>
+          <input 
+            type="text" 
+            id="title" 
+            name="title" 
+            class="form-input" 
+            placeholder="e.g. Test Webbing 50mm" 
+            required
+          >
+        </div>
+
+        <!-- Standard -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="standard">Standard</label>
+          <input 
+            type="text" 
+            id="standard" 
+            name="standard" 
+            class="form-input" 
+            placeholder="e.g. IS 1969 or MIL-W-4088K"
+          >
+        </div>
+
+        <!-- Material -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="material">Material</label>
+          <input 
+            type="text" 
+            id="material" 
+            name="material" 
+            class="form-input" 
+            placeholder="e.g. Nylon"
+          >
+        </div>
+
+        <!-- Status -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="status">Status *</label>
+          <select id="status" name="status" class="form-input" required>
+            <option value="Draft">Draft</option>
+            <option value="Ready">Ready</option>
+            <option value="Published">Published</option>
+            <option value="Retired">Retired</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Blurb -->
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label" for="blurb">Description / Blurb</label>
+        <textarea 
+          id="blurb" 
+          name="blurb" 
+          class="form-input" 
+          rows="2" 
+          placeholder="One line technical summary (e.g. High tenacity 50mm nylon webbing for industrial harnesses and tie-downs)..."
+        ></textarea>
+      </div>
+
+      <!-- Checkbox & Actions -->
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--snm-line); padding-top: 1rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-family: var(--font-heading); font-size: 0.95rem; text-transform: uppercase; font-weight: 600;">
+          <input 
+            type="checkbox" 
+            name="catalogue_visible" 
+            value="true" 
+            checked 
+            style="width: 18px; height: 18px; accent-color: var(--snm-olive);"
+          >
+          Catalogue Visible (Eligible for Marketing Pipeline)
+        </label>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" class="btn btn-outline" @click="showForm = false">Cancel</button>
+          <button type="submit" class="btn btn-olive">Create SKU & Process</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- SKU Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <tr>
+            <th style="padding: 0.75rem 1rem;">SKU Code</th>
+            <th style="padding: 0.75rem 1rem;">Family</th>
+            <th style="padding: 0.75rem 1rem;">Title</th>
+            <th style="padding: 0.75rem 1rem;">Standard</th>
+            <th style="padding: 0.75rem 1rem;">Material</th>
+            <th style="padding: 0.75rem 1rem;">SKU Status</th>
+            <th style="padding: 0.75rem 1rem;">Marketing</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if not skus %}
+          <tr>
+            <td colspan="8" style="padding: 2.5rem; text-align: center; color: #777;">
+              No SKUs recorded yet. Click <strong>+ Add New SKU</strong> above to create your first product specification.
+            </td>
+          </tr>
+          {% else %}
+          {% for sku in skus %}
+          <tr style="border-bottom: 1px solid var(--snm-line); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='#F9F8F5'" onmouseout="this.style.backgroundColor='transparent'">
+            
+            <td style="padding: 0.75rem 1rem;">
+              <a href="/skus/{{ sku.id }}" class="mono" style="font-weight: 700; color: var(--snm-olive-dark); text-decoration: none;">
+                {{ sku.sku_code }}
+              </a>
+            </td>
+
+            <td style="padding: 0.75rem 1rem;">
+              <span class="badge badge-gray">{{ sku.family }}</span>
+            </td>
+
+            <td style="padding: 0.75rem 1rem; font-weight: 600;">
+              {{ sku.title or '—' }}
+            </td>
+
+            <td style="padding: 0.75rem 1rem;">
+              {% if sku.standard and sku.standard.upper().startswith('MIL-') %}
+                <span class="badge badge-fail" style="font-size: 0.75rem;">{{ sku.standard }} (Defence)</span>
+              {% else %}
+                <span class="mono" style="font-size: 0.85rem;">{{ sku.standard or '—' }}</span>
+              {% endif %}
+            </td>
+
+            <td style="padding: 0.75rem 1rem; color: #555;">
+              {{ sku.material or '—' }}
+            </td>
+
+            <td style="padding: 0.75rem 1rem;">
+              {% if sku.status == 'Ready' %}
+                <span class="badge badge-pass">READY</span>
+              {% elif sku.status == 'Published' %}
+                <span class="badge badge-olive">PUBLISHED</span>
+              {% elif sku.status == 'Draft' %}
+                <span class="badge badge-gray">DRAFT</span>
+              {% else %}
+                <span class="badge badge-gray">{{ sku.status }}</span>
+              {% endif %}
+            </td>
+
+            <td style="padding: 0.75rem 1rem;">
+              {% if sku.post_status == 'queued' %}
+                <a href="/marketing/queue" class="badge badge-hold" style="text-decoration: none;">QUEUED ↗</a>
+              {% elif sku.post_status == 'published' %}
+                <span class="badge badge-pass">PUBLISHED</span>
+              {% elif sku.post_status == 'rejected' %}
+                <span class="badge badge-fail">REJECTED</span>
+              {% else %}
+                <span class="mono" style="color: #999; font-size: 0.75rem;">NONE</span>
+              {% endif %}
+            </td>
+
+            <td style="padding: 0.75rem 1rem; text-align: right;">
+              <a href="/skus/{{ sku.id }}" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+                View Details →
+              </a>
+            </td>
+
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

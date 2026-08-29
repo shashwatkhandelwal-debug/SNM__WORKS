@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Create Promotional Campaign — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 920px; margin: 0 auto;" x-data="{ headline: 'Proud to manufacture in Kanpur, India', body: 'On this Independence Day, Swadeshi Niwar Mills celebrates Indian independence. We manufacture technical textiles in Kanpur — narrow wovens, fabrics and cordage — supplying defence, industrial and export markets. Jai Hind.' }">
+  
+  <!-- Top Navigation & Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+    <a href="/marketing/queue" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Back to Marketing Queue
+    </a>
+  </div>
+
+  <div class="card" style="border-top: 4px solid var(--snm-olive); padding: 2rem;">
+    
+    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 1rem;">
+      <span class="badge badge-olive" style="font-size: 0.8rem; margin-bottom: 0.25rem;">PROMOTIONAL MARKETING CAMPAIGN</span>
+      <h1 style="font-size: 1.75rem; margin: 0.25rem 0;">Independence Day & Event Campaign Creator</h1>
+      <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+        Generate branded campaign visuals and multi-platform captions for national events, mill milestones, and trade announcements.
+      </p>
+    </div>
+
+    <form method="POST" action="/marketing/campaign" id="campaign-form">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+        
+        <!-- Occasion -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="occasion">Occasion / Event *</label>
+          <input 
+            type="text" 
+            id="occasion" 
+            name="occasion" 
+            class="form-input" 
+            value="Independence Day 2026" 
+            placeholder="e.g. Independence Day 2026"
+            required
+          >
+        </div>
+
+        <!-- Schedule Date & Time -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="scheduled_at">Schedule Broadcast</label>
+          <input 
+            type="datetime-local" 
+            id="scheduled_at" 
+            name="scheduled_at" 
+            class="form-input" 
+            value="{{ now_str }}"
+          >
+        </div>
+
+      </div>
+
+      <!-- Headline with Live Counter & Graphic Generator Action -->
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <label class="form-label" for="headline">Headline (Max 100 chars) *</label>
+          <span class="mono" style="font-size: 0.75rem; color: #666;" x-text="headline.length + ' / 100'"></span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input 
+            type="text" 
+            id="headline" 
+            name="headline" 
+            class="form-input" 
+            x-model="headline"
+            maxlength="100" 
+            required
+          >
+          <button 
+            type="button" 
+            class="btn btn-outline"
+            hx-post="/marketing/campaign/generate-image"
+            hx-target="#campaign-image-preview-slot"
+            hx-swap="innerHTML"
+            hx-include="#occasion, #headline, #body"
+            style="white-space: nowrap; border-color: var(--snm-olive); color: var(--snm-olive-dark);"
+          >
+            🎨 Generate Branded Graphic
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Generated Graphic Preview Slot -->
+      <div id="campaign-image-preview-slot" style="margin-bottom: 1.25rem;">
+        <!-- Filled via HTMX when user clicks Generate Image -->
+      </div>
+
+      <!-- Body Copy -->
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <label class="form-label" for="body">Post Body (Max 500 chars) *</label>
+          <span class="mono" style="font-size: 0.75rem; color: #666;" x-text="body.length + ' / 500'"></span>
+        </div>
+        <textarea 
+          id="body" 
+          name="body" 
+          class="form-input" 
+          rows="4" 
+          x-model="body"
+          maxlength="500" 
+          required
+        ></textarea>
+      </div>
+
+      <!-- Feature Product Dropdown -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label" for="featured_sku_id">Feature Product (Optional)</label>
+        <select id="featured_sku_id" name="featured_sku_id" class="form-input">
+          <option value="">-- None (General Brand Broadcast) --</option>
+          {% for sku in ready_skus %}
+          <option value="{{ sku.id }}">{{ sku.sku_code }} — {{ sku.title }} ({{ sku.family }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Target Platforms Checkboxes -->
+      <div class="form-group" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1rem;">
+        <label class="form-label" style="margin-bottom: 0.5rem;">Target Publishing Platforms (All 5 Enabled by Default)</label>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" name="platforms" value="linkedin" checked style="accent-color: var(--snm-olive);">
+            <strong>LinkedIn</strong>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" name="platforms" value="instagram" checked style="accent-color: var(--snm-olive);">
+            <strong>Instagram</strong>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" name="platforms" value="facebook" checked style="accent-color: var(--snm-olive);">
+            <strong>Facebook</strong>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" name="platforms" value="indiamart" checked style="accent-color: var(--snm-olive);">
+            <strong>IndiaMart</strong>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+            <input type="checkbox" name="platforms" value="tradeindia" checked style="accent-color: var(--snm-olive);">
+            <strong>TradeIndia</strong>
+          </label>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--snm-line); padding-top: 1.25rem;">
+        <a href="/marketing/queue" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-olive">
+          Queue Campaign for Approval →
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center;">
+  <div class="card" style="width: 100%; max-width: 440px; border-top: 4px solid var(--snm-olive); padding: 2rem;">
+    
+    <div style="text-align: center; margin-bottom: 1.75rem;">
+      <h1 style="font-size: 1.6rem; color: var(--snm-machine-black); margin-bottom: 0.25rem;">SWADESHI NIWAR MILLS</h1>
+      <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; text-transform: uppercase;">
+        Works Management System — Kanpur
+      </p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-fail" role="alert">
+      <strong>Authentication Failed:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/auth/login" style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="email" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-input" 
+          value="{{ email or '' }}"
+          placeholder="e.g. yashkhandelwal95@gmail.com" 
+          required 
+          autocomplete="email"
+          autofocus
+        >
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="password" class="form-label">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-input" 
+          placeholder="••••••••••••" 
+          required 
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn btn-olive" style="width: 100%; margin-top: 0.5rem;">
+        Sign In to SNM Works
+      </button>
+    </form>
+
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--snm-line); text-align: center;">
+      <p style="font-family: var(--font-mono); font-size: 0.75rem; color: #777;">
+        Technical Textiles • Defence MIL Standards • ISO Quality
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

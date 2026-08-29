@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Product Catalogue — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+  
+  <!-- Hero Section -->
+  <div class="card" style="background: linear-gradient(135deg, var(--snm-machine-black) 0%, #2A3320 100%); color: var(--snm-paper); border-left: 5px solid var(--snm-olive); padding: 2rem; margin-bottom: 2rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem;">
+      <div style="max-width: 700px;">
+        <span class="badge badge-olive" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+          SWADESHI NIWAR MILLS • KANPUR
+        </span>
+        <h1 style="color: #ffffff; font-size: 2.2rem; margin: 0.25rem 0 0.5rem; letter-spacing: 0.03em;">
+          TECHNICAL TEXTILES CATALOGUE
+        </h1>
+        <p style="font-size: 1rem; color: var(--snm-greige); line-height: 1.6;">
+          High-performance narrow wovens, technical fabrics, and engineered cordage. Manufactured to international and national standards with full lot traceability.
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--snm-greige); margin-bottom: 0.5rem;">
+          Direct Mill Supply • ISO 9001
+        </div>
+        <a href="mailto:info@snmills.com" class="btn btn-olive">
+          Request Technical Quote
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Family Filter Bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {% for f in families %}
+      <a 
+        href="/catalogue?family={{ f }}" 
+        class="btn btn-sm {% if selected_family == f or (f == 'ALL' and not selected_family) %}btn-olive{% else %}btn-outline{% endif %}"
+        style="{% if selected_family != f and (selected_family or f != 'ALL') %}color: var(--snm-machine-black); border-color: var(--snm-line);{% endif %}"
+      >
+        {{ f }}
+      </a>
+      {% endfor %}
+    </div>
+    <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+      Showing {{ items|length }} Verified Product{% if items|length != 1 %}s{% endif %}
+    </div>
+  </div>
+
+  <!-- Product Cards Grid -->
+  {% if not items %}
+  <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <h3 style="font-size: 1.3rem; color: #666; margin-bottom: 0.5rem;">No Products Found in this Category</h3>
+    <p style="font-size: 0.95rem; color: #777; margin-bottom: 1rem;">
+      Browse our complete collection by selecting All Categories.
+    </p>
+    <a href="/catalogue" class="btn btn-olive btn-sm">View All Products</a>
+  </div>
+  {% else %}
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+    {% for item in items %}
+    <div class="card function-card" style="min-height: 380px; display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <div>
+        <!-- Card Top Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <span class="badge badge-olive">{{ item.sku_code }}</span>
+          <span class="badge badge-gray">{{ item.family }}</span>
+        </div>
+
+        <!-- Title & Standard -->
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.35rem; line-height: 1.3;">{{ item.title }}</h3>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--snm-olive-dark); font-weight: 600; margin-bottom: 0.75rem;">
+          Standard: {{ item.standard }}
+        </div>
+
+        <!-- Description -->
+        <p style="font-size: 0.88rem; color: #444; margin-bottom: 1rem; line-height: 1.5;">
+          {{ item.blurb }}
+        </p>
+
+        <!-- Technical Properties Table -->
+        <div style="background-color: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem; font-size: 0.82rem;">
+          {% for prop in item.properties %}
+          <div style="display: flex; justify-content: space-between; padding: 2px 0; {% if not loop.last %}border-bottom: 1px dashed #e2decb;{% endif %}">
+            <span class="mono" style="color: #666;">{{ prop.label }}:</span>
+            <strong class="mono" style="text-align: right; max-width: 60%;">{{ prop.value }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Card Footer CTA -->
+      <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid var(--snm-line); display: flex; align-items: center; justify-content: space-between;">
+        <span class="badge badge-pass">Batch Traceable</span>
+        <a href="mailto:info@snmills.com?subject=Enquiry%20for%20{{ item.sku_code }}%20({{ item.title }})" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-olive);">
+          Inquire Now →
+        </a>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Catalogue Footer Notice -->
+  <div style="margin-top: 3rem; padding: 1.5rem; background: var(--snm-greige); border-radius: 2px; text-align: center;">
+    <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #555;">
+      Custom specifications, weave structures, and raw material formulations available upon request.<br>
+      Swadeshi Niwar Mills • Works & Laboratory: Kanpur, Uttar Pradesh, India
+    </p>
+  </div>
+
+</div>
+{% endblock %}

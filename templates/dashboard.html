@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div>
+  <!-- User Profile & Roles Banner -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.25rem;">
+          Welcome, {{ user.full_name or "Yash Khandelwal" }}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          {{ user.email }} • Profile: <span class="badge badge-olive">{{ user.profile_role or 'owner' }}</span>
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge badge-pass" style="font-size: 0.8rem; padding: 4px 10px;">
+          Database Connected (Live asyncpg)
+        </span>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--snm-line);">
+      <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
+        <span style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; letter-spacing: 0.04em;">
+          ACTIVE DATABASE ROLES (FROM <code>SELECT my_roles()</code>):
+        </span>
+        <span style="font-family: var(--font-mono); font-size: 0.85rem; color: #444;">
+          {{ roles|length }} roles active in database
+        </span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;">
+        {% if roles %}
+          {% for r in roles %}
+            <span class="badge badge-gray" style="font-size: 0.8rem; padding: 3px 8px; border-left: 3px solid var(--snm-olive);">
+              {{ r }}
+            </span>
+          {% endfor %}
+        {% else %}
+          <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--snm-fail);">
+            No active roles returned from <code>SELECT my_roles()</code>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+    <h2 style="font-size: 1.3rem;">THE ELEVEN ORGANIZATIONAL FUNCTIONS</h2>
+    <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+      Section 15 Framework • Swadeshi Niwar Mills
+    </span>
+  </div>
+
+  <!-- 11 Function Cards Grid -->
+  <div class="function-grid">
+    {% for fn in functions %}
+    <div class="function-card">
+      <div>
+        <div class="function-card-header">
+          <span class="badge badge-olive" style="font-size: 0.85rem;">{{ fn.code }}</span>
+          <span class="badge badge-gray" style="font-size: 0.7rem;">FUNCTION {{ loop.index }}</span>
+        </div>
+        <h3 class="function-card-title">{{ fn.name }}</h3>
+        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+          {{ fn.description }}
+        </p>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <div class="function-card-roles">
+          <strong>Chief:</strong> <code>{{ fn.chief }}</code><br>
+          {% if fn.managers %}
+            <strong>Managers:</strong> <code>{{ fn.managers|join(', ') }}</code><br>
+          {% endif %}
+          {% if fn.operatives %}
+            <strong>Operatives:</strong> <code>{{ fn.operatives|join(', ') }}</code>
+          {% endif %}
+        </div>
+
+        <div class="function-card-footer">
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: #777;">
+            Modules: {{ fn.modules|join(', ') }}
+          </span>
+          <span class="badge badge-pass">Ready</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

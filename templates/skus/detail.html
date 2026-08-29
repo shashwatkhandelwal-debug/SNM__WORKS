@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sku.sku_code }} — SKU Details — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  
+  <!-- Back Link & Top Actions -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+    <a href="/skus" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Back to SKU Master Register
+    </a>
+    
+    {% if sku.post_status == 'queued' %}
+    <a href="/marketing/queue" class="btn btn-olive btn-sm">
+      View in Marketing Queue ↗
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Main SKU Detail Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-top: 4px solid var(--snm-olive);">
+    
+    <!-- Header with Title and Badges -->
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-olive" style="font-size: 0.95rem;">{{ sku.sku_code }}</span>
+          <span class="badge badge-gray">{{ sku.family }}</span>
+
+          {% if is_defence or (sku.standard and sku.standard.upper().startswith('MIL-')) %}
+            <span class="badge badge-fail" style="font-size: 0.85rem; padding: 4px 8px;">
+              Defence — not for public listing
+            </span>
+          {% endif %}
+        </div>
+
+        <h1 style="font-size: 1.8rem; margin: 0.25rem 0 0.5rem;">{{ sku.title }}</h1>
+        <p style="font-size: 1rem; color: #444; line-height: 1.5;">
+          {{ sku.blurb or 'No description provided.' }}
+        </p>
+      </div>
+
+      <div style="text-align: right;">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 0.25rem;">
+          SKU STATUS
+        </div>
+        <span class="badge {% if sku.status == 'Ready' %}badge-pass{% elif sku.status == 'Published' %}badge-olive{% else %}badge-gray{% endif %}" style="font-size: 0.9rem; padding: 4px 10px;">
+          {{ sku.status|upper }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Specifications Grid -->
+    <div style="background-color: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-top: 1rem;">
+      <h3 style="font-size: 1rem; font-family: var(--font-heading); letter-spacing: 0.04em; color: var(--snm-machine-black); margin-bottom: 0.75rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.25rem;">
+        TECHNICAL & SPECIFICATION ATTRIBUTES
+      </h3>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+        
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.8rem; display: block;">Standard:</span>
+          <strong>{{ sku.standard or 'None specified' }}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.8rem; display: block;">Material Formulation:</span>
+          <strong>{{ sku.material or 'None specified' }}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.8rem; display: block;">Catalogue Visibility:</span>
+          {% if sku.catalogue_visible %}
+            <span class="badge badge-pass">VISIBLE IN CATALOGUE</span>
+          {% else %}
+            <span class="badge badge-gray">HIDDEN / INTERNAL ONLY</span>
+          {% endif %}
+        </div>
+
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.8rem; display: block;">Marketing Workflow:</span>
+          {% if sku.post_status == 'queued' %}
+            <span class="badge badge-hold">QUEUED FOR APPROVAL</span>
+          {% elif sku.post_status == 'published' %}
+            <span class="badge badge-pass">PUBLISHED TO PLATFORMS</span>
+          {% elif sku.post_status == 'rejected' %}
+            <span class="badge badge-fail">REJECTED</span>
+          {% else %}
+            <span class="mono" style="color: #666;">Not queued</span>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Product Photograph & Visual Branding Section -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div class="card-header">
+      <div>
+        <h2 style="font-size: 1.3rem; margin-bottom: 0.2rem;">Product Photograph & Automated Branding</h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Upload a shop floor photo or use camera capture. Photos are automatically branded with top/bottom olive spec banners.
+        </p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; margin-top: 1rem;">
+      
+      <!-- Upload Box -->
+      <div style="border: 2px dashed var(--snm-line); border-radius: 4px; padding: 1.5rem; text-align: center; background: #fafafa;">
+        <form 
+          hx-post="/skus/{{ sku.id }}/upload-photo" 
+          hx-target="#sku-photo-box" 
+          hx-swap="outerHTML" 
+          enctype="multipart/form-data"
+          x-data="{ fileName: '' }"
+        >
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📷</div>
+          <div style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem;">
+            Upload Product Photograph
+          </div>
+          <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+            Supports JPG, PNG, WebP (Max 10MB). Direct smartphone camera capture supported.
+          </p>
+
+          <input 
+            type="file" 
+            id="image_file" 
+            name="image_file" 
+            accept="image/*" 
+            capture="environment"
+            style="display: none;"
+            @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''"
+            required
+          >
+
+          <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <label for="image_file" class="btn btn-outline btn-sm" style="cursor: pointer; background: #fff;">
+              📁 Browse File / 📸 Open Camera
+            </label>
+          </div>
+
+          <div x-show="fileName" style="margin-bottom: 0.75rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--snm-olive-dark);">
+            Selected: <strong x-text="fileName"></strong>
+          </div>
+
+          <button type="submit" class="btn btn-olive btn-sm" :disabled="!fileName">
+            Upload & Auto-Brand Image
+          </button>
+        </form>
+      </div>
+
+      <!-- Live Branded Preview Container -->
+      <div id="sku-photo-box">
+        {% if sku.photo_path %}
+          <div style="border: 2px solid var(--snm-olive); border-radius: 4px; overflow: hidden; background: var(--snm-machine-black);">
+            <img src="/skus/{{ sku.id }}/image-preview" alt="Branded Product Visual" style="width: 100%; height: auto; display: block;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+            <span class="badge badge-pass" style="font-size: 0.75rem;">BRANDED & STORED</span>
+            <a href="/skus/{{ sku.id }}/image-preview" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
+              Open Full Resolution ↗
+            </a>
+          </div>
+        {% else %}
+          <div style="border: 1px solid var(--snm-line); border-radius: 4px; padding: 2.5rem 1rem; text-align: center; color: #888; background: var(--snm-paper);">
+            <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">🖼️</div>
+            <span style="font-family: var(--font-mono); font-size: 0.85rem;">No photograph uploaded yet.</span>
+            <p style="font-size: 0.8rem; color: #999; margin-top: 0.5rem;">
+              Upload an image above to generate the server-side branded graphic and trigger the marketing post queue.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Generated Marketing Post Draft Section -->
+  {% if sku.post_status == 'queued' and draft %}
+  <div class="card" style="border-left: 5px solid var(--snm-hold); margin-bottom: 1.5rem;" x-data="{ tab: 'linkedin' }">
+    
+    <div class="card-header">
+      <div>
+        <h2 style="font-size: 1.3rem; color: var(--snm-hold);">Automated Marketing Draft Generated</h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Generated automatically because SKU was set to Ready with Catalogue Visibility enabled and branded photo uploaded.
+        </p>
+      </div>
+      <a href="/marketing/queue" class="btn btn-olive btn-sm">
+        Go to Marketing Queue →
+      </a>
+    </div>
+
+    <!-- Verified Properties in Draft -->
+    <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.5rem; margin-top: 1rem;">
+      
+      <div>
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Draft Technical Highlights</h3>
+        <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem; font-size: 0.85rem; line-height: 1.6;">
+          <div><strong>Breaking Strength:</strong> {{ draft.breaking_strength }}</div>
+          <div><strong>Strength-to-Weight:</strong> <code>{{ draft.strength_to_weight_ratio }}</code></div>
+          <div><strong>Target Use Case:</strong> {{ draft.use_case }}</div>
+          <div><strong>Governing Standard:</strong> {{ draft.standard }}</div>
+        </div>
+      </div>
+
+      <!-- Platform Caption Tabs -->
+      <div style="border-left: 1px solid var(--snm-line); padding-left: 1.25rem;">
+        <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">
+          GENERATED CAPTIONS
+        </div>
+
+        <div style="display: flex; gap: 4px; border-bottom: 1px solid var(--snm-line); padding-bottom: 4px; margin-bottom: 0.5rem;">
+          <button type="button" class="btn btn-sm" :class="tab === 'linkedin' ? 'btn-olive' : 'btn-outline'" @click="tab = 'linkedin'">LinkedIn</button>
+          <button type="button" class="btn btn-sm" :class="tab === 'instagram' ? 'btn-olive' : 'btn-outline'" @click="tab = 'instagram'">Instagram</button>
+          <button type="button" class="btn btn-sm" :class="tab === 'facebook' ? 'btn-olive' : 'btn-outline'" @click="tab = 'facebook'">Facebook</button>
+          <button type="button" class="btn btn-sm" :class="tab === 'indiamart' ? 'btn-olive' : 'btn-outline'" @click="tab = 'indiamart'">IndiaMart</button>
+          <button type="button" class="btn btn-sm" :class="tab === 'tradeindia' ? 'btn-olive' : 'btn-outline'" @click="tab = 'tradeindia'">TradeIndia</button>
+        </div>
+
+        <div style="background: #fafafa; border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem; font-size: 0.82rem; max-height: 180px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-mono);">
+          <div x-show="tab === 'linkedin'">{{ draft.captions.linkedin if draft.captions else '' }}</div>
+          <div x-show="tab === 'instagram'">{{ draft.captions.instagram if draft.captions else '' }}</div>
+          <div x-show="tab === 'facebook'">{{ draft.captions.facebook if draft.captions else '' }}</div>
+          <div x-show="tab === 'indiamart'">{{ draft.captions.indiamart if draft.captions else '' }}</div>
+          <div x-show="tab === 'tradeindia'">{{ draft.captions.tradeindia if draft.captions else '' }}</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}Marketing Approval Queue — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div>
+  <!-- Header Banner -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.25rem;">Marketing Post Approval Queue</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Review draft posts and promotional campaigns before multi-platform dispatch (LinkedIn, Instagram, Facebook, IndiaMart, TradeIndia)
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <a href="/marketing/campaign/new" class="btn btn-olive btn-sm">
+          + New Campaign / Event Post
+        </a>
+        <span class="badge badge-gray" style="font-size: 0.85rem; padding: 4px 10px;">
+          {{ (queued_skus|length) + (queued_campaigns|length) }} Total Queued
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {% if not queued_skus and not queued_campaigns %}
+  <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+    <h3 style="font-size: 1.3rem; color: #666; margin-bottom: 0.5rem;">No Posts in Queue</h3>
+    <p style="font-size: 0.95rem; color: #777; max-width: 500px; margin: 0 auto 1.5rem;">
+      When commercial SKUs are marked as <code>Ready</code> with catalogue visibility enabled, or when promotional campaigns are created, their marketing drafts will appear here for review.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 0.75rem;">
+      <a href="/marketing/campaign/new" class="btn btn-olive btn-sm">+ Create Independence Day Post</a>
+      <a href="/skus" class="btn btn-outline btn-sm">Browse SKUs</a>
+    </div>
+  </div>
+  {% else %}
+
+  <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    
+    <!-- 1. Queued Promotional Campaigns -->
+    {% if queued_campaigns %}
+    <div style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-machine-black); margin-bottom: -0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span>PROMOTIONAL CAMPAIGNS</span>
+      <span class="badge badge-olive" style="font-size: 0.75rem;">{{ queued_campaigns|length }}</span>
+    </div>
+
+    {% for camp in queued_campaigns %}
+    {% set draft = camp.post_draft or {} %}
+    <div class="card" id="camp-card-{{ camp.id }}" style="border-left: 4px solid #1877F2;" x-data="{ tab: 'linkedin', openReject: false, reason: '', confirmingApprove: false }">
+      
+      <!-- Top Info -->
+      <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <span class="badge" style="background: #1877F2; color: #fff; font-size: 0.85rem;">CAMPAIGN</span>
+          <span class="badge badge-gray">{{ camp.occasion or 'Announcement' }}</span>
+          <span class="mono" style="font-size: 0.8rem; color: #666;">Scheduled: {{ camp.scheduled_at }}</span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Status: <strong>{{ camp.post_status|upper }}</strong>
+        </div>
+      </div>
+
+      <!-- Main Body -->
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-top: 1rem;">
+        
+        <!-- Left: Campaign Content -->
+        <div>
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.5rem;">{{ camp.headline }}</h2>
+          <p style="font-size: 0.9rem; color: #444; margin-bottom: 1rem; line-height: 1.6; white-space: pre-wrap;">
+            {{ camp.body }}
+          </p>
+
+          <div style="background-color: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+              <strong>Target Platforms:</strong> {{ camp.platforms|join(', ')|upper }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Platform Captions Preview -->
+        <div style="border-left: 1px solid var(--snm-line); padding-left: 1.5rem;">
+          <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">
+            PLATFORM CAPTION PREVIEWS
+          </div>
+
+          <!-- Platform Tabs -->
+          <div style="display: flex; gap: 4px; border-bottom: 1px solid var(--snm-line); padding-bottom: 4px; margin-bottom: 0.75rem;">
+            <button type="button" class="btn btn-sm" :class="tab === 'linkedin' ? 'btn-olive' : 'btn-outline'" @click="tab = 'linkedin'">LinkedIn</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'instagram' ? 'btn-olive' : 'btn-outline'" @click="tab = 'instagram'">Instagram</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'facebook' ? 'btn-olive' : 'btn-outline'" @click="tab = 'facebook'">Facebook</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'indiamart' ? 'btn-olive' : 'btn-outline'" @click="tab = 'indiamart'">IndiaMart</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'tradeindia' ? 'btn-olive' : 'btn-outline'" @click="tab = 'tradeindia'">TradeIndia</button>
+          </div>
+
+          <!-- Caption Textboxes -->
+          <div style="background: #fafafa; border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem; font-size: 0.85rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-mono);">
+            <div x-show="tab === 'linkedin'">{{ draft.captions.linkedin if draft.captions else '' }}</div>
+            <div x-show="tab === 'instagram'">{{ draft.captions.instagram if draft.captions else '' }}</div>
+            <div x-show="tab === 'facebook'">{{ draft.captions.facebook if draft.captions else '' }}</div>
+            <div x-show="tab === 'indiamart'">{{ draft.captions.indiamart if draft.captions else '' }}</div>
+            <div x-show="tab === 'tradeindia'">{{ draft.captions.tradeindia if draft.captions else '' }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--snm-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+        
+        <!-- Rejection Control -->
+        <div style="flex: 1; max-width: 450px;">
+          <button 
+            type="button" 
+            class="btn btn-outline btn-sm" 
+            style="color: var(--snm-fail); border-color: var(--snm-line);" 
+            @click="openReject = !openReject"
+            x-show="!openReject"
+          >
+            Reject Campaign...
+          </button>
+
+          <div x-show="openReject" style="background: #fff; border: 1px solid var(--snm-fail); border-radius: 2px; padding: 0.75rem;">
+            <form hx-post="/marketing/reject/{{ camp.id }}" hx-target="#camp-card-{{ camp.id }}" hx-swap="outerHTML">
+              <label class="form-label" style="font-size: 0.8rem; color: var(--snm-fail);">Rejection Reason (min 10 chars):</label>
+              <textarea 
+                name="reason" 
+                x-model="reason" 
+                class="form-input" 
+                rows="2" 
+                placeholder="Specify what needs editing..."
+                required
+              ></textarea>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem;">
+                <span class="mono" style="font-size: 0.75rem; color: #777;" x-text="reason.trim().length + ' / 10 characters minimum'"></span>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button type="button" class="btn btn-outline btn-sm" @click="openReject = false; reason = ''">Cancel</button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-sm" 
+                    style="background-color: var(--snm-fail); color: #ffffff;"
+                    :disabled="reason.trim().length < 10"
+                  >
+                    Confirm Rejection
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Approval with Alpine Confirmation -->
+        <div>
+          <div x-show="!confirmingApprove">
+            <button 
+              type="button" 
+              class="btn btn-olive" 
+              @click="confirmingApprove = true"
+            >
+              Approve & Publish Campaign
+            </button>
+          </div>
+
+          <div x-show="confirmingApprove" style="display: flex; align-items: center; gap: 0.75rem; background: var(--snm-greige); padding: 0.4rem 0.75rem; border: 1px solid var(--snm-olive); border-radius: 2px;">
+            <span style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; color: var(--snm-machine-black);">
+              This will publish to selected platforms. Confirm?
+            </span>
+            <button 
+              type="button" 
+              class="btn btn-olive btn-sm"
+              hx-post="/marketing/approve/{{ camp.id }}"
+              hx-target="#camp-card-{{ camp.id }}"
+              hx-swap="outerHTML"
+            >
+              Confirm
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline btn-sm" 
+              @click="confirmingApprove = false"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    {% endfor %}
+    {% endif %}
+
+
+    <!-- 2. Queued SKU Posts -->
+    {% if queued_skus %}
+    <div style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-machine-black); margin-bottom: -0.5rem; margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span>PRODUCT SKU POSTS</span>
+      <span class="badge badge-olive" style="font-size: 0.75rem;">{{ queued_skus|length }}</span>
+    </div>
+
+    {% for sku in queued_skus %}
+    {% set draft = sku.post_draft or {} %}
+    <div class="card" id="sku-card-{{ sku.id }}" x-data="{ tab: 'linkedin', openReject: false, reason: '', confirmingApprove: false }">
+      
+      <!-- Top Info -->
+      <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <span class="badge badge-olive" style="font-size: 0.85rem;">{{ sku.sku_code }}</span>
+          <span class="badge badge-gray">{{ sku.family }}</span>
+          
+          {% if sku.standard and sku.standard.upper().startswith('MIL-') %}
+            <span class="badge badge-fail">Defence — not for public listing</span>
+          {% else %}
+            <span class="badge badge-pass">Commercial Ready</span>
+          {% endif %}
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Status: <strong>{{ sku.post_status|upper }}</strong>
+        </div>
+      </div>
+
+      <!-- Main Body -->
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-top: 1rem;">
+        
+        <!-- Left: Product Specs -->
+        <div>
+          <h2 style="font-size: 1.35rem; margin-bottom: 0.5rem;">{{ draft.title or sku.title or sku.sku_code }}</h2>
+          <p style="font-size: 0.9rem; color: #444; margin-bottom: 1rem; line-height: 1.5;">
+            {{ draft.description or sku.blurb }}
+          </p>
+
+          <div style="background-color: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1rem;">
+            <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.75rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.25rem;">
+              VERIFIED TECHNICAL PROPERTIES
+            </div>
+            
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; font-size: 0.85rem;">
+              <span class="mono" style="color: #666;">Standard:</span>
+              <strong>{{ draft.standard or sku.standard or 'SNM Mill Standard' }}</strong>
+
+              <span class="mono" style="color: #666;">Material:</span>
+              <span>{{ draft.material or sku.material }}</span>
+
+              <span class="mono" style="color: #666;">Breaking Strength:</span>
+              <strong style="color: var(--snm-olive-dark);">{{ draft.breaking_strength }}</strong>
+
+              <span class="mono" style="color: #666;">Strength-to-Weight:</span>
+              <strong class="mono">{{ draft.strength_to_weight_ratio }}</strong>
+
+              <span class="mono" style="color: #666;">Application:</span>
+              <span>{{ draft.use_case }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Platform Captions Preview -->
+        <div style="border-left: 1px solid var(--snm-line); padding-left: 1.5rem;">
+          <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">
+            PLATFORM CAPTION PREVIEWS
+          </div>
+
+          <!-- Platform Tabs -->
+          <div style="display: flex; gap: 4px; border-bottom: 1px solid var(--snm-line); padding-bottom: 4px; margin-bottom: 0.75rem;">
+            <button type="button" class="btn btn-sm" :class="tab === 'linkedin' ? 'btn-olive' : 'btn-outline'" @click="tab = 'linkedin'">LinkedIn</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'instagram' ? 'btn-olive' : 'btn-outline'" @click="tab = 'instagram'">Instagram</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'facebook' ? 'btn-olive' : 'btn-outline'" @click="tab = 'facebook'">Facebook</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'indiamart' ? 'btn-olive' : 'btn-outline'" @click="tab = 'indiamart'">IndiaMart</button>
+            <button type="button" class="btn btn-sm" :class="tab === 'tradeindia' ? 'btn-olive' : 'btn-outline'" @click="tab = 'tradeindia'">TradeIndia</button>
+          </div>
+
+          <!-- Caption Textboxes -->
+          <div style="background: #fafafa; border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem; font-size: 0.85rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-mono);">
+            <div x-show="tab === 'linkedin'">{{ draft.captions.linkedin if draft.captions else 'Caption unavailable' }}</div>
+            <div x-show="tab === 'instagram'">{{ draft.captions.instagram if draft.captions else 'Caption unavailable' }}</div>
+            <div x-show="tab === 'facebook'">{{ draft.captions.facebook if draft.captions else 'Caption unavailable' }}</div>
+            <div x-show="tab === 'indiamart'">{{ draft.captions.indiamart if draft.captions else 'Caption unavailable' }}</div>
+            <div x-show="tab === 'tradeindia'">{{ draft.captions.tradeindia if draft.captions else 'Caption unavailable' }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--snm-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+        
+        <!-- Rejection Control -->
+        <div style="flex: 1; max-width: 450px;">
+          <button 
+            type="button" 
+            class="btn btn-outline btn-sm" 
+            style="color: var(--snm-fail); border-color: var(--snm-line);" 
+            @click="openReject = !openReject"
+            x-show="!openReject"
+          >
+            Reject Post...
+          </button>
+
+          <div x-show="openReject" style="background: #fff; border: 1px solid var(--snm-fail); border-radius: 2px; padding: 0.75rem;">
+            <form hx-post="/marketing/reject/{{ sku.id }}" hx-target="#sku-card-{{ sku.id }}" hx-swap="outerHTML">
+              <label class="form-label" style="font-size: 0.8rem; color: var(--snm-fail);">Rejection Reason (Required, min 10 chars):</label>
+              <textarea 
+                name="reason" 
+                x-model="reason" 
+                class="form-input" 
+                rows="2" 
+                placeholder="Specify what needs correction (e.g. adjust technical use case description)..."
+                required
+              ></textarea>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem;">
+                <span class="mono" style="font-size: 0.75rem; color: #777;" x-text="reason.trim().length + ' / 10 characters minimum'"></span>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button type="button" class="btn btn-outline btn-sm" @click="openReject = false; reason = ''">Cancel</button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-sm" 
+                    style="background-color: var(--snm-fail); color: #ffffff;"
+                    :disabled="reason.trim().length < 10"
+                  >
+                    Confirm Rejection
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Approval with Alpine Confirmation -->
+        <div>
+          <div x-show="!confirmingApprove">
+            <button 
+              type="button" 
+              class="btn btn-olive" 
+              @click="confirmingApprove = true"
+            >
+              Approve & Publish to 5 Platforms
+            </button>
+          </div>
+
+          <div x-show="confirmingApprove" style="display: flex; align-items: center; gap: 0.75rem; background: var(--snm-greige); padding: 0.4rem 0.75rem; border: 1px solid var(--snm-olive); border-radius: 2px;">
+            <span style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; color: var(--snm-machine-black);">
+              This will publish to 5 platforms. Confirm?
+            </span>
+            <button 
+              type="button" 
+              class="btn btn-olive btn-sm"
+              hx-post="/marketing/approve/{{ sku.id }}"
+              hx-target="#sku-card-{{ sku.id }}"
+              hx-swap="outerHTML"
+            >
+              Confirm
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline btn-sm" 
+              @click="confirmingApprove = false"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    {% endfor %}
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

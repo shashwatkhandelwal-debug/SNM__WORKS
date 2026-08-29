@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SNM Works — Technical Textiles{% endblock %}</title>
+  
+  <!-- Google Fonts: Barlow Condensed, IBM Plex Sans, IBM Plex Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- HTMX & Alpine.js -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.13.10/dist/cdn.min.js"></script>
+  
+  <!-- SNM Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body x-data="{ mobileOpen: false }">
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button class="mobile-toggle" @click="mobileOpen = !mobileOpen" aria-label="Toggle navigation menu">
+        &#9776;
+      </button>
+      <a href="/dashboard" class="top-bar-brand">
+        <span class="brand-title">SWADESHI NIWAR MILLS</span>
+        <span class="brand-badge">KANPUR</span>
+      </a>
+    </div>
+
+    <div class="top-bar-actions">
+      <a href="/catalogue" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">Public Catalogue</a>
+      {% if user %}
+      <a href="/skus" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">SKUs</a>
+      <a href="/marketing/queue" class="btn btn-sm btn-olive" style="margin-right: 0.5rem;">Marketing Queue</a>
+      <div class="user-badge">
+        <span class="user-dot"></span>
+        <span class="mono">{{ user.full_name or user.email }}</span>
+      </div>
+      <a href="/auth/logout" class="btn btn-outline btn-sm">Sign Out</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="app-container">
+    {% if user %}
+    <!-- Sidebar with 11 Functions -->
+    <aside class="sidebar" :class="{ 'mobile-open': mobileOpen }">
+      <div style="padding: 0.75rem 1rem 0.25rem; font-family: var(--font-heading); font-size: 0.85rem; color: #666; letter-spacing: 0.05em; border-bottom: 1px solid var(--snm-line);">
+        ORGANIZATION FUNCTIONS
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item {% if current_func == 'ALL' or not current_func %}active{% endif %}">
+          <span class="nav-code">ALL</span>
+          <span class="nav-label">Dashboard Overview</span>
+        </a>
+        <a href="/dashboard?func=EXEC" class="nav-item {% if current_func == 'EXEC' %}active{% endif %}">
+          <span class="nav-code">EXEC</span>
+          <span class="nav-label">Executive</span>
+        </a>
+        <a href="/dashboard?func=OPS" class="nav-item {% if current_func == 'OPS' %}active{% endif %}">
+          <span class="nav-code">OPS</span>
+          <span class="nav-label">Operating</span>
+        </a>
+        <a href="/dashboard?func=QUA" class="nav-item {% if current_func == 'QUA' %}active{% endif %}">
+          <span class="nav-code">QUA</span>
+          <span class="nav-label">Quality</span>
+        </a>
+        <a href="/dashboard?func=TEC" class="nav-item {% if current_func == 'TEC' %}active{% endif %}">
+          <span class="nav-code">TEC</span>
+          <span class="nav-label">Technical</span>
+        </a>
+        <a href="/dashboard?func=COM" class="nav-item {% if current_func == 'COM' %}active{% endif %}">
+          <span class="nav-code">COM</span>
+          <span class="nav-label">Commercial</span>
+        </a>
+        <a href="/dashboard?func=SCM" class="nav-item {% if current_func == 'SCM' %}active{% endif %}">
+          <span class="nav-code">SCM</span>
+          <span class="nav-label">Supply Chain</span>
+        </a>
+        <a href="/dashboard?func=FIN" class="nav-item {% if current_func == 'FIN' %}active{% endif %}">
+          <span class="nav-code">FIN</span>
+          <span class="nav-label">Financial</span>
+        </a>
+        <a href="/dashboard?func=PPL" class="nav-item {% if current_func == 'PPL' %}active{% endif %}">
+          <span class="nav-code">PPL</span>
+          <span class="nav-label">People</span>
+        </a>
+        <a href="/dashboard?func=INF" class="nav-item {% if current_func == 'INF' %}active{% endif %}">
+          <span class="nav-code">INF</span>
+          <span class="nav-label">Information</span>
+        </a>
+        <a href="/dashboard?func=KNW" class="nav-item {% if current_func == 'KNW' %}active{% endif %}">
+          <span class="nav-code">KNW</span>
+          <span class="nav-label">Knowledge</span>
+        </a>
+        <a href="/dashboard?func=CMP" class="nav-item {% if current_func == 'CMP' %}active{% endif %}">
+          <span class="nav-code">CMP</span>
+          <span class="nav-label">Compliance</span>
+        </a>
+      </nav>
+    </aside>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

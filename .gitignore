@@ -49,3 +49,12 @@ yarn-debug.log*
 .idea/
 .DS_Store
 *.swp
+
+# Uploads & Media
+static/uploads/
+*.jpg
+*.jpeg
+*.png
+*.webp
+!static/fonts/*
+!static/css/*
