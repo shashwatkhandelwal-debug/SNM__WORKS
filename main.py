@@ -20,6 +20,7 @@ from routers.despatch import router as despatch_router
 from routers.organisation import router as organisation_router
 from routers.costing import router as costing_router
 from routers.certificates import router as certificates_router
+from routers.settings import router as settings_router
 
 
 @asynccontextmanager
@@ -62,6 +63,7 @@ app.include_router(despatch_router)
 app.include_router(organisation_router)
 app.include_router(costing_router)
 app.include_router(certificates_router)
+app.include_router(settings_router)
 
 
 @app.get("/health")

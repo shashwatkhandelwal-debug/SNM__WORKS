@@ -23,6 +23,26 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ENVIRONMENT", "APP_ENV")
     )
     secret_key: str = "dev-secret-key"
+    encryption_key: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("ENCRYPTION_KEY", "TOKEN_ENCRYPTION_KEY")
+    )
+    linkedin_client_id: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("LINKEDIN_CLIENT_ID")
+    )
+    linkedin_client_secret: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("LINKEDIN_CLIENT_SECRET")
+    )
+    linkedin_redirect_uri: str = Field(
+        default="http://localhost:8000/auth/linkedin/callback",
+        validation_alias=AliasChoices("LINKEDIN_REDIRECT_URI")
+    )
+    linkedin_company_page_id: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("LINKEDIN_COMPANY_PAGE_ID", "LINKEDIN_ORGANIZATION_ID")
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
