@@ -35,6 +35,9 @@
     <div class="top-bar-actions">
       <a href="/catalogue" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">Public Catalogue</a>
       {% if user %}
+      <a href="/jobs" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">Jobs</a>
+      <a href="/qc" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">QC</a>
+      <a href="/lab-tests" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">Lab Tests</a>
       <a href="/skus" class="btn btn-outline btn-sm" style="margin-right: 0.5rem;">SKUs</a>
       <a href="/marketing/queue" class="btn btn-sm btn-olive" style="margin-right: 0.5rem;">Marketing Queue</a>
       <div class="user-badge">
@@ -48,13 +51,69 @@
 
   <div class="app-container">
     {% if user %}
-    <!-- Sidebar with 11 Functions -->
+    <!-- Sidebar with Production, Quality and 11 Functions -->
     <aside class="sidebar" :class="{ 'mobile-open': mobileOpen }">
+      <!-- Operations & Quality Section -->
       <div style="padding: 0.75rem 1rem 0.25rem; font-family: var(--font-heading); font-size: 0.85rem; color: #666; letter-spacing: 0.05em; border-bottom: 1px solid var(--snm-line);">
+        PRODUCTION & QUALITY
+      </div>
+      <nav class="sidebar-nav" style="border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+        <a href="/jobs" class="nav-item {% if current_page == 'jobs' %}active{% endif %}">
+          <span class="nav-code">JOB</span>
+          <span class="nav-label">Job Cards</span>
+        </a>
+        <a href="/qc" class="nav-item {% if current_page == 'qc' %}active{% endif %}">
+          <span class="nav-code">QC</span>
+          <span class="nav-label">QC Line Checks</span>
+        </a>
+        <a href="/lab-tests" class="nav-item {% if current_page == 'lab-tests' %}active{% endif %}">
+          <span class="nav-code">LAB</span>
+          <span class="nav-label">Lab Tests</span>
+        </a>
+        <a href="/capa" class="nav-item {% if current_page == 'capa' %}active{% endif %}">
+          <span class="nav-code">CAPA</span>
+          <span class="nav-label">CAPA Register</span>
+        </a>
+        <a href="/certificates" class="nav-item {% if current_page == 'certificates' %}active{% endif %}">
+          <span class="nav-code">CER</span>
+          <span class="nav-label">Test Certificates</span>
+        </a>
+        <a href="/constructions" class="nav-item {% if current_page == 'constructions' %}active{% endif %}">
+          <span class="nav-code">ENG</span>
+          <span class="nav-label">Constructions</span>
+        </a>
+        <a href="/recipes" class="nav-item {% if current_page == 'recipes' %}active{% endif %}">
+          <span class="nav-code">DYE</span>
+          <span class="nav-label">Dye Recipes</span>
+        </a>
+        <a href="/downtime" class="nav-item {% if current_page == 'downtime' %}active{% endif %}">
+          <span class="nav-code">DWN</span>
+          <span class="nav-label">Downtime Log</span>
+        </a>
+        <a href="/despatch" class="nav-item {% if current_page == 'despatch' %}active{% endif %}">
+          <span class="nav-code">DSP</span>
+          <span class="nav-label">Despatch</span>
+        </a>
+        <a href="/tasks" class="nav-item {% if current_page == 'tasks' %}active{% endif %}">
+          <span class="nav-code">TSK</span>
+          <span class="nav-label">My Tasks</span>
+        </a>
+        <a href="/organisation" class="nav-item {% if current_page == 'organisation' %}active{% endif %}">
+          <span class="nav-code">ORG</span>
+          <span class="nav-label">Organisation</span>
+        </a>
+        <a href="/costing" class="nav-item {% if current_page == 'costing' %}active{% endif %}">
+          <span class="nav-code">CST</span>
+          <span class="nav-label">Costing</span>
+        </a>
+      </nav>
+
+      <!-- Organization Functions -->
+      <div style="padding: 0.25rem 1rem 0.25rem; font-family: var(--font-heading); font-size: 0.85rem; color: #666; letter-spacing: 0.05em; border-bottom: 1px solid var(--snm-line);">
         ORGANIZATION FUNCTIONS
       </div>
       <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item {% if current_func == 'ALL' or not current_func %}active{% endif %}">
+        <a href="/dashboard" class="nav-item {% if current_func == 'ALL' or not current_func and current_page not in ('jobs', 'qc') %}active{% endif %}">
           <span class="nav-code">ALL</span>
           <span class="nav-label">Dashboard Overview</span>
         </a>
@@ -62,11 +121,11 @@
           <span class="nav-code">EXEC</span>
           <span class="nav-label">Executive</span>
         </a>
-        <a href="/dashboard?func=OPS" class="nav-item {% if current_func == 'OPS' %}active{% endif %}">
+        <a href="/dashboard?func=OPS" class="nav-item {% if current_func == 'OPS' and current_page not in ('jobs', 'qc') %}active{% endif %}">
           <span class="nav-code">OPS</span>
           <span class="nav-label">Operating</span>
         </a>
-        <a href="/dashboard?func=QUA" class="nav-item {% if current_func == 'QUA' %}active{% endif %}">
+        <a href="/dashboard?func=QUA" class="nav-item {% if current_func == 'QUA' and current_page not in ('jobs', 'qc') %}active{% endif %}">
           <span class="nav-code">QUA</span>
           <span class="nav-label">Quality</span>
         </a>

@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Constructions — Technical Specifications — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      ENGINEERING CONSTRUCTIONS
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Narrow wovens, broad technical fabrics, and cordage specification masterbase.
+    </div>
+  </div>
+  <div>
+    <a href="/constructions/new" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">
+      + New Construction
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/constructions" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Family Filter -->
+    <div style="flex: 1; min-width: 150px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Product Family
+      </label>
+      <select name="family" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_family == 'all' %}selected{% endif %}>All Families</option>
+        {% for fam in families %}
+        <option value="{{ fam }}" {% if selected_family == fam %}selected{% endif %}>{{ fam }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div style="flex: 1; min-width: 150px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Status
+      </label>
+      <select name="status_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Search Box -->
+    <div style="flex: 2; min-width: 200px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Spec No / Product
+      </label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. CONST-0001, Type VIII, 44mm..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_family != 'all' or selected_status != 'all' or search_query %}
+      <a href="/constructions" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Spec No</th>
+        <th style="padding: 0.75rem 1rem;">Family</th>
+        <th style="padding: 0.75rem 1rem;">Product / Description</th>
+        <th style="padding: 0.75rem 1rem;">Width / Size</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Calculated Mass</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Pred. Strength</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in constructions %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+          <a href="/constructions/{{ item.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ item.spec_no }}
+          </a>
+          <span style="font-size: 0.75rem; color: #888; margin-left: 0.25rem;">({{ item.revision }})</span>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading);
+            {% if item.family == 'Narrow Wovens' %}background: #E8EDE4; color: var(--snm-olive);
+            {% elif item.family == 'Broad Fabric' %}background: #EBF2F7; color: #1E517B;
+            {% else %}background: #F4EFEA; color: #7B4C1E;{% endif %}">
+            {{ item.family }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 500; color: var(--snm-machine-black);">{{ item.product }}</div>
+          {% if item.spec %}
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-mono);">{{ item.spec }}</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono);">
+          {% if item.family == 'Narrow Wovens' %}
+            {{ item.width_mm }} mm <span style="font-size: 0.75rem; color: #888;">({{ item.metrics.width_inches }}″)</span>
+          {% elif item.family == 'Broad Fabric' %}
+            {{ item.width_cm }} cm
+          {% elif item.family == 'Cordage' %}
+            {{ item.diameter_mm }} mm
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          {% if item.family == 'Broad Fabric' %}
+            <strong>{{ item.metrics.total_gsm }}</strong> g/m²
+          {% else %}
+            <strong>{{ item.metrics.total_gpm }}</strong> g/m
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          {% if item.metrics.theoretical_break_lbf and item.metrics.theoretical_break_lbf > 0 %}
+            <strong>{{ item.metrics.theoretical_break_lbf }}</strong> lbf
+          {% else %}
+            <span style="color: #999;">—</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase;
+            {% if item.status == 'Approved' %}background: #EAF4E7; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% elif item.status == 'Under Review' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% elif item.status == 'Draft' %}background: #F0EEEA; color: #555; border: 1px solid #CCC;
+            {% else %}background: #FBEBEB; color: var(--snm-fail); border: 1px solid var(--snm-fail);{% endif %}">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/constructions/{{ item.id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">View</a>
+          {% if item.status != 'Approved' %}
+          <a href="/constructions/{{ item.id }}/edit" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; color: #444; border: 1px solid var(--snm-line); margin-left: 0.25rem;">Edit</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="padding: 2.5rem; text-align: center; color: #888;">
+          No construction specifications found matching your criteria.
+          <div style="margin-top: 0.5rem;">
+            <a href="/constructions/new" style="color: var(--snm-olive); text-decoration: underline;">Create the first construction specification</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

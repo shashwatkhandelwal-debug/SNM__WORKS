@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Construction {{ c.spec_no }}{% else %}New Construction Specification{% endif %} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 1.5rem;">
+  <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+    <a href="/constructions" style="color: var(--snm-olive); text-decoration: underline;">Constructions</a> / {% if is_edit %}Edit {{ c.spec_no }}{% else %}New Spec{% endif %}
+  </div>
+  <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+    {% if is_edit %}EDIT CONSTRUCTION SPECIFICATION ({{ c.spec_no }}){% else %}CREATE CONSTRUCTION SPECIFICATION{% endif %}
+  </h1>
+</div>
+
+<div x-data="{ family: '{{ selected_family or (c.family if is_edit else 'Narrow Wovens') }}' }">
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+    
+    <!-- Left Column: Construction Form -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.5rem;">
+      <form method="POST" action="{% if is_edit %}/constructions/{{ c.id }}/update{% else %}/constructions{% endif %}" id="construction-form">
+        
+        <!-- Section 1: Header / General Information -->
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          1. SPECIFICATION HEADER
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Product Family *
+            </label>
+            <select name="family" x-model="family" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+              {% for fam in families %}
+              <option value="{{ fam }}" {% if (c.family if is_edit else selected_family) == fam %}selected{% endif %}>{{ fam }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Spec No (Auto)
+            </label>
+            <input type="text" value="{{ spec_no_preview }}" disabled style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; font-weight: bold; color: var(--snm-olive);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Product Title / Name *
+            </label>
+            <input type="text" name="product" value="{{ c.product if is_edit else '' }}" placeholder="e.g. 44mm Heavy Duty Nylon Webbing MIL-W-4088K Type VIII" required style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Revision
+            </label>
+            <input type="text" name="revision" value="{{ c.revision if is_edit else 'R0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Reference Standard / Spec
+            </label>
+            <input type="text" name="spec" value="{{ c.spec if is_edit else '' }}" placeholder="e.g. MIL-W-4088K Type VIII Class 1" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Target Customer (Optional)
+            </label>
+            <select name="customer_id" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+              <option value="">-- General / Internal --</option>
+              {% for cust in customers %}
+              <option value="{{ cust.id }}" {% if is_edit and c.customer_id == cust.id %}selected{% endif %}>{{ cust.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        {% if is_edit %}
+        <div style="margin-bottom: 1.5rem;">
+          <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+            Workflow Status
+          </label>
+          <select name="status" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+            {% for st in statuses %}
+            {% if st != 'Approved' %}
+            <option value="{{ st }}" {% if c.status == st %}selected{% endif %}>{{ st }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+          <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">
+            * Formal approval to 'Approved' is performed separately via technical review sign-off.
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Section 2: Family Specific Construction Parameters -->
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          2. WEAVING & GEOMETRY PARAMETERS
+        </div>
+
+        <!-- Narrow Wovens Section -->
+        <div x-show="family === 'Narrow Wovens'" style="margin-bottom: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Width (mm) *
+              </label>
+              <input type="number" step="0.01" name="width_mm" value="{{ c.width_mm if is_edit else '43.66' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Weave Structure
+              </label>
+              <input type="text" name="weave" value="{{ c.weave if is_edit else '2/2 Herringbone Twill' }}" placeholder="e.g. 2/2 Twill, Plain, Satin" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Selvedge Type
+              </label>
+              <input type="text" name="selvedge" value="{{ c.selvedge if is_edit else 'Catch-cord double pick' }}" placeholder="e.g. Shuttle lockstitch" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Total Ends *
+              </label>
+              <input type="number" name="warp_ends" value="{{ c.warp_ends if is_edit else '320' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Warp Denier *
+              </label>
+              <input type="number" step="0.1" name="warp_denier" value="{{ c.warp_denier if is_edit else '840.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Picks / cm *
+              </label>
+              <input type="number" step="0.01" name="picks_per_cm" value="{{ c.picks_per_cm if is_edit else '7.09' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Weft Denier *
+              </label>
+              <input type="number" step="0.1" name="weft_denier" value="{{ c.weft_denier if is_edit else '840.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Broad Fabric Section -->
+        <div x-show="family === 'Broad Fabric'" style="margin-bottom: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Fabric Width (cm)
+              </label>
+              <input type="number" step="0.1" name="width_cm" value="{{ c.width_cm if is_edit else '150.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Finish / Coating
+              </label>
+              <input type="text" name="finish" value="{{ c.finish if is_edit else 'PU Coated Waterproof' }}" placeholder="e.g. Water repellent, Uncoated" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Warp EPI *
+              </label>
+              <input type="number" step="0.1" name="epi" value="{{ c.epi if is_edit else '60.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Warp Denier *
+              </label>
+              <input type="number" step="0.1" name="warp_denier" value="{{ c.warp_denier if is_edit else '210.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Weft PPI *
+              </label>
+              <input type="number" step="0.1" name="ppi" value="{{ c.ppi if is_edit else '50.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Weft Denier *
+              </label>
+              <input type="number" step="0.1" name="weft_denier" value="{{ c.weft_denier if is_edit else '210.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Cordage Section -->
+        <div x-show="family === 'Cordage'" style="margin-bottom: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Cord / Braid Type
+              </label>
+              <input type="text" name="cord_type" value="{{ c.cord_type if is_edit else '16-Carrier Round Braid' }}" placeholder="e.g. Paracord, Solid braid, Coreless" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Diameter (mm)
+              </label>
+              <input type="number" step="0.1" name="diameter_mm" value="{{ c.diameter_mm if is_edit else '4.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Carriers *
+              </label>
+              <input type="number" name="carriers" value="{{ c.carriers if is_edit else '16' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Yarns / Carrier *
+              </label>
+              <input type="number" name="yarns_per_carrier" value="{{ c.yarns_per_carrier if is_edit else '3' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Core Yarns
+              </label>
+              <input type="number" name="core_yarns" value="{{ c.core_yarns if is_edit else '4' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Yarn Denier *
+              </label>
+              <input type="number" step="0.1" name="yarn_denier" value="{{ c.yarn_denier if is_edit else '1000.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Twists / Metre (TPM)
+              </label>
+              <input type="number" step="0.1" name="tpm" value="{{ c.tpm if is_edit else '120.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+                Contraction %
+              </label>
+              <input type="number" step="0.1" name="contraction" value="{{ c.contraction if is_edit else '15.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Shared Mechanical & Calculation Constants -->
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          3. MECHANICAL CONSTANTS & EFFICIENCY
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Warp Crimp (%)
+            </label>
+            <input type="number" step="0.1" name="warp_crimp" value="{{ c.warp_crimp if is_edit else '5.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Weft Crimp (%)
+            </label>
+            <input type="number" step="0.1" name="weft_crimp" value="{{ c.weft_crimp if is_edit else '3.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Conversion Efficiency (%)
+            </label>
+            <input type="number" step="0.1" name="efficiency" value="{{ c.efficiency if is_edit else '85.0' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Warp Tenacity (g/den)
+            </label>
+            <input type="number" step="0.1" name="warp_tenacity" value="{{ c.warp_tenacity if is_edit else '8.5' }}" hx-post="/constructions/calculate" hx-target="#calc-output-container" hx-include="#construction-form" hx-trigger="keyup changed delay:300ms, change" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Weft Tenacity (g/den)
+            </label>
+            <input type="number" step="0.1" name="weft_tenacity" value="{{ c.weft_tenacity if is_edit else '8.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+            Engineering Notes
+          </label>
+          <textarea name="notes" rows="3" placeholder="Additional spinning, weaving, or heat setting instructions..." style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">{{ c.notes if is_edit else '' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <a href="/constructions{% if is_edit %}/{{ c.id }}{% endif %}" class="btn" style="border: 1px solid var(--snm-line); color: #666;">Cancel</a>
+          <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+            {% if is_edit %}Save Changes{% else %}Save Construction Spec{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Live Calculations Sidebar (HTMX target) -->
+    <div id="calc-output-container" style="position: sticky; top: 1rem;">
+      {% include "constructions/calc_card.html" with context %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

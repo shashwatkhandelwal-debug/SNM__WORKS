@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Lab Test {{ test.test_id }}{% else %}New Lab Test Record{% endif %} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;" x-data="labTestFormController()">
+  
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.85rem;" class="mono">
+    <a href="/lab-tests" style="color: var(--snm-olive); text-decoration: underline;">LAB TESTS</a>
+    <span>/</span>
+    <span style="color: #666;">{% if is_edit %}EDIT {{ test.test_id }}{% else %}NEW TEST{% endif %}</span>
+  </div>
+
+  <div class="card" style="border-top: 5px solid var(--snm-olive); padding: 1.75rem;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+      <div>
+        <h1 style="font-size: 1.5rem; margin: 0 0 0.25rem 0;">
+          {% if is_edit %}Edit Lab Test: {{ test.test_id }}{% else %}New Laboratory Test Entry{% endif %}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #666; margin: 0;">
+          Test parameters, multi-specimen readings, and server-side verdict calculation.
+        </p>
+      </div>
+      <div class="mono badge badge-olive" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;">
+        {{ test.test_id }}
+      </div>
+    </div>
+
+    <form 
+      method="POST" 
+      action="{% if is_edit %}/lab-tests/{{ test.id }}/update{% else %}/lab-tests{% endif %}"
+      style="display: flex; flex-direction: column; gap: 1.5rem;"
+    >
+      
+      <!-- Section 1: Test Identity & Job Link -->
+      <div style="background: var(--snm-paper); padding: 1.25rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+        <h3 style="font-size: 1.05rem; margin: 0 0 1rem 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+          1. Test Header & Linkage
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          
+          <!-- Job Selection -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Job Card (Lot / Order)</label>
+            <select name="job_id" class="form-control mono">
+              <option value="">-- Direct Lab Test (No Job Link) --</option>
+              {% for j in jobs %}
+                <option value="{{ j.id }}" {% if selected_job_id == j.id or test.job_id == j.id %}selected{% endif %}>
+                  {{ j.job_no }} — {{ j.product }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Tested On Date -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Test Date</label>
+            <input 
+              type="date" 
+              name="tested_on" 
+              value="{{ test.tested_on }}" 
+              class="form-control mono" 
+              required
+            >
+          </div>
+
+          <!-- Test Type -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Test Type</label>
+            <select name="test_type" class="form-control" required>
+              {% for tt in test_types %}
+                <option value="{{ tt }}" {% if test.test_type == tt %}selected{% endif %}>{{ tt }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Testing Facility -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Testing Laboratory</label>
+            <select name="lab" class="form-control">
+              <option value="In-house" {% if test.lab == 'In-house' or not test.lab %}selected{% endif %}>In-house (SNM Quality Lab)</option>
+              <option value="SASMIRA" {% if test.lab == 'SASMIRA' %}selected{% endif %}>SASMIRA, Mumbai</option>
+              <option value="SITRA" {% if test.lab == 'SITRA' %}selected{% endif %}>SITRA, Coimbatore</option>
+              <option value="NITRA" {% if test.lab == 'NITRA' %}selected{% endif %}>NITRA, Ghaziabad</option>
+              <option value="OFK" {% if test.lab == 'OFK' %}selected{% endif %}>Ordnance Factory Kanpur</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 2: Specification & Limit Rules -->
+      <div style="background: var(--snm-paper); padding: 1.25rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+        <h3 style="font-size: 1.05rem; margin: 0 0 1rem 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+          2. Target Specification & Acceptance Criteria
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          
+          <!-- Parameter Name -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Parameter Name</label>
+            <input 
+              type="text" 
+              name="parameter" 
+              value="{{ test.parameter }}" 
+              placeholder="e.g. Breaking Strength, Width, Thickness" 
+              class="form-control" 
+              required
+            >
+          </div>
+
+          <!-- Test Standard / Method -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Test Standard / Method</label>
+            <input 
+              type="text" 
+              name="standard" 
+              value="{{ test.standard or '' }}" 
+              placeholder="e.g. ASTM D5034 / IS 1969" 
+              class="form-control mono"
+            >
+          </div>
+
+          <!-- Unit of Measure -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Unit of Measure</label>
+            <input 
+              type="text" 
+              name="unit" 
+              value="{{ test.unit or '' }}" 
+              placeholder="e.g. kgf, mm, g/m, %" 
+              class="form-control mono"
+            >
+          </div>
+
+          <!-- External Report No -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">External Report No (if any)</label>
+            <input 
+              type="text" 
+              name="report_no" 
+              value="{{ test.report_no or '' }}" 
+              placeholder="e.g. SAS-2026-9901" 
+              class="form-control mono"
+            >
+          </div>
+
+        </div>
+
+        <!-- Limit Kind Controller -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+          
+          <!-- Limit Kind Select -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Limit Model</label>
+            <select name="limit_type" x-model="limitType" class="form-control mono">
+              <option value="nominal">nominal (± Tolerance)</option>
+              <option value="minimum">minimum (≥ Floor)</option>
+              <option value="maximum">maximum (≤ Ceiling)</option>
+              <option value="range">range (Min – Max)</option>
+            </select>
+          </div>
+
+          <!-- Spec Value / Target / Min Bound -->
+          <div>
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;" x-text="getSpecLabel()"></label>
+            <input 
+              type="number" 
+              step="any" 
+              name="spec_value" 
+              x-model.number="specValue" 
+              class="form-control mono" 
+              required
+            >
+          </div>
+
+          <!-- Tolerance (for Nominal) -->
+          <div x-show="limitType === 'nominal'">
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Tolerance (±)</label>
+            <input 
+              type="number" 
+              step="any" 
+              name="tolerance" 
+              x-model.number="tolerance" 
+              class="form-control mono" 
+              placeholder="± 0.0"
+            >
+          </div>
+
+          <!-- Upper Limit (for Range) -->
+          <div x-show="limitType === 'range'">
+            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Upper Bound (Max)</label>
+            <input 
+              type="number" 
+              step="any" 
+              name="upper_limit" 
+              x-model.number="upperLimit" 
+              class="form-control mono" 
+              placeholder="Max limit"
+            >
+          </div>
+
+          <!-- Critical Flag Checkbox -->
+          <div style="display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.5rem;">
+            <input 
+              type="checkbox" 
+              id="is_critical_chk" 
+              name="is_critical" 
+              value="true" 
+              x-model="isCritical"
+              style="width: 18px; height: 18px; cursor: pointer;"
+            >
+            <label for="is_critical_chk" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+              Critical Requirement (MIL-W-4088K 3.6.1)
+            </label>
+          </div>
+
+        </div>
+
+        <div style="margin-top: 0.75rem; font-size: 0.8rem; color: #666; font-family: var(--font-mono);">
+          <span x-show="isCritical" style="color: var(--snm-fail); font-weight: 600;">
+            ⚠ Critical mode active: Every specimen must individually pass the limit. Minimum reading rule applies (never averaged).
+          </span>
+          <span x-show="!isCritical">
+            ℹ Standard mode active: Specimen readings are evaluated by arithmetic average.
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Section 3: Multi-Specimen Readings -->
+      <div style="background: var(--snm-paper); padding: 1.25rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+          <h3 style="font-size: 1.05rem; margin: 0; color: var(--snm-machine-black);">
+            3. Specimen Readings (Raw Data)
+          </h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-sm btn-outline" @click="addSpecimen()">+ Add Specimen</button>
+            <button type="button" class="btn btn-sm btn-outline" @click="clearSpecimens()" style="color: var(--snm-fail);">Clear All</button>
+          </div>
+        </div>
+
+        <p style="font-size: 0.8rem; color: #555; margin-bottom: 0.75rem;">
+          Enter individual specimen test measurements. You can enter them row-by-row or type comma/space-separated values below.
+        </p>
+
+        <!-- Dynamic Specimen Rows -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+          <template x-for="(s, idx) in specimensList" :key="idx">
+            <div style="display: flex; align-items: center; gap: 0.35rem; background: #FFF; padding: 0.35rem; border: 1px solid var(--snm-line); border-radius: 4px;">
+              <span class="mono" style="font-size: 0.75rem; color: #888;" x-text="'#' + (idx + 1)"></span>
+              <input 
+                type="number" 
+                step="any" 
+                x-model.number="specimensList[idx]" 
+                @input="syncToRaw()" 
+                class="form-control mono" 
+                style="padding: 0.2rem 0.35rem; font-size: 0.85rem;"
+              >
+              <button type="button" @click="removeSpecimen(idx)" style="background: none; border: none; color: #999; cursor: pointer; padding: 0 0.2rem;">✕</button>
+            </div>
+          </template>
+        </div>
+
+        <!-- Raw Textarea for Bulk Entry -->
+        <div>
+          <label class="form-label" style="font-weight: 600; font-size: 0.8rem;">Quick Paste / Comma Separated Readings</label>
+          <textarea 
+            name="specimens_raw" 
+            x-model="rawSpecimens" 
+            @input="syncFromRaw()"
+            placeholder="e.g. 1820.5, 1845.0, 1810.2, 1835.0, 1850.0" 
+            rows="2" 
+            class="form-control mono" 
+            style="font-size: 0.85rem;"
+          ></textarea>
+        </div>
+
+        <!-- Live Statistics Summary -->
+        <div style="margin-top: 1rem; padding: 0.75rem; background: #FFF; border: 1px solid var(--snm-line); border-radius: 4px; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 1rem;" class="mono" style="font-size: 0.85rem;">
+          <div>Count: <strong x-text="specimensList.length"></strong></div>
+          <div>Minimum: <strong x-text="calcMin()"></strong></div>
+          <div>Average: <strong x-text="calcAvg()"></strong></div>
+          <div>Maximum: <strong x-text="calcMax()"></strong></div>
+        </div>
+
+      </div>
+
+      <!-- Section 4: Remarks -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <div>
+          <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Clause / Requirement Notes</label>
+          <input 
+            type="text" 
+            name="requirement" 
+            value="{{ test.requirement or '' }}" 
+            placeholder="e.g. Table II Type VIII breaking strength floor" 
+            class="form-control"
+          >
+        </div>
+        <div>
+          <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Remarks / Observations</label>
+          <input 
+            type="text" 
+            name="remarks" 
+            value="{{ test.remarks or '' }}" 
+            placeholder="e.g. Clean break in gauge length, no slippage" 
+            class="form-control"
+          >
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--snm-line); padding-top: 1.25rem;">
+        <a href="/lab-tests" class="btn btn-outline" style="color: var(--snm-machine-black);">
+          ← Cancel
+        </a>
+        <button type="submit" class="btn btn-olive" style="padding: 0.6rem 1.75rem; font-weight: 600;">
+          {% if is_edit %}Update Lab Test Readings{% else %}Save & Compute Verdict{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+function labTestFormController() {
+  const initialLimit = "{{ test.limit_type or 'nominal' }}";
+  const initialSpec = parseFloat("{{ test.spec_value or 0 }}") || 0;
+  const initialTol = parseFloat("{{ test.tolerance or '' }}") || null;
+  const initialUpper = parseFloat("{{ test.upper_limit or '' }}") || null;
+  const initialCritical = {{ 'true' if test.is_critical else 'false' }};
+  const initialRaw = "{{ test.specimens_text or '' }}";
+
+  let initialList = [];
+  if (initialRaw) {
+    initialList = initialRaw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+  }
+
+  return {
+    limitType: initialLimit,
+    specValue: initialSpec,
+    tolerance: initialTol,
+    upperLimit: initialUpper,
+    isCritical: initialCritical,
+    rawSpecimens: initialRaw,
+    specimensList: initialList,
+
+    getSpecLabel() {
+      if (this.limitType === 'minimum') return 'Minimum Specified Floor (≥)';
+      if (this.limitType === 'maximum') return 'Maximum Specified Ceiling (≤)';
+      if (this.limitType === 'range') return 'Lower Limit (Min)';
+      return 'Nominal Target Value';
+    },
+
+    addSpecimen() {
+      this.specimensList.push(this.specValue || 0);
+      this.syncToRaw();
+    },
+
+    removeSpecimen(index) {
+      this.specimensList.splice(index, 1);
+      this.syncToRaw();
+    },
+
+    clearSpecimens() {
+      this.specimensList = [];
+      this.rawSpecimens = "";
+    },
+
+    syncToRaw() {
+      this.rawSpecimens = this.specimensList.join(", ");
+    },
+
+    syncFromRaw() {
+      if (!this.rawSpecimens) {
+        this.specimensList = [];
+        return;
+      }
+      this.specimensList = this.rawSpecimens
+        .replace(/,/g, ' ')
+        .replace(/;/g, ' ')
+        .split(/\s+/)
+        .map(s => parseFloat(s))
+        .filter(n => !isNaN(n));
+    },
+
+    calcMin() {
+      if (this.specimensList.length === 0) return '—';
+      return Math.min(...this.specimensList).toFixed(2);
+    },
+
+    calcMax() {
+      if (this.specimensList.length === 0) return '—';
+      return Math.max(...this.specimensList).toFixed(2);
+    },
+
+    calcAvg() {
+      if (this.specimensList.length === 0) return '—';
+      const sum = this.specimensList.reduce((a, b) => a + b, 0);
+      return (sum / this.specimensList.length).toFixed(2);
+    }
+  };
+}
+</script>
+{% endblock %}

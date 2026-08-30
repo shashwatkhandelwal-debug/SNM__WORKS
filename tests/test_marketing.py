@@ -245,3 +245,65 @@ def test_campaign_generation_and_caption_formatting():
     assert len(draft["captions"]["tradeindia"]) <= 500
 
 
+@pytest.mark.asyncio
+async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
+    """
+    Test 7: Proves that /marketing/campaign/create persists real rows into
+    the PostgreSQL campaigns table (not memory), and /marketing/queue reads
+    from the database with restart-safety.
+    """
+    import asyncpg
+    from tests.conftest import LOCAL_TEST_DATABASE_URL
+
+    form_data = {
+        "occasion": "Republic Day 2027",
+        "headline": "High-Tenacity Technical Webbing Made in Kanpur",
+        "body": "Swadeshi Niwar Mills delivers military and commercial grade technical textiles engineered for extreme strength.",
+        "platforms": ["linkedin", "instagram"],
+    }
+
+    # 1. Create campaign via API
+    resp = await dev_client.post(
+        "/marketing/campaign/create",
+        data=form_data,
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+
+    # 2. Query queue view
+    queue_resp = await dev_client.get("/marketing/queue")
+    assert queue_resp.status_code == 200
+    assert "Republic Day 2027" in queue_resp.text
+
+    # 3. Verify real persistence in PostgreSQL via independent database connection
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        row = await conn.fetchrow(
+            "SELECT * FROM campaigns WHERE occasion = $1 AND post_status = 'queued';",
+            "Republic Day 2027",
+        )
+        assert row is not None, "Campaign was NOT found in real PostgreSQL campaigns table!"
+        camp_id = str(row["id"])
+        assert row["headline"] == "High-Tenacity Technical Webbing Made in Kanpur"
+        assert row["post_draft"] is not None
+    finally:
+        await conn.close()
+
+    # 4. Approve campaign via API
+    approve_resp = await dev_client.post(
+        f"/marketing/approve/{camp_id}",
+        follow_redirects=False,
+    )
+    assert approve_resp.status_code == 303
+
+    # 5. Confirm status changed in database
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        updated_row = await conn.fetchrow("SELECT * FROM campaigns WHERE id = $1::uuid;", row["id"])
+        assert updated_row["post_status"] == "published"
+        assert updated_row["platform_results"] is not None
+    finally:
+        await conn.close()
+
+
+

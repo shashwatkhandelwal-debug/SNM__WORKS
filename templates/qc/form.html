@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if is_edit %}Edit QC Check {{ check.check_no }}{% else %}New QC Inspection Check{% endif %} — Swadeshi Niwar Mills
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  
+  <!-- Back Link -->
+  <div style="margin-bottom: 1rem;">
+    <a href="{% if is_edit %}/qc/{{ check.id }}{% else %}/qc{% endif %}" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Cancel and Return
+    </a>
+  </div>
+
+  <!-- Form Card with Alpine.js limit controller -->
+  <div 
+    class="card" 
+    style="border-top: 5px solid var(--snm-olive);"
+    x-data="{ limitType: '{{ check.limit_type or 'nominal' }}' }"
+  >
+    
+    <div class="card-header" style="margin-bottom: 1.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">QUALITY VERIFICATION</span>
+          {% if is_edit %}
+            <span class="badge badge-gray">EDIT READING</span>
+          {% else %}
+            <span class="badge badge-pass">NEW RECORD</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.6rem; margin: 0.2rem 0;">
+          {% if is_edit %}Edit QC Check: {{ check.check_no }}{% else %}Record QC Line Inspection{% endif %}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Enter actual measurements. Verdict is evaluated automatically in PostgreSQL.
+        </p>
+      </div>
+    </div>
+
+    <form 
+      method="POST" 
+      action="{% if is_edit %}/qc/{{ check.id }}/update{% else %}/qc{% endif %}"
+    >
+      
+      <!-- Section 1: Inspection Header & Job Association -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          1. INSPECTION CONTEXT & PRODUCTION JOB
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          
+          <!-- Check Number (Read-only) -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="check_no">Check Number (Auto-Generated)</label>
+            <input 
+              type="text" 
+              id="check_no" 
+              name="check_no" 
+              class="form-input mono" 
+              value="{{ check.check_no }}" 
+              readonly 
+              style="background-color: #eee; cursor: not-allowed; font-weight: 700; color: var(--snm-olive-dark);"
+            >
+          </div>
+
+          <!-- Job Association -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="job_id">Linked Job Card</label>
+            <select id="job_id" name="job_id" class="form-input">
+              <option value="">-- General / No Linked Job --</option>
+              {% for j in jobs %}
+                <option value="{{ j.id }}" {% if (selected_job_id and selected_job_id == j.id) or (check.job_id and check.job_id == j.id) %}selected{% endif %}>
+                  {{ j.job_no }} — {{ j.product }} ({{ j.status }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Inspection Date -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="checked_on">Inspection Date *</label>
+            <input 
+              type="date" 
+              id="checked_on" 
+              name="checked_on" 
+              class="form-input mono" 
+              value="{{ check.checked_on or '' }}" 
+              required
+            >
+          </div>
+
+          <!-- Inspection Stage -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="stage">Inspection Stage *</label>
+            <select id="stage" name="stage" class="form-input" required>
+              {% for st in stages %}
+                <option value="{{ st }}" {% if check.stage == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 2: Parameter & Limit Rules (Dynamic Alpine.js) -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          2. PARAMETER SPECIFICATION & LIMIT TOLERANCE
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          
+          <!-- Parameter Name -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="parameter">Parameter *</label>
+            <input 
+              type="text" 
+              id="parameter" 
+              name="parameter" 
+              class="form-input" 
+              value="{{ check.parameter or '' }}" 
+              placeholder="e.g. Width, Thickness, Picks per cm, Breaking Strength" 
+              required
+            >
+          </div>
+
+          <!-- Family -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="family">Product Family</label>
+            <input 
+              type="text" 
+              id="family" 
+              name="family" 
+              class="form-input" 
+              value="{{ check.family or '' }}" 
+              placeholder="e.g. Narrow woven, Fabric, Cordage"
+            >
+          </div>
+
+          <!-- Unit of Measurement -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="unit">Unit</label>
+            <input 
+              type="text" 
+              id="unit" 
+              name="unit" 
+              class="form-input mono" 
+              value="{{ check.unit or '' }}" 
+              placeholder="e.g. mm, in, picks/cm, g/m, kgf, lbf"
+            >
+          </div>
+
+          <!-- Test Method Standard -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="method">Test / Inspection Method</label>
+            <input 
+              type="text" 
+              id="method" 
+              name="method" 
+              class="form-input mono" 
+              value="{{ check.method or '' }}" 
+              placeholder="e.g. FED-STD-191 4108, ASTM D5034, IS 1969"
+            >
+          </div>
+
+        </div>
+
+        <!-- Limit Kind Selection -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: #ffffff; padding: 1rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+          
+          <!-- Limit Type Dropdown -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="limit_type">Limit Model *</label>
+            <select 
+              id="limit_type" 
+              name="limit_type" 
+              class="form-input" 
+              x-model="limitType"
+              required
+            >
+              <option value="nominal">Nominal ± Tolerance</option>
+              <option value="minimum">Minimum Bound (≥ Spec)</option>
+              <option value="maximum">Maximum Bound (≤ Spec)</option>
+              <option value="range">Range (Lower to Upper Bound)</option>
+            </select>
+          </div>
+
+          <!-- Spec Value (Adaptive Label) -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="spec_value">
+              <span x-show="limitType === 'nominal'">Nominal Target Spec *</span>
+              <span x-show="limitType === 'minimum'">Minimum Required Limit *</span>
+              <span x-show="limitType === 'maximum'">Maximum Permissible Ceiling *</span>
+              <span x-show="limitType === 'range'">Lower Bound Limit *</span>
+            </label>
+            <input 
+              type="number" 
+              step="any" 
+              id="spec_value" 
+              name="spec_value" 
+              class="form-input mono" 
+              value="{{ check.spec_value if check.spec_value is not none else '' }}" 
+              required
+            >
+          </div>
+
+          <!-- Tolerance Field (Shown only when Nominal) -->
+          <div class="form-group" style="margin-bottom: 0;" x-show="limitType === 'nominal'">
+            <label class="form-label" for="tolerance">Tolerance (±)</label>
+            <input 
+              type="number" 
+              step="any" 
+              id="tolerance" 
+              name="tolerance" 
+              class="form-input mono" 
+              value="{{ check.tolerance if check.tolerance is not none else '' }}" 
+              placeholder="e.g. 1.0"
+            >
+          </div>
+
+          <!-- Upper Limit Field (Shown only when Range) -->
+          <div class="form-group" style="margin-bottom: 0;" x-show="limitType === 'range'">
+            <label class="form-label" for="upper_limit">Upper Bound Limit *</label>
+            <input 
+              type="number" 
+              step="any" 
+              id="upper_limit" 
+              name="upper_limit" 
+              class="form-input mono" 
+              value="{{ check.upper_limit if check.upper_limit is not none else '' }}" 
+              placeholder="e.g. 50.0"
+            >
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Section 3: Actual Reading & Observations -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          3. ACTUAL MEASUREMENT & ACTION
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          
+          <!-- Actual Reading -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="actual" style="color: var(--snm-olive-dark);">
+              Actual Measured Value
+            </label>
+            <input 
+              type="number" 
+              step="any" 
+              id="actual" 
+              name="actual" 
+              class="form-input mono" 
+              value="{{ check.actual if check.actual is not none else '' }}" 
+              placeholder="Enter observed shop floor reading..."
+              style="font-size: 1.15rem; font-weight: 700; border-color: var(--snm-olive);"
+            >
+            <span style="font-size: 0.75rem; color: #666; display: block; margin-top: 0.2rem;">
+              Leave blank if test reading is still in progress / pending.
+            </span>
+          </div>
+
+          <!-- Defect Code -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="defect_code">Defect Code (If Failing)</label>
+            <input 
+              type="text" 
+              id="defect_code" 
+              name="defect_code" 
+              class="form-input mono" 
+              value="{{ check.defect_code or '' }}" 
+              placeholder="e.g. DEF-01, WEFT-SLACK, WIDTH-OOT"
+            >
+          </div>
+
+        </div>
+
+        <!-- Action Taken -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="action_taken">Corrective Action Taken / Notes</label>
+          <textarea 
+            id="action_taken" 
+            name="action_taken" 
+            class="form-input" 
+            rows="2" 
+            placeholder="e.g. Loom tension adjusted on carrier #3; re-measured after 5 metres..."
+          >{{ check.action_taken or '' }}</textarea>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--snm-line); padding-top: 1.25rem;">
+        <a href="{% if is_edit %}/qc/{{ check.id }}{% else %}/qc{% endif %}" class="btn btn-outline">
+          Cancel
+        </a>
+
+        <button type="submit" class="btn btn-olive" style="min-width: 180px;">
+          {% if is_edit %}Update QC Reading{% else %}Save & Verify QC Check{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

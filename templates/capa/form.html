@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit CAPA {{ capa.capa_no }}{% else %}New CAPA Record{% endif %} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  
+  <!-- Breadcrumb -->
+  <div style="margin-bottom: 1rem;">
+    <a href="/capa" style="color: var(--snm-olive); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+      ← Back to CAPA Register
+    </a>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card" style="border-left: 5px solid var(--snm-olive); padding: 1.75rem;">
+    
+    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <span class="badge badge-olive">QUA — CORRECTIVE & PREVENTIVE ACTION</span>
+        <span class="mono" style="font-weight: 700; color: #555;">{{ capa.capa_no }}</span>
+      </div>
+      <h1 style="font-size: 1.5rem; margin: 0.25rem 0;">
+        {% if is_edit %}Update CAPA {{ capa.capa_no }}{% else %}Raise Corrective & Preventive Action (CAPA){% endif %}
+      </h1>
+      <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #666; margin: 0;">
+        Document non-conformance, investigate root cause, assign ownership, and define corrective & systemic preventive measures.
+      </p>
+    </div>
+
+    <form method="POST" action="{% if is_edit %}/capa/{{ capa.id }}/update{% else %}/capa{% endif %}">
+      
+      <!-- Section 1: Origin & Identification -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          1. Origin & Failure Source
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          
+          <div>
+            <label class="form-label" style="font-weight: 600;">Source / Trigger *</label>
+            <select name="source" class="form-control" required>
+              {% for src in sources %}
+              <option value="{{ src }}" {% if capa.source == src %}selected{% endif %}>{{ src }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 600;">External / Batch Reference</label>
+            <input 
+              type="text" 
+              name="reference" 
+              class="form-control" 
+              value="{{ capa.reference or '' }}" 
+              placeholder="e.g. Roll #4, Batch B-102, PO-9912"
+            />
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 600;">Linked Production Job</label>
+            <select name="job_id" class="form-control">
+              <option value="">-- No Linked Job / General Systemic --</option>
+              {% for j in jobs %}
+              <option value="{{ j.id }}" {% if capa.job_id|string == j.id|string %}selected{% endif %}>
+                {{ j.job_no }} — {{ j.product }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+
+        {% if not is_edit %}
+        <!-- Hidden failure linkage if launched from QC or Lab Test -->
+        <input type="hidden" name="qc_check_id" value="{{ capa.qc_check_id or '' }}" />
+        <input type="hidden" name="lab_test_id" value="{{ capa.lab_test_id or '' }}" />
+        {% endif %}
+      </div>
+
+      <!-- Section 2: Problem Description -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          2. Non-Conformance & Problem Statement
+        </h3>
+        
+        <div>
+          <label class="form-label" style="font-weight: 600;">Problem Statement / Observed Defect *</label>
+          <textarea 
+            name="problem" 
+            rows="3" 
+            class="form-control" 
+            required 
+            placeholder="Detailed description of the non-conformance, out-of-spec test, customer defect report, or process deviation..."
+          >{{ capa.problem or '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Section 3: Investigation & Actions -->
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          3. Root Cause Analysis & Planned Actions
+        </h3>
+        
+        <div style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600;">Root Cause Analysis (5-Why / Technical Findings)</label>
+          <textarea 
+            name="root_cause" 
+            rows="3" 
+            class="form-control" 
+            placeholder="Why did this failure occur? Identify the underlying machine, yarn lot, human error, or process cause..."
+          >{{ capa.root_cause or '' }}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          <div>
+            <label class="form-label" style="font-weight: 600;">Immediate Correction / Containment</label>
+            <textarea 
+              name="correction" 
+              rows="3" 
+              class="form-control" 
+              placeholder="Immediate action taken to contain the defect (e.g. hold lot, sort roll, adjust tension, scrap material)..."
+            >{{ capa.correction or '' }}</textarea>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 600;">Preventive Action (Systemic Fix)</label>
+            <textarea 
+              name="preventive" 
+              rows="3" 
+              class="form-control" 
+              placeholder="Long-term systemic measure to prevent recurrence (e.g. PM schedule update, SOP change, supplier audit)..."
+            >{{ capa.preventive or '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Ownership & Target Due Date -->
+      <div style="margin-bottom: 1.75rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          4. Responsibility & Target Due Date
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          
+          <div>
+            <label class="form-label" style="font-weight: 600;">Assigned Owner (Investigator / Implementer)</label>
+            <select name="owner_id" class="form-control">
+              <option value="">-- Select Responsible Person --</option>
+              {% for p in profiles %}
+              <option value="{{ p.id }}" {% if capa.owner_id|string == p.id|string %}selected{% endif %}>
+                {{ p.full_name }} ({{ p.role }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 600;">Target Completion Due Date</label>
+            <input 
+              type="date" 
+              name="due_date" 
+              class="form-control" 
+              value="{{ capa.due_date|string or '' }}"
+            />
+          </div>
+
+          {% if is_edit %}
+          <div>
+            <label class="form-label" style="font-weight: 600;">Workflow Status *</label>
+            <select name="status" class="form-control" required>
+              {% for st in status_stages %}
+              <option value="{{ st }}" {% if capa.status == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Submit & Action Buttons -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--snm-line); padding-top: 1.25rem;">
+        <a href="/capa" class="btn btn-outline" style="color: #666;">
+          Cancel
+        </a>
+        <button type="submit" class="btn btn-olive" style="font-weight: 600; padding: 0.6rem 1.75rem;">
+          {% if is_edit %}Save CAPA Changes{% else %}Raise & Log CAPA{% endif %}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}

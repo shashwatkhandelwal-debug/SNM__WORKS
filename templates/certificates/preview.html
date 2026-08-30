@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate Preview & Compliance Gate — {{ cert.job_no }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/certificates" style="color: var(--snm-olive); text-decoration: underline;">Certificates Register</a> / Preview & Gate
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+      CERTIFICATE OF CONFORMANCE PREVIEW: {{ cert.job_no }}
+    </h1>
+  </div>
+  <div>
+    <a href="/certificates" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Register
+    </a>
+  </div>
+</div>
+
+<!-- Quality Gating Status Ribbon -->
+<div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem; border-radius: 4px; border: 2px solid {% if is_eligible %}var(--snm-pass); background: #E8EDE4;{% else %}var(--snm-fail); background: #FBEBE8;{% endif %}">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: bold; color: {% if is_eligible %}var(--snm-pass){% else %}var(--snm-fail){% endif %};">
+        {% if is_eligible %}
+        ✓ QUALITY COMPLIANCE GATE PASSED — READY FOR ISSUANCE
+        {% else %}
+        ✕ QUALITY COMPLIANCE GATE BLOCKED — CANNOT ISSUE CERTIFICATE
+        {% endif %}
+      </div>
+      <div style="font-size: 0.85rem; color: #444; margin-top: 0.25rem;">
+        {% if is_eligible %}
+        All {{ cert.qc_checks|length }} QC checks and {{ cert.lab_tests|length }} Lab tests meet specified limits with approved release sign-offs.
+        {% else %}
+        One or more mandatory compliance checks failed or are incomplete.
+        {% endif %}
+      </div>
+    </div>
+
+    {% if is_eligible and can_issue %}
+    <form method="POST" action="/certificates/issue" onsubmit="return confirm('Issue official Conformance Test Certificate? This creates an immutable certificate record with a cryptographic verification hash.');">
+      <input type="hidden" name="job_id" value="{{ cert.job_id }}">
+      <input type="hidden" name="despatch_id" value="{{ despatch_id }}">
+      <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); font-size: 1rem; padding: 0.6rem 1.25rem; background: var(--snm-pass); border-color: var(--snm-pass); text-transform: uppercase;">
+        ✓ Formally Issue & Sign Certificate
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Checklist Matrix -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); font-size: 0.8rem;">
+    <div><strong>QC Checks Recorded:</strong> {% if has_qc %}<span style="color: var(--snm-pass);">✓ {{ cert.qc_checks|length }} Checks</span>{% else %}<span style="color: var(--snm-fail);">✕ Zero Recorded</span>{% endif %}</div>
+    <div><strong>QC 100% Pass:</strong> {% if all_qc_pass %}<span style="color: var(--snm-pass);">✓ All Pass</span>{% else %}<span style="color: var(--snm-fail);">✕ Failures Present</span>{% endif %}</div>
+    <div><strong>Lab Tests Recorded:</strong> {% if has_lab %}<span style="color: var(--snm-pass);">✓ {{ cert.lab_tests|length }} Tests</span>{% else %}<span style="color: var(--snm-fail);">✕ Zero Recorded</span>{% endif %}</div>
+    <div><strong>Lab 100% Pass:</strong> {% if all_lab_pass %}<span style="color: var(--snm-pass);">✓ All Pass</span>{% else %}<span style="color: var(--snm-fail);">✕ Failures Present</span>{% endif %}</div>
+    <div><strong>Lab Tests Approved:</strong> {% if all_lab_approved %}<span style="color: var(--snm-pass);">✓ Signed Off</span>{% else %}<span style="color: var(--snm-fail);">✕ Pending QA Sign-off</span>{% endif %}</div>
+    <div><strong>QC Hold Status:</strong> {% if not is_on_hold %}<span style="color: var(--snm-pass);">✓ Normal / Cleared</span>{% else %}<span style="color: var(--snm-fail);">✕ ON QUALITY HOLD</span>{% endif %}</div>
+  </div>
+</div>
+
+<!-- Certificate Data Preview -->
+<div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.5rem; margin-bottom: 1.5rem;">
+  <div style="border-bottom: 2px solid var(--snm-line); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+    <h2 style="font-family: var(--font-heading); font-size: 1.3rem; margin: 0; color: var(--snm-machine-black);">
+      SWADESHI NIWAR MILLS
+    </h2>
+    <div style="font-size: 0.85rem; color: var(--snm-olive);">Technical Textiles Division • Kanpur, Uttar Pradesh, India</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; font-size: 0.85rem; margin-bottom: 1.5rem;">
+    <div>
+      <div><strong>Product:</strong> {{ cert.product }}</div>
+      <div><strong>Governing Spec:</strong> {{ cert.spec }}</div>
+      <div><strong>Customer / Agency:</strong> {{ cert.customer_name }}</div>
+    </div>
+    <div>
+      <div><strong>Job Card No:</strong> <span style="font-family: var(--font-mono);">{{ cert.job_no }}</span></div>
+      <div><strong>Batch Quantity:</strong> {{ cert.qty }} {{ cert.unit }}</div>
+      <div><strong>PO / Contract Ref:</strong> {{ cert.po_ref }}</div>
+    </div>
+  </div>
+
+  <!-- QC Table -->
+  <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+    1. DIMENSIONAL & PROCESS QC RESULTS ({{ cert.qc_checks|length }})
+  </div>
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem; margin-bottom: 1.5rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+        <th style="padding: 0.5rem;">Check No</th>
+        <th style="padding: 0.5rem;">Parameter</th>
+        <th style="padding: 0.5rem;">Method</th>
+        <th style="padding: 0.5rem;">Specified Requirement</th>
+        <th style="padding: 0.5rem;">Actual Observed</th>
+        <th style="padding: 0.5rem; text-align: center;">Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in cert.qc_checks %}
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ q.check_no }}</td>
+        <td style="padding: 0.5rem; font-weight: 500;">{{ q.parameter }}</td>
+        <td style="padding: 0.5rem; color: #666;">{{ q.method or 'Standard' }}</td>
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ q.limit_type }}: {{ q.spec_value }} {% if q.tolerance %}± {{ q.tolerance }}{% endif %} {{ q.unit or '' }}</td>
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ q.actual }} {{ q.unit or '' }}</td>
+        <td style="padding: 0.5rem; text-align: center; font-weight: bold; color: {% if q.verdict == 'PASS' %}var(--snm-pass){% else %}var(--snm-fail){% endif %};">{{ q.verdict }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Lab Table -->
+  <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+    2. LABORATORY & DESTRUCTIVE TEST RESULTS ({{ cert.lab_tests|length }})
+  </div>
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+        <th style="padding: 0.5rem;">Test ID</th>
+        <th style="padding: 0.5rem;">Parameter</th>
+        <th style="padding: 0.5rem;">Standard</th>
+        <th style="padding: 0.5rem;">Specified Limit</th>
+        <th style="padding: 0.5rem;">Specimens</th>
+        <th style="padding: 0.5rem;">Result</th>
+        <th style="padding: 0.5rem; text-align: center;">Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in cert.lab_tests %}
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ l.test_id }}</td>
+        <td style="padding: 0.5rem; font-weight: 500;">{{ l.parameter }}</td>
+        <td style="padding: 0.5rem; color: #666;">{{ l.standard or l.lab or 'MIL-STD-191' }}</td>
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ l.limit_type }}: {{ l.spec_value }} {{ l.unit or '' }} {% if l.is_critical %}<span style="color: var(--snm-fail); font-weight: bold;">[CRITICAL]</span>{% endif %}</td>
+        <td style="padding: 0.5rem; font-family: var(--font-mono); font-size: 0.75rem;">{{ l.specimens|join(', ') if l.specimens else '—' }}</td>
+        <td style="padding: 0.5rem; font-family: var(--font-mono);">{{ l.result or '—' }}</td>
+        <td style="padding: 0.5rem; text-align: center; font-weight: bold; color: {% if l.verdict == 'PASS' %}var(--snm-pass){% else %}var(--snm-fail){% endif %};">{{ l.verdict }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+{% endblock %}

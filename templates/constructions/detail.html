@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Construction {{ c.spec_no }} — {{ c.product }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/constructions" style="color: var(--snm-olive); text-decoration: underline;">Constructions</a> / {{ c.spec_no }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        {{ c.spec_no }} <span style="font-size: 1.1rem; color: #888;">({{ c.revision }})</span>
+      </h1>
+      <span style="display: inline-block; padding: 0.25rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-family: var(--font-heading); text-transform: uppercase;
+        {% if c.status == 'Approved' %}background: #EAF4E7; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+        {% elif c.status == 'Under Review' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+        {% elif c.status == 'Draft' %}background: #F0EEEA; color: #555; border: 1px solid #CCC;
+        {% else %}background: #FBEBEB; color: var(--snm-fail); border: 1px solid var(--snm-fail);{% endif %}">
+        {{ c.status }}
+      </span>
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    {% if c.status != 'Approved' %}
+    <a href="/constructions/{{ c.id }}/edit" class="btn btn-secondary" style="font-family: var(--font-heading);">Edit Spec</a>
+    
+    <!-- Chief Technical Approve Form -->
+    <form method="POST" action="/constructions/{{ c.id }}/approve" style="display: inline;" onsubmit="return confirm('Confirm formal engineering approval of specification {{ c.spec_no }}?');">
+      <button type="submit" class="btn btn-primary" style="background: var(--snm-pass); border-color: var(--snm-pass); font-family: var(--font-heading); text-transform: uppercase;">
+        ✓ Approve Specification
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if metrics.is_jammed %}
+<div style="background: #FDF2F2; border-left: 4px solid var(--snm-fail); color: var(--snm-fail); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+  <strong style="font-family: var(--font-heading); font-size: 1rem;">⚠️ JAMMING WARNING (PHYSICALLY IMPOSSIBLE WEAVE):</strong>
+  <div style="margin-top: 0.25rem; font-size: 0.9rem;">
+    {{ metrics.jamming_warning }}
+  </div>
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Full Technical Specification Details -->
+  <div>
+    <!-- General Product Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        PRODUCT SPECIFICATION
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Product Name</div>
+          <div style="font-size: 1.05rem; font-weight: 600; color: var(--snm-machine-black);">{{ c.product }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Product Family</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ c.family }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Standard / Reference</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono); color: var(--snm-olive);">{{ c.spec or 'In-house Specification' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Target Customer</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ c.customer_name or 'General Production / Stock' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weave Structure Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        PHYSICAL & WEAVING PARAMETERS
+      </div>
+
+      {% if c.family == "Narrow Wovens" %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Width</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.width_mm }} mm <span style="font-size: 0.8rem; color: #777;">({{ metrics.width_inches }}″)</span></div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weave Structure</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ c.weave or '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Selvedge</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ c.selvedge or '—' }}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp Ends</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.warp_ends }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp Denier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.warp_denier }} <span style="font-size: 0.75rem; color: #666;">({{ metrics.warp_tex }} tex)</span></div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Picks / cm</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.picks_per_cm }} <span style="font-size: 0.75rem; color: #666;">({{ metrics.ppi }} ppi)</span></div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weft Denier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.weft_denier }}</div>
+        </div>
+      </div>
+
+      {% elif c.family == "Broad Fabric" %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Fabric Width</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.width_cm }} cm</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Finish / Coating</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ c.finish or 'Unfinished' }}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp EPI</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.epi }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp Denier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.warp_denier }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weft PPI</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.ppi }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weft Denier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.weft_denier }}</div>
+        </div>
+      </div>
+
+      {% elif c.family == "Cordage" %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Cord Type</div>
+          <div style="font-size: 1rem; color: #333;">{{ c.cord_type or 'Braided Cord' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Diameter</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.diameter_mm }} mm</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Carriers</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.carriers }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Yarns / Carrier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.yarns_per_carrier }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Core Yarns</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.core_yarns or 0 }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Yarn Denier</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ c.yarn_denier }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Mechanical Constants Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        MECHANICAL CONSTANTS & ASSUMPTIONS
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp Crimp</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ c.warp_crimp or 0.0 }}%</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weft Crimp</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ c.weft_crimp or 0.0 }}%</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Loom Efficiency</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ c.efficiency or 85.0 }}%</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Warp Tenacity</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ c.warp_tenacity or 8.5 }} g/den</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Weft Tenacity</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ c.weft_tenacity or 8.0 }} g/den</div>
+        </div>
+      </div>
+      {% if c.notes %}
+      <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--snm-line);">
+        <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase; margin-bottom: 0.25rem;">Engineering Notes</div>
+        <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">{{ c.notes }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Governance and Audit Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        SPECIFICATION AUDIT & APPROVAL
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+        <div>
+          <span style="color: #666;">Created By:</span>
+          <strong>{{ c.creator_name or c.created_by }}</strong>
+          <div style="font-size: 0.75rem; color: #888; font-family: var(--font-mono);">{{ c.created_on }}</div>
+        </div>
+        <div>
+          <span style="color: #666;">Approved By:</span>
+          {% if c.approved_by %}
+            <strong style="color: var(--snm-pass);">{{ c.approver_name or c.approved_by }}</strong>
+            <div style="font-size: 0.75rem; color: #888; font-family: var(--font-mono);">{{ c.approved_at.strftime('%Y-%m-%d %H:%M') if c.approved_at else '' }}</div>
+          {% else %}
+            <span style="color: #999; font-style: italic;">Pending Technical Approval</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Calculated Outputs Card -->
+  <div style="position: sticky; top: 1rem;">
+    {% include "constructions/calc_card.html" with context %}
+  </div>
+
+</div>
+{% endblock %}

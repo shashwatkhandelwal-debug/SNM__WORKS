@@ -1,0 +1,134 @@
+<div class="card" style="background: #FAF8F5; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+  <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+    <span>⚡ LIVE ENGINEERING CALCULATIONS</span>
+    <span style="font-size: 0.75rem; font-family: var(--font-mono); color: #666;">TEXTILES LIB</span>
+  </div>
+
+  {% if metrics.is_jammed %}
+  <div style="background: #FDF2F2; border-left: 4px solid var(--snm-fail); color: var(--snm-fail); padding: 0.75rem; font-size: 0.85rem; margin-bottom: 1rem; border-radius: 2px;">
+    <strong>⚠️ Jamming Warning:</strong> {{ metrics.jamming_warning }}
+  </div>
+  {% endif %}
+
+  {% if family == "Narrow Wovens" %}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">WARP MASS</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.warp_gpm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m</span>
+      </div>
+    </div>
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">WEFT MASS</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.weft_gpm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px; margin-bottom: 0.75rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">TOTAL LINEAR DENSITY</span>
+      <span style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">
+        {{ metrics.total_gpm }} <span style="font-size: 0.8rem; color: #666;">g/m</span>
+      </span>
+    </div>
+    <div style="text-align: right; font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      ≈ {{ metrics.total_oz_yd }} oz/yd
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">THEORETICAL BREAK</span>
+      <span style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: bold; color: #1B2017;">
+        {{ metrics.theoretical_break_lbf }} <span style="font-size: 0.8rem; color: #666;">lbf</span>
+      </span>
+    </div>
+    <div style="text-align: right; font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      ≈ {{ metrics.theoretical_break_kgf }} kgf
+    </div>
+  </div>
+
+  {% elif family == "Broad Fabric" %}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">WARP GSM</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.warp_gsm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m²</span>
+      </div>
+    </div>
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">WEFT GSM</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.weft_gsm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m²</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px; margin-bottom: 0.75rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">TOTAL AREAL DENSITY</span>
+      <span style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">
+        {{ metrics.total_gsm }} <span style="font-size: 0.8rem; color: #666;">g/m²</span>
+      </span>
+    </div>
+    <div style="text-align: right; font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      ≈ {{ metrics.total_oz_yd2 }} oz/yd²
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">TOTAL COVER FACTOR</span>
+      <span style="font-size: 1.15rem; font-family: var(--font-mono); font-weight: bold; {% if metrics.is_jammed %}color: var(--snm-fail);{% else %}color: var(--snm-pass);{% endif %}">
+        {{ metrics.cover_factor_total }}
+      </span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-family: var(--font-mono); color: #666; margin-top: 0.4rem;">
+      <span>Kw (Warp): {{ metrics.cover_factor_warp }}</span>
+      <span>Kf (Weft): {{ metrics.cover_factor_weft }}</span>
+    </div>
+  </div>
+
+  {% elif family == "Cordage" %}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">SHEATH MASS</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.sheath_gpm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m</span>
+      </div>
+    </div>
+    <div style="background: #FFF; padding: 0.6rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+      <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading);">CORE MASS</div>
+      <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+        {{ metrics.core_gpm }} <span style="font-size: 0.75rem; font-weight: normal; color: #666;">g/m</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px; margin-bottom: 0.75rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">TOTAL CORD MASS</span>
+      <span style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">
+        {{ metrics.total_gpm }} <span style="font-size: 0.8rem; color: #666;">g/m</span>
+      </span>
+    </div>
+    <div style="text-align: right; font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      ≈ {{ metrics.total_oz_yd }} oz/yd
+    </div>
+  </div>
+
+  <div style="background: #FFF; padding: 0.75rem; border: 1px solid var(--snm-line); border-radius: 2px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 0.8rem; font-family: var(--font-heading); color: #444;">THEORETICAL BREAK</span>
+      <span style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: bold; color: #1B2017;">
+        {{ metrics.theoretical_break_lbf }} <span style="font-size: 0.8rem; color: #666;">lbf</span>
+      </span>
+    </div>
+    <div style="text-align: right; font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      ≈ {{ metrics.theoretical_break_kgf }} kgf
+    </div>
+  </div>
+  {% endif %}
+</div>

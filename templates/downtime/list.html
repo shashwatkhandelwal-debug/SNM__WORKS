@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Downtime Telemetry — Machine Stoppage Register — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      DOWNTIME & STOPPAGE LOG
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Shop-floor machine stoppages, breakdown root causes, and operational availability telemetry.
+    </div>
+  </div>
+  <div>
+    <a href="/downtime/new" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">
+      + Log Downtime
+    </a>
+  </div>
+</div>
+
+<!-- Summary Metrics Ribbon -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Stoppages</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_count }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Lost Production</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-fail);">{{ total_hours }} <span style="font-size: 0.9rem; font-weight: normal;">hours</span></div>
+    <div style="font-size: 0.75rem; color: #888; font-family: var(--font-mono);">({{ total_minutes }} mins)</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Most Affected Machine</div>
+    <div style="font-size: 1.1rem; font-weight: 600; color: var(--snm-machine-black); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ top_machine }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Primary Reason</div>
+    <div style="font-size: 1.1rem; font-weight: 600; color: var(--snm-olive); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ top_reason }}</div>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/downtime" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Machine Filter -->
+    <div style="flex: 1; min-width: 160px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Machine
+      </label>
+      <select name="machine_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_machine == 'all' %}selected{% endif %}>All Machines</option>
+        {% for m in machines %}
+        <option value="{{ m }}" {% if selected_machine == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Shift Filter -->
+    <div style="flex: 1; min-width: 160px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Shift
+      </label>
+      <select name="shift_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_shift == 'all' %}selected{% endif %}>All Shifts</option>
+        {% for sh in shifts %}
+        <option value="{{ sh }}" {% if selected_shift == sh %}selected{% endif %}>{{ sh }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Reason Filter -->
+    <div style="flex: 1; min-width: 160px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Reason
+      </label>
+      <select name="reason_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_reason == 'all' %}selected{% endif %}>All Reasons</option>
+        {% for r in reasons %}
+        <option value="{{ r }}" {% if selected_reason == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Search Box -->
+    <div style="flex: 2; min-width: 180px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Log / Machine / Job
+      </label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. DT-0001, Loom 01, SNM/..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_machine != 'all' or selected_shift != 'all' or selected_reason != 'all' or search_query %}
+      <a href="/downtime" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Log No</th>
+        <th style="padding: 0.75rem 1rem;">Date</th>
+        <th style="padding: 0.75rem 1rem;">Machine</th>
+        <th style="padding: 0.75rem 1rem;">Shift</th>
+        <th style="padding: 0.75rem 1rem;">Stoppage Reason</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Duration</th>
+        <th style="padding: 0.75rem 1rem;">Associated Job</th>
+        <th style="padding: 0.75rem 1rem;">Logged By</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in entries %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+          <a href="/downtime/{{ item.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ item.log_no }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+          {{ item.logged_on }}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-weight: 500;">
+          {{ item.machine }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #F0EEEA; color: #555;">
+            {{ item.shift.split(' ')[0] ~ ' ' ~ item.shift.split(' ')[1] if ' ' in item.shift else item.shift }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-weight: 500;
+            {% if 'Breakdown' in item.reason or 'Fault' in item.reason %}background: #FDF2F2; color: var(--snm-fail);
+            {% elif 'Breakage' in item.reason or 'Knotting' in item.reason %}background: #FEF7EA; color: var(--snm-hold);
+            {% else %}background: #E8EDE4; color: var(--snm-olive);{% endif %}">
+            {{ item.reason }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          <strong style="color: var(--snm-machine-black);">{{ item.formatted_duration }}</strong>
+          <span style="font-size: 0.75rem; color: #888; margin-left: 0.2rem;">({{ item.minutes }}m)</span>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-size: 0.8rem;">
+          {% if item.job_no %}
+          <a href="/jobs/{{ item.job_id }}" style="color: var(--snm-olive); text-decoration: underline; font-family: var(--font-mono);">
+            {{ item.job_no }}
+          </a>
+          {% else %}
+          <span style="color: #999; font-style: italic;">—</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; color: #555;">
+          {{ item.operator_name or 'Operator' }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/downtime/{{ item.id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" style="padding: 2rem; text-align: center; color: #888;">
+          No downtime records found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

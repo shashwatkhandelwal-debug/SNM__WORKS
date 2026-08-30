@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Test {{ test.test_id }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.85rem;" class="mono">
+    <a href="/lab-tests" style="color: var(--snm-olive); text-decoration: underline;">LAB TESTS</a>
+    <span>/</span>
+    <span style="color: #666;">{{ test.test_id }}</span>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card" style="padding: 1.75rem; border-top: 5px solid {% if test.verdict == 'PASS' %}var(--snm-pass){% elif test.verdict == 'FAIL' %}var(--snm-fail){% else %}var(--snm-olive){% endif %};">
+    
+    <!-- Top Action Bar -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="mono" style="font-size: 0.85rem; color: #888;">LABORATORY TEST CERTIFICATE</span>
+          {% if test.is_critical %}
+            <span class="badge" style="background: #FFF0F0; color: var(--snm-fail); border: 1px solid var(--snm-fail); font-size: 0.7rem;">
+              MIL-SPEC CRITICAL
+            </span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.75rem; margin: 0.1rem 0;">
+          {{ test.parameter }}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #666; margin: 0;">
+          {{ test.test_type }} — {{ test.standard or 'In-house SOP' }}
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        
+        <!-- PostgreSQL Computed Verdict Badge -->
+        <div>
+          {% if test.verdict == 'PASS' %}
+            <div style="background: #EAF5EA; color: var(--snm-pass); border: 2px solid var(--snm-pass); padding: 0.5rem 1.25rem; border-radius: 4px; font-weight: 800; font-size: 1.25rem;" class="mono">
+              ✓ PASS
+            </div>
+          {% elif test.verdict == 'FAIL' %}
+            <div style="background: #FDF0EE; color: var(--snm-fail); border: 2px solid var(--snm-fail); padding: 0.5rem 1.25rem; border-radius: 4px; font-weight: 800; font-size: 1.25rem;" class="mono">
+              ✕ FAIL
+            </div>
+          {% else %}
+            <div style="background: #F4F4F4; color: #666; border: 2px solid #CCC; padding: 0.5rem 1.25rem; border-radius: 4px; font-weight: 800; font-size: 1.25rem;" class="mono">
+              ⏱ PENDING
+            </div>
+          {% endif %}
+        </div>
+
+        <a href="/lab-tests/{{ test.id }}/edit" class="btn btn-outline">
+          Edit Readings
+        </a>
+      </div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: var(--snm-paper); padding: 1rem; border-radius: 4px; border: 1px solid var(--snm-line); margin-bottom: 1.5rem;" class="mono">
+      <div>
+        <div style="font-size: 0.75rem; color: #777;">TEST IDENTIFIER</div>
+        <strong style="color: var(--snm-olive); font-size: 0.95rem;">{{ test.test_id }}</strong>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #777;">TEST DATE</div>
+        <strong>{{ test.tested_on }}</strong>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #777;">FACILITY / LAB</div>
+        <strong>{{ test.lab or 'In-house' }}</strong>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #777;">REPORT NO</div>
+        <strong>{{ test.report_no or '—' }}</strong>
+      </div>
+    </div>
+
+    <!-- Job Details Linkage -->
+    {% if test.job_id %}
+      <div style="background: #FFF; border: 1px solid var(--snm-line); padding: 0.85rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-size: 0.8rem; color: #777;" class="mono">LINKED PRODUCTION JOB:</span>
+          <a href="/jobs/{{ test.job_id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: underline; margin-left: 0.5rem;">
+            {{ test.job_no }}
+          </a>
+          <span style="margin-left: 0.5rem; color: #555; font-size: 0.85rem;">({{ test.job_product }})</span>
+        </div>
+        <div>
+          <span class="badge" style="background: #F0F0F0; font-size: 0.75rem;">Status: {{ test.job_status }}</span>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Specification vs Readings Comparison -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+      
+      <!-- Target Spec Card -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1.25rem; border-radius: 4px;">
+        <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          SPECIFIED REQUIREMENT
+        </h3>
+        
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--snm-machine-black);" class="mono">
+          {% if test.limit_type == 'nominal' %}
+            {{ test.spec_value }} {% if test.tolerance %}± {{ test.tolerance }}{% endif %}
+          {% elif test.limit_type == 'minimum' %}
+            ≥ {{ test.spec_value }}
+          {% elif test.limit_type == 'maximum' %}
+            ≤ {{ test.spec_value }}
+          {% elif test.limit_type == 'range' %}
+            {{ test.spec_value }} – {{ test.upper_limit }}
+          {% endif %}
+          <span style="font-size: 1rem; color: #666;">{{ test.unit or '' }}</span>
+        </div>
+
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;" class="mono">
+          <div>Model: <strong>{{ test.limit_type }}</strong></div>
+          {% if test.is_critical %}
+            <div style="color: var(--snm-fail); font-weight: 600; margin-top: 0.25rem;">
+              Strict floor on all individual specimens
+            </div>
+          {% else %}
+            <div style="margin-top: 0.25rem;">Evaluated against arithmetic average</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Result Summary Card -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1.25rem; border-radius: 4px;">
+        <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          SPECIMEN SUMMARY STATS
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center;" class="mono">
+          <div style="background: #FFF; padding: 0.5rem; border: 1px solid var(--snm-line); border-radius: 4px;">
+            <div style="font-size: 0.7rem; color: #777;">MINIMUM</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: {% if test.is_critical and test.verdict == 'FAIL' %}var(--snm-fail){% else %}var(--snm-machine-black){% endif %};">
+              {{ min_val if min_val is not none else '—' }}
+            </div>
+          </div>
+          <div style="background: #FFF; padding: 0.5rem; border: 1px solid var(--snm-line); border-radius: 4px;">
+            <div style="font-size: 0.7rem; color: #777;">AVERAGE</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black);">
+              {{ "%.2f"|format(avg_val) if avg_val is not none else '—' }}
+            </div>
+          </div>
+          <div style="background: #FFF; padding: 0.5rem; border: 1px solid var(--snm-line); border-radius: 4px;">
+            <div style="font-size: 0.7rem; color: #777;">MAXIMUM</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black);">
+              {{ max_val if max_val is not none else '—' }}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;" class="mono">
+          Total Specimens Tested: <strong>{{ specimens|length }}</strong>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Individual Specimen Readings Table -->
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1rem; margin: 0 0 0.5rem 0; color: var(--snm-machine-black);">
+        Specimen Readings Breakdown
+      </h3>
+
+      <div style="background: #FFF; border: 1px solid var(--snm-line); border-radius: 4px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line); font-size: 0.8rem;" class="mono">
+              <th style="padding: 0.5rem 1rem; text-align: left;">Specimen #</th>
+              <th style="padding: 0.5rem 1rem; text-align: right;">Reading ({{ test.unit or '' }})</th>
+              <th style="padding: 0.5rem 1rem; text-align: right;">Variance from Target</th>
+              <th style="padding: 0.5rem 1rem; text-align: center;">Individual Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if specimens and specimens|length > 0 %}
+              {% for s in specimens %}
+              <tr style="border-bottom: 1px solid var(--snm-line); font-size: 0.85rem;" class="mono">
+                <td style="padding: 0.5rem 1rem;">Specimen {{ loop.index }}</td>
+                <td style="padding: 0.5rem 1rem; text-align: right; font-weight: 600;">{{ s }}</td>
+                <td style="padding: 0.5rem 1rem; text-align: right; color: #666;">
+                  {% if test.spec_value %}
+                    {% set diff = s - test.spec_value %}
+                    {% if diff > 0 %}+{% endif %}{{ "%.2f"|format(diff) }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td style="padding: 0.5rem 1rem; text-align: center;">
+                  {% if test.limit_type == 'minimum' %}
+                    {% if s >= test.spec_value %}
+                      <span style="color: var(--snm-pass); font-weight: 700;">✓ Pass</span>
+                    {% else %}
+                      <span style="color: var(--snm-fail); font-weight: 700;">✕ Below Min</span>
+                    {% endif %}
+                  {% elif test.limit_type == 'maximum' %}
+                    {% if s <= test.spec_value %}
+                      <span style="color: var(--snm-pass); font-weight: 700;">✓ Pass</span>
+                    {% else %}
+                      <span style="color: var(--snm-fail); font-weight: 700;">✕ Above Max</span>
+                    {% endif %}
+                  {% elif test.limit_type == 'range' %}
+                    {% if s >= test.spec_value and s <= test.upper_limit %}
+                      <span style="color: var(--snm-pass); font-weight: 700;">✓ Pass</span>
+                    {% else %}
+                      <span style="color: var(--snm-fail); font-weight: 700;">✕ Out of Range</span>
+                    {% endif %}
+                  {% elif test.limit_type == 'nominal' %}
+                    {% if (s - test.spec_value)|abs <= (test.tolerance or 0) %}
+                      <span style="color: var(--snm-pass); font-weight: 700;">✓ Pass</span>
+                    {% else %}
+                      <span style="color: var(--snm-fail); font-weight: 700;">✕ Off Target</span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" style="padding: 1.5rem; text-align: center; color: #999;" class="mono">
+                  No specimen readings entered yet.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sign-off & Approval Section -->
+    <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1.25rem; border-radius: 4px; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+        SIGN-OFF & APPROVAL WORKFLOW
+      </h3>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;" class="mono" style="font-size: 0.85rem;">
+        <div>
+          <div style="color: #777; font-size: 0.75rem;">ENTERED BY (ANALYST)</div>
+          <strong>{{ test.creator_name or 'System' }}</strong>
+          <div style="color: #888; font-size: 0.75rem;">at {{ test.created_at }}</div>
+        </div>
+        <div>
+          <div style="color: #777; font-size: 0.75rem;">APPROVED BY (QA / CHIEF QUALITY)</div>
+          {% if test.approved_at %}
+            <strong style="color: var(--snm-pass);">✓ {{ test.approver_name }}</strong>
+            <div style="color: #888; font-size: 0.75rem;">at {{ test.approved_at }}</div>
+          {% else %}
+            <span style="color: #888;">Pending Approval</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Approve Button for Authorized User -->
+      {% if not test.approved_at %}
+        {% if user_can_approve %}
+          <form method="POST" action="/lab-tests/{{ test.id }}/approve">
+            <button type="submit" class="btn btn-olive" style="padding: 0.5rem 1.25rem;">
+              ✓ Sign & Approve Lab Test Record
+            </button>
+          </form>
+        {% elif user.id == test.created_by %}
+          <div style="color: #777; font-size: 0.8rem;" class="mono">
+            ℹ Segregation of Duties: As the recording analyst, you cannot approve your own test record.
+          </div>
+        {% else %}
+          <div style="color: #777; font-size: 0.8rem;" class="mono">
+            ℹ Requires QA Manager / Chief Quality permission to approve.
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div>
+      <a href="/lab-tests" class="btn btn-outline" style="color: var(--snm-machine-black);">
+        ← Back to Lab Tests Register
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

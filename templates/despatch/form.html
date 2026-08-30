@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Despatch {{ d.despatch_no }}{% else %}New Despatch Note{% endif %} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 1.5rem;">
+  <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+    <a href="/despatch" style="color: var(--snm-olive); text-decoration: underline;">Despatch</a> / {% if is_edit %}Edit {{ d.despatch_no }}{% else %}New Note{% endif %}
+  </div>
+  <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+    {% if is_edit %}EDIT DESPATCH NOTE ({{ d.despatch_no }}){% else %}CREATE DESPATCH CONSIGNMENT{% endif %}
+  </h1>
+</div>
+
+<div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.5rem; max-width: 850px;">
+  <form method="POST" action="{% if is_edit %}/despatch/{{ d.id }}/update{% else %}/despatch{% endif %}" id="despatch-form" 
+        x-data="{ 
+          selectedJob: '{{ d.job_id if is_edit else selected_job_id }}',
+          holdMap: {
+            {% for j in jobs %}'{{ j.id }}': {{ 'true' if j.on_qc_hold else 'false' }},{% endfor %}
+          },
+          get isHold() {
+            return this.holdMap[this.selectedJob] === true;
+          }
+        }">
+    
+    <!-- 1. Despatch Identification & Job Selection -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      1. SHIPMENT IDENTIFICATION & PRODUCTION JOB
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Despatch No (Auto)
+        </label>
+        <input type="text" value="{{ despatch_no_preview }}" disabled style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; font-weight: bold; color: var(--snm-olive);">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Despatch Date *
+        </label>
+        <input type="date" name="despatched_on" value="{{ d.despatched_on if is_edit else '' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Production Job Card * (Must reference active job)
+      </label>
+      <select name="job_id" x-model="selectedJob" required style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        {% for j in jobs %}
+        <option value="{{ j.id }}" {% if (d.job_id|string if is_edit else selected_job_id) == j.id %}selected{% endif %}>
+          {{ j.job_no }} — {{ j.customer_name or 'Commercial' }} | {{ j.product }} ({{ j.qty_ordered }} {{ j.unit }}) {% if j.on_qc_hold %}⚠️ [ON QC HOLD]{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- QC HOLD ALERT BANNER -->
+    <div x-show="isHold" style="background: #FDF2F2; border: 2px solid var(--snm-fail); border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem;" x-cloak>
+      <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+        <span style="font-size: 1.25rem;">⚠️</span>
+        <div>
+          <strong style="color: var(--snm-fail); font-family: var(--font-heading); text-transform: uppercase;">
+            Quality Assurance Hold Detected
+          </strong>
+          <div style="font-size: 0.85rem; color: #444; margin-top: 0.25rem; line-height: 1.4;">
+            This job currently contains failed QC Line Checks or Lab Tests. Under factory quality rules, dispatching goods under QC hold requires an authorized concession override reason.
+          </div>
+          <div style="margin-top: 0.75rem;">
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: var(--snm-fail); font-weight: bold; display: block; margin-bottom: 0.25rem;">
+              QC Hold Override Reason * (Minimum 10 characters required by database)
+            </label>
+            <input type="text" name="override_reason" value="{{ d.override_reason if is_edit else '' }}" placeholder="e.g. Concession granted per OFK amendment letter OFK/TEX/2026/08" style="width: 100%; padding: 0.5rem; border: 1px solid var(--snm-fail); border-radius: 4px; background: white;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Quantity & Packaging -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      2. QUANTITY & PACKAGING
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dispatch Qty *
+        </label>
+        <input type="number" step="0.01" min="0.01" name="qty" value="{{ d.qty if is_edit else '' }}" required style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); font-weight: bold; border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Unit *
+        </label>
+        <select name="unit" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          <option value="m" {% if (d.unit if is_edit else 'm') == 'm' %}selected{% endif %}>m (Metres)</option>
+          <option value="kg" {% if (d.unit if is_edit else '') == 'kg' %}selected{% endif %}>kg (Kilograms)</option>
+          <option value="nos" {% if (d.unit if is_edit else '') == 'nos' %}selected{% endif %}>nos (Pieces)</option>
+          <option value="yd" {% if (d.unit if is_edit else '') == 'yd' %}selected{% endif %}>yd (Yards)</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          No. of Rolls / Pkgs
+        </label>
+        <input type="number" step="1" min="1" name="rolls" value="{{ d.rolls if is_edit else '' }}" placeholder="e.g. 10" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Gross Weight (kg)
+        </label>
+        <input type="number" step="0.1" min="0" name="gross_wt" value="{{ d.gross_wt if is_edit else '' }}" placeholder="e.g. 145.5" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <!-- 3. Billing & Logistics -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      3. BILLING, GST & LOGISTICS
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          GST Invoice No
+        </label>
+        <input type="text" name="invoice_no" value="{{ d.invoice_no if is_edit else '' }}" placeholder="e.g. SNM/26-27/0142" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          GST E-Way Bill No
+        </label>
+        <input type="text" name="eway_bill" value="{{ d.eway_bill if is_edit else '' }}" placeholder="e.g. 541289654123" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Transporter / Carrier
+        </label>
+        <input type="text" name="transporter" value="{{ d.transporter if is_edit else '' }}" placeholder="e.g. V-Trans / TCI Freight" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          LR / Consignment No
+        </label>
+        <input type="text" name="lr_no" value="{{ d.lr_no if is_edit else '' }}" placeholder="e.g. KAN-98421" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Destination City / Depot
+        </label>
+        <input type="text" name="destination" value="{{ d.destination if is_edit else '' }}" placeholder="e.g. OFK Kanpur / Delhi" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    {% if is_edit %}
+    <div style="margin-bottom: 1.5rem;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Consignment Status
+      </label>
+      <select name="status" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if d.status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="/despatch{% if is_edit %}/{{ d.id }}{% endif %}" class="btn" style="border: 1px solid var(--snm-line); color: #666;">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+        {% if is_edit %}Update Despatch{% else %}Save Despatch Note{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

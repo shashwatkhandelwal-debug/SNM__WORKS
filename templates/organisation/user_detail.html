@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ target.full_name }} — Role Assignments — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/organisation/users" style="color: var(--snm-olive); text-decoration: underline;">Staff Directory</a> / {{ target.full_name }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        {{ target.full_name }}
+      </h1>
+      {% if target.active %}
+      <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #E8EDE4; color: var(--snm-pass); font-weight: bold;">
+        ACTIVE
+      </span>
+      {% else %}
+      <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #FDF2F2; color: var(--snm-fail); font-weight: bold;">
+        DEACTIVATED
+      </span>
+      {% endif %}
+    </div>
+    <div style="font-size: 0.85rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+      {{ target.email or 'No email' }} | ID: {{ target.id }}
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    {% if can_manage and not is_self %}
+    <form method="POST" action="/organisation/users/{{ target.id }}/toggle-active" onsubmit="return confirm('Are you sure you want to toggle this user\'s active status? Deactivation revokes system access immediately.');">
+      <button type="submit" class="btn {% if target.active %}btn-danger{% else %}btn-primary{% endif %}" style="font-family: var(--font-heading); text-transform: uppercase;">
+        {% if target.active %}Deactivate Profile{% else %}Reactivate Profile{% endif %}
+      </button>
+    </form>
+    {% endif %}
+    <a href="/organisation/users" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Directory
+    </a>
+  </div>
+</div>
+
+<!-- Active Conflicts Banner (if any) -->
+{% if conflicts %}
+<div style="background: #FEF7EA; border: 2px solid var(--snm-hold); border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem;">
+  <div style="font-weight: bold; color: var(--snm-hold); font-family: var(--font-heading); text-transform: uppercase; margin-bottom: 0.25rem;">
+    ⚠️ Segregation of Duties Warnings Detected for this User
+  </div>
+  {% for c in conflicts %}
+  <div style="font-size: 0.85rem; color: #444; margin-top: 0.25rem;">
+    • <strong>{{ c.role_a_name }}</strong> ↔ <strong>{{ c.role_b_name }}</strong>: {{ c.reason }} (Severity: {{ c.severity }})
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Currently Held Roles -->
+  <div>
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        CURRENTLY ASSIGNED ROLES ({{ held_roles|length }})
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for r in held_roles %}
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #FAF9F6; border: 1px solid var(--snm-line); border-radius: 4px; padding: 0.75rem 1rem;">
+          <div>
+            <div style="font-weight: 600; color: var(--snm-machine-black);">
+              <span style="font-family: var(--font-mono); color: var(--snm-olive); margin-right: 0.3rem;">[{{ r.function_code }}]</span>
+              {{ r.role_name }}
+              <span style="font-size: 0.7rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">
+                ({{ r.level }})
+              </span>
+            </div>
+            <div style="font-size: 0.75rem; color: #777; margin-top: 0.2rem;">
+              Granted {{ r.granted_at.strftime('%Y-%m-%d') if r.granted_at else '' }}
+              {% if r.granter_name %}by {{ r.granter_name }}{% endif %}
+            </div>
+          </div>
+
+          {% if can_manage and not is_self %}
+          <form method="POST" action="/organisation/users/{{ target.id }}/revoke" onsubmit="return confirm('Revoke this role from {{ target.full_name }}?');">
+            <input type="hidden" name="role_code" value="{{ r.role_code }}">
+            <button type="submit" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; color: var(--snm-fail); border: 1px solid var(--snm-fail); background: white;">
+              Revoke
+            </button>
+          </form>
+          {% endif %}
+        </div>
+        {% else %}
+        <div style="padding: 1.5rem; text-align: center; color: #888; font-style: italic;">
+          No active roles assigned to this staff member.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Grant New Role Panel -->
+  <div>
+    {% if can_manage and not is_self and available_roles %}
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        + GRANT NEW ROLE
+      </div>
+
+      <form method="POST" action="/organisation/users/{{ target.id }}/grant">
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+            Select Role to Grant *
+          </label>
+          <select name="role_code" required style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+            {% for ar in available_roles %}
+            <option value="{{ ar.code }}">
+              [{{ ar.function_code }}] {{ ar.name }} ({{ ar.level }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-family: var(--font-heading); text-transform: uppercase;">
+          Grant Role
+        </button>
+      </form>
+
+      <div style="font-size: 0.75rem; color: #888; margin-top: 1rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem; line-height: 1.4;">
+        * Granting roles is governed by <code>people.approve</code> / <code>systems.approve</code>. Trigger blocks assignments with blocking segregation-of-duties conflicts.
+      </div>
+    </div>
+    {% elif is_self %}
+    <div class="card" style="background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem; font-size: 0.85rem; color: #666; line-height: 1.4;">
+      <strong>Self-Assignment Blocked:</strong> Under Non-Negotiable Rule 6, you cannot grant roles to or deactivate your own administrator account. Another authorized administrator must perform grants on your profile.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

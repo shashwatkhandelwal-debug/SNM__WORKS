@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}My Tasks Inbox — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      MY TASKS & WORK INBOX
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Work routed dynamically based on the union of all operational roles you hold.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/organisation" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      Organisation Matrix
+    </a>
+  </div>
+</div>
+
+<!-- Task List Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Priority</th>
+        <th style="padding: 0.75rem 1rem;">Task Details</th>
+        <th style="padding: 0.75rem 1rem;">Assigned Role</th>
+        <th style="padding: 0.75rem 1rem;">Due Date</th>
+        <th style="padding: 0.75rem 1rem;">Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; font-weight: bold;
+            {% if t.priority == 'stop-the-line' %}background: #FDF2F2; color: var(--snm-fail); border: 1px solid var(--snm-fail);
+            {% elif t.priority == 'high' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% elif t.priority == 'normal' %}background: #E8EDE4; color: var(--snm-olive); border: 1px solid var(--snm-olive);
+            {% else %}background: #F6F4EE; color: #777; border: 1px solid var(--snm-line);{% endif %}">
+            {{ t.priority }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 600; color: var(--snm-machine-black);">
+            {{ t.title }}
+          </div>
+          {% if t.detail %}
+          <div style="font-size: 0.8rem; color: #555; margin-top: 0.2rem; line-height: 1.3;">
+            {{ t.detail }}
+          </div>
+          {% endif %}
+          {% if t.source_table %}
+          <div style="font-size: 0.7rem; font-family: var(--font-mono); color: #888; margin-top: 0.2rem;">
+            Origin: {{ t.source_table }}
+          </div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">
+          {{ t.assigned_role or 'Unassigned' }}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #555;">
+          {{ t.due_on or '—' }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; font-weight: bold;
+            {% if t.status == 'open' %}background: #FEF7EA; color: var(--snm-hold);
+            {% elif t.status == 'in progress' %}background: #E8EDE4; color: var(--snm-olive);
+            {% elif t.status == 'done' %}background: #E8EDE4; color: var(--snm-pass);
+            {% else %}background: #F0EEEA; color: #777;{% endif %}">
+            {{ t.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <div style="display: flex; gap: 0.3rem; justify-content: center;">
+            {% if t.status == 'open' %}
+            <form method="POST" action="/tasks/{{ t.id }}/status">
+              <input type="hidden" name="status" value="in progress">
+              <button type="submit" class="btn btn-secondary" style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">
+                Start
+              </button>
+            </form>
+            {% endif %}
+            {% if t.status != 'done' and t.status != 'cancelled' %}
+            <form method="POST" action="/tasks/{{ t.id }}/status">
+              <input type="hidden" name="status" value="done">
+              <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.4rem; font-size: 0.75rem; background: var(--snm-pass); border-color: var(--snm-pass);">
+                Complete
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="padding: 3rem 1rem; text-align: center; color: var(--snm-pass); font-family: var(--font-heading); font-size: 1.1rem;">
+          ✓ All caught up! No pending tasks in your inbox across your assigned roles.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

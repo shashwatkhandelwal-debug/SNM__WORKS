@@ -3,6 +3,7 @@ Catalogue feed builder for Swadeshi Niwar Mills.
 Processes product data for public-facing buyer listings.
 """
 
+import json
 from typing import Any, Dict, List, Optional
 from services.post_generator import sanitize_sku_data
 
@@ -30,6 +31,14 @@ def build_catalogue_item(sku: Dict[str, Any]) -> Dict[str, Any]:
 
     # Extract draft details if available for properties list
     post_draft = clean_sku.get("post_draft") or {}
+    if isinstance(post_draft, str):
+        try:
+            post_draft = json.loads(post_draft)
+        except Exception:
+            post_draft = {}
+    if not isinstance(post_draft, dict):
+        post_draft = {}
+
     breaking_strength = post_draft.get("breaking_strength", "Specified per standard")
     strength_to_weight = post_draft.get("strength_to_weight_ratio", "Contact us for datasheet")
     use_case = post_draft.get("use_case", "Industrial and technical applications")

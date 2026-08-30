@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if is_edit %}Edit Job {{ job.job_no }}{% else %}New Job Card{% endif %} — Swadeshi Niwar Mills
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  
+  <!-- Back Link -->
+  <div style="margin-bottom: 1rem;">
+    <a href="{% if is_edit %}/jobs/{{ job.id }}{% else %}/jobs{% endif %}" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Cancel and Return
+    </a>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card" style="border-top: 5px solid var(--snm-olive);">
+    
+    <div class="card-header" style="margin-bottom: 1.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">PRODUCTION ORDER</span>
+          {% if is_edit %}
+            <span class="badge badge-gray">EDIT MODE</span>
+          {% else %}
+            <span class="badge badge-pass">NEW RECORD</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.6rem; margin: 0.2rem 0;">
+          {% if is_edit %}Edit Job Card: {{ job.job_no }}{% else %}Create New Job Card{% endif %}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Enter loom parameters, customer order quantity, and delivery target.
+        </p>
+      </div>
+    </div>
+
+    <form 
+      method="POST" 
+      action="{% if is_edit %}/jobs/{{ job.id }}/update{% else %}/jobs{% endif %}"
+    >
+      
+      <!-- Section 1: Order & Identification -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          1. ORDER IDENTIFICATION & CUSTOMER
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          
+          <!-- Job Number (Read-only) -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="job_no">Job Number (Auto-Generated)</label>
+            <input 
+              type="text" 
+              id="job_no" 
+              name="job_no" 
+              class="form-input mono" 
+              value="{{ job.job_no }}" 
+              readonly 
+              style="background-color: #eee; cursor: not-allowed; font-weight: 700; color: var(--snm-olive-dark);"
+            >
+          </div>
+
+          <!-- Customer Selection / Input -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="customer_name">Customer / Client</label>
+            <input 
+              type="text" 
+              id="customer_name" 
+              name="customer_name" 
+              list="customer_list"
+              class="form-input" 
+              value="{{ job.customer_name or '' }}" 
+              placeholder="Select or enter customer name..."
+            >
+            <datalist id="customer_list">
+              {% for cust in customers %}
+                <option value="{{ cust.name }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <!-- PO Reference -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="po_ref">Customer PO Reference</label>
+            <input 
+              type="text" 
+              id="po_ref" 
+              name="po_ref" 
+              class="form-input mono" 
+              value="{{ job.po_ref or '' }}" 
+              placeholder="e.g. OFK/PO/2026/089"
+            >
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 2: Product Specifications -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          2. TECHNICAL SPECIFICATIONS & LOOM CONFIGURATION
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          
+          <!-- Product Name -->
+          <div class="form-group" style="margin-bottom: 0; grid-column: 1 / -1;">
+            <label class="form-label" for="product">Product Description *</label>
+            <input 
+              type="text" 
+              id="product" 
+              name="product" 
+              class="form-input" 
+              value="{{ job.product or '' }}" 
+              placeholder="e.g. 44mm Nylon Type VIII Webbing, OG Shade" 
+              required
+            >
+          </div>
+
+          <!-- Specification Standard -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="spec">Specification Standard</label>
+            <input 
+              type="text" 
+              id="spec" 
+              name="spec" 
+              class="form-input mono" 
+              value="{{ job.spec or '' }}" 
+              placeholder="e.g. MIL-W-4088K Type VIII or IS 1969"
+            >
+          </div>
+
+          <!-- Width mm -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="width_mm">Width (mm)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="width_mm" 
+              name="width_mm" 
+              class="form-input mono" 
+              value="{{ job.width_mm or '' }}" 
+              placeholder="e.g. 44.0"
+            >
+          </div>
+
+          <!-- Colour -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="colour">Colour / Shade</label>
+            <input 
+              type="text" 
+              id="colour" 
+              name="colour" 
+              class="form-input" 
+              value="{{ job.colour or '' }}" 
+              placeholder="e.g. Olive Green (OG), Black, Natural"
+            >
+          </div>
+
+          <!-- Machine / Loom -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="machine">Machine / Loom Assignment</label>
+            <input 
+              type="text" 
+              id="machine" 
+              name="machine" 
+              class="form-input" 
+              value="{{ job.machine or '' }}" 
+              placeholder="e.g. Loom #4 (Muller)"
+            >
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 3: Quantity & Delivery -->
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+          3. QUANTITIES & SCHEDULE
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          
+          <!-- Qty Ordered -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qty_ordered">Quantity Ordered *</label>
+            <input 
+              type="number" 
+              step="any" 
+              min="1" 
+              id="qty_ordered" 
+              name="qty_ordered" 
+              class="form-input mono" 
+              value="{{ job.qty_ordered or 1000 }}" 
+              required
+            >
+          </div>
+
+          <!-- Unit -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="unit">Measurement Unit *</label>
+            <select id="unit" name="unit" class="form-input" required>
+              <option value="m" {% if job.unit == 'm' %}selected{% endif %}>m (Metres)</option>
+              <option value="kg" {% if job.unit == 'kg' %}selected{% endif %}>kg (Kilograms)</option>
+              <option value="pcs" {% if job.unit == 'pcs' %}selected{% endif %}>pcs (Pieces)</option>
+              <option value="rolls" {% if job.unit == 'rolls' %}selected{% endif %}>rolls (Rolls)</option>
+            </select>
+          </div>
+
+          <!-- Qty Produced -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qty_produced">Quantity Produced</label>
+            <input 
+              type="number" 
+              step="any" 
+              min="0" 
+              id="qty_produced" 
+              name="qty_produced" 
+              class="form-input mono" 
+              value="{{ job.qty_produced or 0 }}"
+            >
+          </div>
+
+          <!-- Delivery Due Date -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="delivery_due">Delivery Due Date</label>
+            <input 
+              type="date" 
+              id="delivery_due" 
+              name="delivery_due" 
+              class="form-input mono" 
+              value="{{ job.delivery_due or '' }}"
+            >
+          </div>
+
+          <!-- Status -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="status">Job Status</label>
+            <select id="status" name="status" class="form-input" required>
+              {% for st in status_stages %}
+                <option value="{{ st }}" {% if job.status == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+              <option value="Cancelled" {% if job.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+            {% if is_edit %}
+            <span style="font-size: 0.75rem; color: #777; display: block; margin-top: 0.2rem;">
+              Forward progression only: Planned → In progress → Complete → Despatched
+            </span>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 4: Remarks -->
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label" for="remarks">Production Remarks / Special Instructions</label>
+        <textarea 
+          id="remarks" 
+          name="remarks" 
+          class="form-input" 
+          rows="3" 
+          placeholder="Special weave instructions, lot testing requirements, packing requirements..."
+        >{{ job.remarks or '' }}</textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--snm-line); padding-top: 1.25rem;">
+        <a href="{% if is_edit %}/jobs/{{ job.id }}{% else %}/jobs{% endif %}" class="btn btn-outline">
+          Cancel
+        </a>
+
+        <button type="submit" class="btn btn-olive" style="min-width: 180px;">
+          {% if is_edit %}Save Changes{% else %}Create Job Card{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

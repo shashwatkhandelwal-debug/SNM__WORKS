@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Tests & Quality Certificates — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1300px; margin: 0 auto;">
+  
+  <!-- Header Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">QUA — QUALITY ASSURANCE</span>
+          <span class="mono" style="font-size: 0.8rem; color: #666;">SWADESHI NIWAR MILLS</span>
+        </div>
+        <h1 style="font-size: 1.65rem; margin: 0.2rem 0;">Laboratory Tests & Release</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Physical, chemical, and dimensional specimen testing with Postgres-computed critical verdicts and segregation of duties.
+        </p>
+      </div>
+      <div>
+        <a href="/lab-tests/new" class="btn btn-olive">
+          + New Lab Test
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="GET" action="/lab-tests" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      
+      <!-- Verdict Filter Pills -->
+      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+        <a 
+          href="/lab-tests?verdict=all{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if test_type_filter != 'all' %}&test_type={{ test_type_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'all' or not verdict_filter %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'all' and verdict_filter %}color: var(--snm-machine-black); border-color: var(--snm-line);{% endif %}"
+        >
+          All ({{ tests|length }})
+        </a>
+        <a 
+          href="/lab-tests?verdict=PASS{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if test_type_filter != 'all' %}&test_type={{ test_type_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'PASS' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'PASS' %}color: var(--snm-pass); border-color: var(--snm-line);{% endif %}"
+        >
+          ✓ PASS
+        </a>
+        <a 
+          href="/lab-tests?verdict=FAIL{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if test_type_filter != 'all' %}&test_type={{ test_type_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'FAIL' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'FAIL' %}color: var(--snm-fail); border-color: var(--snm-line);{% endif %}"
+        >
+          ✕ FAIL (Hold)
+        </a>
+        <a 
+          href="/lab-tests?verdict=Pending{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if test_type_filter != 'all' %}&test_type={{ test_type_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'Pending' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'Pending' %}color: var(--snm-machine-black); border-color: var(--snm-line);{% endif %}"
+        >
+          ⏱ Pending
+        </a>
+      </div>
+
+      <!-- Search and Filters Inputs -->
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+        <input 
+          type="text" 
+          name="job_no" 
+          value="{{ job_no_filter }}" 
+          placeholder="Filter Job (e.g. SNM/26-27/...)" 
+          class="form-control mono" 
+          style="width: 170px; padding: 0.35rem 0.6rem; font-size: 0.85rem;"
+        >
+        <select 
+          name="test_type" 
+          class="form-control" 
+          style="width: 190px; padding: 0.35rem 0.6rem; font-size: 0.85rem;"
+        >
+          <option value="all" {% if test_type_filter == 'all' or not test_type_filter %}selected{% endif %}>All Test Types</option>
+          {% for tt in test_types %}
+            <option value="{{ tt }}" {% if test_type_filter == tt %}selected{% endif %}>{{ tt }}</option>
+          {% endfor %}
+        </select>
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ q }}" 
+          placeholder="Search test ID / param..." 
+          class="form-control" 
+          style="width: 160px; padding: 0.35rem 0.6rem; font-size: 0.85rem;"
+        >
+        <input type="hidden" name="verdict" value="{{ verdict_filter }}">
+        <button type="submit" class="btn btn-sm btn-olive">Filter</button>
+        {% if job_no_filter or verdict_filter != 'all' or test_type_filter != 'all' or q %}
+          <a href="/lab-tests" class="btn btn-sm btn-outline" style="color: #666;">Clear</a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Lab Tests Table -->
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="table" style="margin: 0; width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line);">
+          <th style="padding: 0.75rem 1rem; text-align: left;">Test ID</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Job / Order</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Date</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Test & Parameter</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Target Spec</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Specimens (Count)</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Verdict</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Analyst / Approver</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if tests and tests|length > 0 %}
+          {% for t in tests %}
+          <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;">
+            
+            <!-- Test ID -->
+            <td style="padding: 0.75rem 1rem;">
+              <a href="/lab-tests/{{ t.id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: underline;">
+                {{ t.test_id }}
+              </a>
+              {% if t.is_critical %}
+                <span class="badge" style="background: #FFF0F0; color: var(--snm-fail); border: 1px solid var(--snm-fail); font-size: 0.65rem; margin-left: 0.25rem;">
+                  CRITICAL
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Job Card -->
+            <td style="padding: 0.75rem 1rem;">
+              {% if t.job_no %}
+                <a href="/jobs/{{ t.job_id }}" class="mono" style="color: var(--snm-machine-black); text-decoration: underline; font-weight: 600;">
+                  {{ t.job_no }}
+                </a>
+                <div style="font-size: 0.75rem; color: #666; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {{ t.job_product }}
+                </div>
+              {% else %}
+                <span class="mono" style="color: #999;">— Unlinked —</span>
+              {% endif %}
+            </td>
+
+            <!-- Tested On -->
+            <td style="padding: 0.75rem 1rem;" class="mono" style="font-size: 0.85rem;">
+              {{ t.tested_on }}
+            </td>
+
+            <!-- Parameter & Test Type -->
+            <td style="padding: 0.75rem 1rem;">
+              <div style="font-weight: 600; color: var(--snm-machine-black);">
+                {{ t.parameter }}
+              </div>
+              <div style="font-size: 0.75rem; color: #666;">
+                {{ t.test_type }}
+              </div>
+              {% if t.standard %}
+                <div class="mono" style="font-size: 0.7rem; color: #888;">
+                  {{ t.standard }}
+                </div>
+              {% endif %}
+            </td>
+
+            <!-- Target Spec -->
+            <td style="padding: 0.75rem 1rem; text-align: right;" class="mono">
+              {% if t.limit_type == 'nominal' %}
+                {{ t.spec_value }} {% if t.tolerance %}± {{ t.tolerance }}{% endif %}
+              {% elif t.limit_type == 'minimum' %}
+                ≥ {{ t.spec_value }}
+              {% elif t.limit_type == 'maximum' %}
+                ≤ {{ t.spec_value }}
+              {% elif t.limit_type == 'range' %}
+                {{ t.spec_value }} – {{ t.upper_limit }}
+              {% endif %}
+              <span style="font-size: 0.75rem; color: #666;">{{ t.unit or '' }}</span>
+            </td>
+
+            <!-- Specimens Count -->
+            <td style="padding: 0.75rem 1rem; text-align: right;" class="mono">
+              {% if t.specimens and t.specimens|length > 0 %}
+                <strong>{{ t.specimens|length }}</strong> readings
+                <div style="font-size: 0.75rem; color: #777;">
+                  min: {{ t.specimens|min }} {{ t.unit or '' }}
+                </div>
+              {% else %}
+                <span style="color: #999;">No readings</span>
+              {% endif %}
+            </td>
+
+            <!-- Verdict Badge -->
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              {% if t.verdict == 'PASS' %}
+                <span class="badge" style="background: #EAF5EA; color: var(--snm-pass); border: 1px solid var(--snm-pass); font-weight: 700; font-family: var(--font-mono);">
+                  ✓ PASS
+                </span>
+              {% elif t.verdict == 'FAIL' %}
+                <span class="badge" style="background: #FDF0EE; color: var(--snm-fail); border: 1px solid var(--snm-fail); font-weight: 700; font-family: var(--font-mono);">
+                  ✕ FAIL
+                </span>
+              {% else %}
+                <span class="badge" style="background: #F4F4F4; color: #666; border: 1px solid #CCC; font-family: var(--font-mono);">
+                  ⏱ PENDING
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Analyst & Approver -->
+            <td style="padding: 0.75rem 1rem; font-size: 0.85rem;">
+              <div>{{ t.creator_name or '—' }}</div>
+              {% if t.approved_at %}
+                <div style="color: var(--snm-pass); font-size: 0.75rem;">
+                  ✓ Approved by {{ t.approver_name }}
+                </div>
+              {% else %}
+                <div style="color: #888; font-size: 0.75rem;">
+                  Pending Approval
+                </div>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              <div style="display: flex; justify-content: center; gap: 0.35rem;">
+                <a href="/lab-tests/{{ t.id }}" class="btn btn-sm btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                  View
+                </a>
+                <a href="/lab-tests/{{ t.id }}/edit" class="btn btn-sm btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                  Edit
+                </a>
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" style="padding: 3rem 1rem; text-align: center; color: #777;">
+              <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No laboratory tests found matching your filter criteria.</p>
+              <a href="/lab-tests/new" class="btn btn-olive" style="margin-top: 0.5rem;">+ Create First Lab Test</a>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

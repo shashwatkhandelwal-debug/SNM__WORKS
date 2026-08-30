@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Permission Matrix — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/organisation" style="color: var(--snm-olive); text-decoration: underline;">Organisation</a> / Permission Matrix
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+      PERMISSION MATRIX ({{ total_grants }} GRANTS)
+    </h1>
+  </div>
+  <div>
+    <a href="/organisation" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Organisation
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/organisation/matrix" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Module Filter -->
+    <div style="flex: 1; min-width: 180px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Module
+      </label>
+      <select name="module_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_module == 'all' %}selected{% endif %}>All Modules ({{ modules|length }})</option>
+        {% for m in modules %}
+        <option value="{{ m }}" {% if selected_module == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Role Filter -->
+    <div style="flex: 1; min-width: 200px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Role
+      </label>
+      <select name="role_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_role == 'all' %}selected{% endif %}>All Roles ({{ roles|length }})</option>
+        {% for r in roles %}
+        <option value="{{ r.code }}" {% if selected_role == r.code %}selected{% endif %}>{{ r.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_module != 'all' or selected_role != 'all' %}
+      <a href="/organisation/matrix" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Function</th>
+        <th style="padding: 0.75rem 1rem;">Role</th>
+        <th style="padding: 0.75rem 1rem;">Level</th>
+        <th style="padding: 0.75rem 1rem;">Target Module</th>
+        <th style="padding: 0.75rem 1rem;">Granted Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in permissions %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem;">
+          <span style="font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ p.function_code }}</span>
+          <span style="font-size: 0.75rem; color: #666; margin-left: 0.3rem;">{{ p.function_name }}</span>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-weight: 500; color: var(--snm-machine-black);">
+          {{ p.role_name }}
+          <div style="font-size: 0.7rem; font-family: var(--font-mono); color: #888;">{{ p.role_code }}</div>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.7rem; font-family: var(--font-heading); text-transform: uppercase;
+            {% if p.role_level == 'chief' %}background: #E8EDE4; color: var(--snm-olive); font-weight: bold;
+            {% elif p.role_level == 'manager' %}background: #F0EEEA; color: #444;
+            {% else %}background: #F6F4EE; color: #777;{% endif %}">
+            {{ p.role_level }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold; color: #333;">
+          {{ p.module }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-mono); font-weight: bold;
+            {% if p.action == 'approve' or p.action == 'release' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% elif p.action == 'create' or p.action == 'update' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% else %}background: #F6F4EE; color: #555; border: 1px solid var(--snm-line);{% endif %}">
+            {{ p.action }}
+          </span>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="padding: 2rem; text-align: center; color: #888;">
+          No permissions found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.job_no }} — Job Card Details — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+  
+  <!-- Back Link & Top Bar Actions -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem;">
+    <a href="/jobs" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Back to Job Cards
+    </a>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="/jobs/{{ job.id }}/edit" class="btn btn-olive btn-sm">
+        ✎ Edit Job Card
+      </a>
+      <a href="/jobs/new" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+        + New Job
+      </a>
+    </div>
+  </div>
+
+  <!-- QC HOLD Alert Banner if failing checks exist -->
+  {% if job.has_hold %}
+  <div class="alert alert-fail" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-left: 6px solid var(--snm-fail);">
+    <div>
+      <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; letter-spacing: 0.03em;">
+        🚨 QC HOLD ACTIVE — DISPATCH BLOCKED
+      </div>
+      <div style="font-size: 0.9rem; margin-top: 0.2rem;">
+        One or more QC line inspections or lab test requirements have evaluated to <strong>FAIL</strong>. Material from this job cannot be released without Quality override.
+      </div>
+    </div>
+    <span class="badge badge-fail" style="font-size: 0.9rem; padding: 4px 10px;">QC HOLD</span>
+  </div>
+  {% endif %}
+
+  <!-- Main Job Summary Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-top: 5px solid {% if job.has_hold %}var(--snm-fail){% elif job.status == 'Complete' or job.status == 'Despatched' %}var(--snm-pass){% else %}var(--snm-olive){% endif %};">
+    
+    <!-- Title & Status Header -->
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+          <span class="badge badge-olive" style="font-size: 1.05rem; padding: 3px 10px;">{{ job.job_no }}</span>
+          {% if job.has_hold %}
+            <span class="badge badge-fail" style="font-size: 0.85rem;">QC HOLD</span>
+          {% endif %}
+          {% if job.is_overdue %}
+            <span class="badge badge-fail" style="font-size: 0.85rem;">OVERDUE</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.85rem; margin: 0.25rem 0 0.5rem;">{{ job.product }}</h1>
+        <p style="font-size: 0.95rem; color: #555;">
+          Customer: <strong>{{ job.customer_name or 'Direct Order' }}</strong>
+          {% if job.po_ref %} • PO Ref: <span class="mono">{{ job.po_ref }}</span>{% endif %}
+        </p>
+      </div>
+
+      <div style="text-align: right;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #777; margin-bottom: 0.25rem;">
+          JOB STATUS
+        </div>
+        <span class="badge {% if job.status == 'Planned' %}badge-gray{% elif job.status == 'In progress' %}badge-olive{% elif job.status == 'Complete' or job.status == 'Despatched' %}badge-pass{% else %}badge-gray{% endif %}" style="font-size: 0.95rem; padding: 4px 12px;">
+          {{ job.status|upper }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Production Numbers Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1rem; border-radius: 2px;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #666; text-transform: uppercase;">
+          Quantity Ordered
+        </div>
+        <div class="mono" style="font-size: 1.5rem; font-weight: 700; color: var(--snm-machine-black);">
+          {{ '{:,.0f}'.format(job.qty_ordered|float) if job.qty_ordered is not none else '0' }}
+          <span style="font-size: 0.9rem; font-weight: 400; color: #666;">{{ job.unit }}</span>
+        </div>
+      </div>
+
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1rem; border-radius: 2px;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #666; text-transform: uppercase;">
+          Quantity Produced
+        </div>
+        <div class="mono" style="font-size: 1.5rem; font-weight: 700; color: var(--snm-olive-dark);">
+          {{ '{:,.0f}'.format(job.qty_produced|float) if job.qty_produced is not none else '0' }}
+          <span style="font-size: 0.9rem; font-weight: 400; color: #666;">{{ job.unit }}</span>
+        </div>
+      </div>
+
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1rem; border-radius: 2px;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #666; text-transform: uppercase;">
+          Remaining Balance
+        </div>
+        <div class="mono" style="font-size: 1.5rem; font-weight: 700; color: {% if job.balance|float > 0 %}var(--snm-machine-black){% else %}var(--snm-pass){% endif %};">
+          {{ '{:,.0f}'.format(job.balance|float) if job.balance is not none else '0' }}
+          <span style="font-size: 0.9rem; font-weight: 400; color: #666;">{{ job.unit }}</span>
+        </div>
+      </div>
+
+      <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1rem; border-radius: 2px;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #666; text-transform: uppercase;">
+          Delivery Schedule
+        </div>
+        <div class="mono" style="font-size: 1.25rem; font-weight: 700; {% if job.is_overdue %}color: var(--snm-fail);{% else %}color: var(--snm-machine-black);{% endif %}">
+          {{ job.delivery_due or 'Not set' }}
+        </div>
+        {% if job.is_overdue %}
+          <div style="font-size: 0.75rem; color: var(--snm-fail); font-weight: 600;">⚠ Target date exceeded</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Technical & Shop Floor Specifications -->
+    <div style="background: #ffffff; border: 1px solid var(--snm-line); border-radius: 2px; padding: 1.25rem; margin-bottom: 1rem;">
+      <h3 style="font-size: 1rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.75rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.35rem;">
+        TECHNICAL & LOOM ROUTING PARAMETERS
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+        
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Specification Standard:</span>
+          <strong>{{ job.spec or 'Standard Factory Spec' }}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Nominal Width:</span>
+          <strong>{% if job.width_mm %}{{ job.width_mm }} mm{% else %}Not specified{% endif %}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Colour / Shade:</span>
+          <strong>{{ job.colour or 'Undyed / Natural' }}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Assigned Machine / Loom:</span>
+          <strong>{{ job.machine or 'Not assigned' }}</strong>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Raised On:</span>
+          <span class="mono">{{ job.raised_on }}</span>
+        </div>
+
+        <div>
+          <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Created By:</span>
+          <span>{{ job.creator_name or 'Staff' }}</span>
+        </div>
+
+      </div>
+
+      {% if job.remarks %}
+      <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--snm-line);">
+        <span class="mono" style="color: #777; font-size: 0.8rem; display: block;">Production Notes & Remarks:</span>
+        <p style="margin-top: 0.25rem; font-size: 0.9rem; color: #333; line-height: 1.5;">
+          {{ job.remarks }}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Quality Assurance & Compliance Section -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid {% if job.has_hold %}var(--snm-fail){% else %}var(--snm-pass){% endif %};">
+    
+    <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.3rem; margin-bottom: 0.2rem;">Quality Assurance & Inspection Summary</h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Real-time test results and inspection verifications linked to this job card.
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge badge-pass" style="font-size: 0.85rem;">PASS: {{ qc_summary.pass_count + lab_summary.pass_count }}</span>
+        <span class="badge {% if (qc_summary.fail_count + lab_summary.fail_count) > 0 %}badge-fail{% else %}badge-gray{% endif %}" style="font-size: 0.85rem;">
+          FAIL: {{ qc_summary.fail_count + lab_summary.fail_count }}
+        </span>
+      </div>
+    </div>
+
+    <!-- QC Line Checks List -->
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.5rem; color: var(--snm-machine-black);">
+        SHOP FLOOR QC CHECKS ({{ qc_checks|length }})
+      </h3>
+
+      {% if not qc_checks %}
+        <div style="background: var(--snm-paper); border: 1px dashed var(--snm-line); padding: 1.25rem; text-align: center; border-radius: 2px; color: #666; font-size: 0.9rem;">
+          No shop floor QC checks recorded for this job yet.
+        </div>
+      {% else %}
+        <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 2px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); text-transform: uppercase;">
+              <tr>
+                <th style="padding: 0.5rem 0.75rem;">Check No</th>
+                <th style="padding: 0.5rem 0.75rem;">Date</th>
+                <th style="padding: 0.5rem 0.75rem;">Stage</th>
+                <th style="padding: 0.5rem 0.75rem;">Parameter</th>
+                <th style="padding: 0.5rem 0.75rem;">Spec / Tol</th>
+                <th style="padding: 0.5rem 0.75rem;">Actual</th>
+                <th style="padding: 0.5rem 0.75rem; text-align: right;">Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for qc in qc_checks %}
+              <tr style="border-bottom: 1px solid var(--snm-line); {% if qc.verdict == 'FAIL' %}background-color: #FDF2F0;{% endif %}">
+                <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ qc.check_no }}</strong></td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ qc.checked_on }}</td>
+                <td style="padding: 0.5rem 0.75rem;">{{ qc.stage }}</td>
+                <td style="padding: 0.5rem 0.75rem;"><strong>{{ qc.parameter }}</strong></td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ qc.spec_value }} {% if qc.tolerance %}±{{ qc.tolerance }}{% endif %} {{ qc.unit or '' }}</td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ qc.actual if qc.actual is not none else '—' }}</strong> {{ qc.unit or '' }}</td>
+                <td style="padding: 0.5rem 0.75rem; text-align: right;">
+                  {% if qc.verdict == 'PASS' %}
+                    <span class="badge badge-pass">PASS</span>
+                  {% elif qc.verdict == 'FAIL' %}
+                    <span class="badge badge-fail">FAIL</span>
+                  {% else %}
+                    <span class="badge badge-gray">{{ qc.verdict or 'PENDING' }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Lab Tests List -->
+    <div>
+      <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.5rem; color: var(--snm-machine-black);">
+        LABORATORY PHYSICAL & TENSILE TESTS ({{ lab_tests|length }})
+      </h3>
+
+      {% if not lab_tests %}
+        <div style="background: var(--snm-paper); border: 1px dashed var(--snm-line); padding: 1.25rem; text-align: center; border-radius: 2px; color: #666; font-size: 0.9rem;">
+          No laboratory test reports filed for this job.
+        </div>
+      {% else %}
+        <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 2px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); text-transform: uppercase;">
+              <tr>
+                <th style="padding: 0.5rem 0.75rem;">Test ID</th>
+                <th style="padding: 0.5rem 0.75rem;">Date</th>
+                <th style="padding: 0.5rem 0.75rem;">Test Type</th>
+                <th style="padding: 0.5rem 0.75rem;">Lab</th>
+                <th style="padding: 0.5rem 0.75rem;">Result</th>
+                <th style="padding: 0.5rem 0.75rem; text-align: right;">Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lt in lab_tests %}
+              <tr style="border-bottom: 1px solid var(--snm-line); {% if lt.verdict == 'FAIL' %}background-color: #FDF2F0;{% endif %}">
+                <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ lt.test_id }}</strong></td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ lt.tested_on }}</td>
+                <td style="padding: 0.5rem 0.75rem;"><strong>{{ lt.test_type }}</strong></td>
+                <td style="padding: 0.5rem 0.75rem;">{{ lt.lab or 'In-house' }}</td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ lt.result or '—' }} {{ lt.unit or '' }}</td>
+                <td style="padding: 0.5rem 0.75rem; text-align: right;">
+                  {% if lt.verdict == 'PASS' %}
+                    <span class="badge badge-pass">PASS</span>
+                  {% elif lt.verdict == 'FAIL' %}
+                    <span class="badge badge-fail">FAIL</span>
+                  {% else %}
+                    <span class="badge badge-gray">{{ lt.verdict or 'PENDING' }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

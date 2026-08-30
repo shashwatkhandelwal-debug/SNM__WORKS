@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Recipe {{ r.recipe_no }}{% else %}New Dye Recipe{% endif %} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 1.5rem;">
+  <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+    <a href="/recipes" style="color: var(--snm-olive); text-decoration: underline;">Dye Recipes</a> / {% if is_edit %}Edit {{ r.recipe_no }}{% else %}New Formulation{% endif %}
+  </div>
+  <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+    {% if is_edit %}EDIT DYE RECIPE ({{ r.recipe_no }}){% else %}NEW DYE FORMULATION RECIPE{% endif %}
+  </h1>
+</div>
+
+<div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.5rem; max-width: 900px;">
+  <form method="POST" action="{% if is_edit %}/recipes/{{ r.id }}/update{% else %}/recipes{% endif %}" id="recipe-form">
+    
+    <!-- Section 1: General Batch Header -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      1. BATCH & SUBSTRATE IDENTIFICATION
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Recipe No (Auto)
+        </label>
+        <input type="text" value="{{ recipe_no_preview }}" disabled style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; font-weight: bold; color: var(--snm-olive);">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Associated Job Card (Optional)
+        </label>
+        <select name="job_id" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          <option value="">-- Standalone / Master Lab Dip --</option>
+          {% for j in jobs %}
+          <option value="{{ j.id }}" {% if (r.job_id|string if is_edit else selected_job_id) == j.id %}selected{% endif %}>{{ j.job_no }} — {{ j.product }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Target Shade Name *
+        </label>
+        <input type="text" name="target_shade" value="{{ r.target_shade if is_edit else '' }}" placeholder="e.g. Olive Green OG-7, Coyote 498" required style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Substrate Material *
+        </label>
+        <select name="substrate" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for sub in substrates %}
+          <option value="{{ sub }}" {% if (r.substrate if is_edit else 'Nylon 6,6') == sub %}selected{% endif %}>{{ sub }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Batch Mass (kg)
+        </label>
+        <input type="number" step="0.1" name="batch_kg" value="{{ r.batch_kg if is_edit else '100.0' }}" placeholder="e.g. 100.0" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <!-- Section 2: 4-Dyestuff Formulation Grid -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      2. DYESTUFF COMBINATION (% ON WEIGHT OF FABRIC / OWF)
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 1 Name
+        </label>
+        <input type="text" name="dye1" value="{{ r.dye1 if is_edit else 'Acid Yellow 49' }}" placeholder="e.g. Acid Yellow 49" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 1 (% OWF)
+        </label>
+        <input type="number" step="0.0001" name="pct1" value="{{ r.pct1 if is_edit else '0.4500' }}" placeholder="0.0000" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 2 Name
+        </label>
+        <input type="text" name="dye2" value="{{ r.dye2 if is_edit else 'Acid Red 118' }}" placeholder="e.g. Acid Red 118" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 2 (% OWF)
+        </label>
+        <input type="number" step="0.0001" name="pct2" value="{{ r.pct2 if is_edit else '0.1200' }}" placeholder="0.0000" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 3 Name
+        </label>
+        <input type="text" name="dye3" value="{{ r.dye3 if is_edit else 'Acid Blue 80' }}" placeholder="e.g. Acid Blue 80" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 3 (% OWF)
+        </label>
+        <input type="number" step="0.0001" name="pct3" value="{{ r.pct3 if is_edit else '0.3800' }}" placeholder="0.0000" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 4 Name (Optional)
+        </label>
+        <input type="text" name="dye4" value="{{ r.dye4 if is_edit else '' }}" placeholder="e.g. Acid Black 172" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dye 4 (% OWF)
+        </label>
+        <input type="number" step="0.0001" name="pct4" value="{{ r.pct4 if is_edit else '' }}" placeholder="0.0000" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <!-- Section 3: Process Parameters & Quality Verdict -->
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      3. DYEBATH PARAMETERS & SHADE EVALUATION
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Liquor Ratio
+        </label>
+        <input type="text" name="liquor_ratio" value="{{ r.liquor_ratio if is_edit else '1:10' }}" placeholder="e.g. 1:10" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Temperature (°C)
+        </label>
+        <input type="number" step="0.1" name="temp_c" value="{{ r.temp_c if is_edit else '98.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Hold Time (min)
+        </label>
+        <input type="number" step="0.1" name="time_min" value="{{ r.time_min if is_edit else '45.0' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Dyebath pH
+        </label>
+        <input type="number" step="0.1" name="ph" value="{{ r.ph if is_edit else '4.5' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Chemical Auxiliaries & Buffers
+      </label>
+      <input type="text" name="auxiliaries" value="{{ r.auxiliaries if is_edit else 'Ammonium sulphate 2.0 g/l, Levelling agent 1.0 g/l, Acetic acid to pH 4.5' }}" placeholder="e.g. Levelling agent, Retarder, Sodium sulphate, Acetic acid" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Shade Match Evaluation (Controlled)
+        </label>
+        <select name="shade_result" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for sr in shade_results %}
+          <option value="{{ sr }}" {% if (r.shade_result if is_edit else 'Matched to Master') == sr %}selected{% endif %}>{{ sr }}</option>
+          {% endfor %}
+        </select>
+        <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">
+          * Formal technical approval requires 'Matched to Master' or 'Close - Acceptable'.
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Formulation Status
+        </label>
+        <select name="status" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for st in statuses %}
+          {% if st != 'Approved' %}
+          <option value="{{ st }}" {% if (r.status if is_edit else 'Draft') == st %}selected{% endif %}>{{ st }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="/recipes{% if is_edit %}/{{ r.id }}{% endif %}" class="btn" style="border: 1px solid var(--snm-line); color: #666;">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+        {% if is_edit %}Save Changes{% else %}Save Dye Recipe{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

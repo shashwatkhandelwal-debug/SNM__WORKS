@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Downtime {{ d.log_no }}{% else %}Log Machine Downtime{% endif %} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 1.5rem;">
+  <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+    <a href="/downtime" style="color: var(--snm-olive); text-decoration: underline;">Downtime</a> / {% if is_edit %}Edit {{ d.log_no }}{% else %}New Entry{% endif %}
+  </div>
+  <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+    {% if is_edit %}EDIT DOWNTIME LOG ({{ d.log_no }}){% else %}RECORD MACHINE STOPPAGE{% endif %}
+  </h1>
+</div>
+
+<div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.5rem; max-width: 800px;">
+  <form method="POST" action="{% if is_edit %}/downtime/{{ d.id }}/update{% else %}/downtime{% endif %}" id="downtime-form" x-data="{ mins: '{{ d.minutes if is_edit else 30 }}' }">
+    
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      1. STOPPAGE IDENTIFICATION & MACHINE
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Log No (Auto)
+        </label>
+        <input type="text" value="{{ log_no_preview }}" disabled style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; font-weight: bold; color: var(--snm-olive);">
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Stoppage Date *
+        </label>
+        <input type="date" name="logged_on" value="{{ d.logged_on if is_edit else '' }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Production Shift *
+        </label>
+        <select name="shift" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for sh in shifts %}
+          <option value="{{ sh }}" {% if (d.shift if is_edit else 'Shift A (06:00-14:00)') == sh %}selected{% endif %}>{{ sh }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Machine / Equipment *
+        </label>
+        <select name="machine" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for m in machines %}
+          <option value="{{ m }}" {% if (d.machine if is_edit else selected_machine) == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      2. ROOT CAUSE & LOST TIME
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Stoppage Reason *
+        </label>
+        <select name="reason" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          {% for r in reasons %}
+          <option value="{{ r }}" {% if (d.reason if is_edit else 'Mechanical Breakdown') == r %}selected{% endif %}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+          Running Job Card (Optional)
+        </label>
+        <select name="job_id" style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+          <option value="">-- No Active Job / Idle Machine --</option>
+          {% for j in jobs %}
+          <option value="{{ j.id }}" {% if (d.job_id|string if is_edit else selected_job_id) == j.id %}selected{% endif %}>{{ j.job_no }} — {{ j.product }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Lost Duration (Minutes) *
+      </label>
+      <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+        <input type="number" step="1" min="0" name="minutes" x-model="mins" required style="width: 150px; padding: 0.5rem; font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; border: 1px solid var(--snm-line); border-radius: 4px;">
+        <span style="font-size: 0.9rem; color: #666; font-family: var(--font-mono);">mins</span>
+      </div>
+
+      <!-- Quick Preset Buttons for Shop Floor -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button type="button" @click="mins = 15" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">15m</button>
+        <button type="button" @click="mins = 30" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">30m</button>
+        <button type="button" @click="mins = 45" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">45m</button>
+        <button type="button" @click="mins = 60" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">1 hr</button>
+        <button type="button" @click="mins = 90" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">1.5 hr</button>
+        <button type="button" @click="mins = 120" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">2 hr</button>
+        <button type="button" @click="mins = 240" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; font-family: var(--font-mono);">4 hr (Half Shift)</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Technician / Operator Remarks
+      </label>
+      <textarea name="remarks" rows="3" placeholder="Action taken to restore machine, parts replaced, or maintenance notes..." style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">{{ d.remarks if is_edit else '' }}</textarea>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="/downtime{% if is_edit %}/{{ d.id }}{% endif %}" class="btn" style="border: 1px solid var(--snm-line); color: #666;">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+        {% if is_edit %}Update Log{% else %}Save Downtime Entry{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

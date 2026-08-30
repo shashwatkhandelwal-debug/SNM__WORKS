@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}QC Inspections & Checks — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1300px; margin: 0 auto;">
+  
+  <!-- Header Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">QUA — QUALITY ASSURANCE</span>
+          <span class="mono" style="font-size: 0.8rem; color: #666;">SWADESHI NIWAR MILLS</span>
+        </div>
+        <h1 style="font-size: 1.65rem; margin: 0.2rem 0;">QC Line Inspections & Checks</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Shop-floor dimensional verification, tensile bounds, defect logging, and automated SQL verdict calculation.
+        </p>
+      </div>
+      <div>
+        <a href="/qc/new" class="btn btn-olive">
+          + New QC Check
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="GET" action="/qc" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      
+      <!-- Verdict Filter Pills -->
+      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+        <a 
+          href="/qc?verdict_filter=all{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'all' or not verdict_filter %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'all' and verdict_filter %}color: var(--snm-machine-black); border-color: var(--snm-line);{% endif %}"
+        >
+          All ({{ checks|length }})
+        </a>
+        <a 
+          href="/qc?verdict=PASS{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'PASS' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'PASS' %}color: var(--snm-pass); border-color: var(--snm-line);{% endif %}"
+        >
+          ✓ PASS
+        </a>
+        <a 
+          href="/qc?verdict=FAIL{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'FAIL' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'FAIL' %}color: var(--snm-fail); border-color: var(--snm-line);{% endif %}"
+        >
+          ✕ FAIL (Hold)
+        </a>
+        <a 
+          href="/qc?verdict=Pending{% if job_no_filter %}&job_no={{ job_no_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if verdict_filter == 'Pending' %}btn-olive{% else %}btn-outline{% endif %}"
+          style="{% if verdict_filter != 'Pending' %}color: var(--snm-machine-black); border-color: var(--snm-line);{% endif %}"
+        >
+          Pending
+        </a>
+      </div>
+
+      <!-- Search Input -->
+      <div style="display: flex; gap: 0.5rem; flex: 1; max-width: 400px; min-width: 240px;">
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ q }}" 
+          class="form-input" 
+          placeholder="Search Check No, Job No, Parameter..."
+          style="min-height: 38px; height: 38px; font-size: 0.9rem;"
+        >
+        {% if verdict_filter and verdict_filter != 'all' %}
+          <input type="hidden" name="verdict" value="{{ verdict_filter }}">
+        {% endif %}
+        {% if job_no_filter %}
+          <input type="hidden" name="job_no" value="{{ job_no_filter }}">
+        {% endif %}
+        <button type="submit" class="btn btn-olive btn-sm" style="min-height: 38px;">Search</button>
+        {% if q or job_no_filter or (verdict_filter and verdict_filter != 'all') %}
+          <a href="/qc" class="btn btn-outline btn-sm" style="min-height: 38px; color: var(--snm-machine-black); border-color: var(--snm-line);">Reset</a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <!-- QC Checks Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <tr>
+            <th style="padding: 0.75rem 1rem;">Check No</th>
+            <th style="padding: 0.75rem 1rem;">Date</th>
+            <th style="padding: 0.75rem 1rem;">Job Number</th>
+            <th style="padding: 0.75rem 1rem;">Stage</th>
+            <th style="padding: 0.75rem 1rem;">Parameter</th>
+            <th style="padding: 0.75rem 1rem;">Specification / Limit</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">Actual</th>
+            <th style="padding: 0.75rem 1rem; text-align: center;">Verdict</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if not checks %}
+          <tr>
+            <td colspan="9" style="padding: 3rem; text-align: center; color: #777;">
+              <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔬</div>
+              <p style="font-size: 1rem; font-weight: 600; color: var(--snm-machine-black); margin-bottom: 0.25rem;">
+                No QC inspection records found.
+              </p>
+              <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+                Click below to record a new line check measurement.
+              </p>
+              <a href="/qc/new" class="btn btn-olive btn-sm">+ Record QC Check</a>
+            </td>
+          </tr>
+          {% else %}
+          {% for qc in checks %}
+          <tr 
+            style="border-bottom: 1px solid var(--snm-line); transition: background-color 0.15s ease; {% if qc.verdict == 'FAIL' %}background-color: #FFF6F5;{% endif %}"
+            onmouseover="this.style.backgroundColor='#F9F8F5'" 
+            onmouseout="this.style.backgroundColor='{% if qc.verdict == 'FAIL' %}#FFF6F5{% else %}transparent{% endif %}'"
+          >
+            
+            <!-- Check No -->
+            <td style="padding: 0.75rem 1rem;">
+              <a href="/qc/{{ qc.id }}" class="mono" style="font-weight: 700; color: var(--snm-olive-dark); text-decoration: none;">
+                {{ qc.check_no }}
+              </a>
+            </td>
+
+            <!-- Date -->
+            <td style="padding: 0.75rem 1rem;" class="mono" style="font-size: 0.85rem;">
+              {{ qc.checked_on }}
+            </td>
+
+            <!-- Job No -->
+            <td style="padding: 0.75rem 1rem;">
+              {% if qc.job_no %}
+                <a href="/jobs/{{ qc.job_id or qc.job_no }}" class="mono" style="font-weight: 600; color: var(--snm-machine-black); text-decoration: underline;">
+                  {{ qc.job_no }}
+                </a>
+                {% if qc.job_product %}
+                  <div style="font-size: 0.75rem; color: #666; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ qc.job_product }}
+                  </div>
+                {% endif %}
+              {% else %}
+                <span class="mono" style="color: #999;">General / Unlinked</span>
+              {% endif %}
+            </td>
+
+            <!-- Stage -->
+            <td style="padding: 0.75rem 1rem;">
+              <span class="badge badge-gray" style="font-size: 0.75rem;">{{ qc.stage }}</span>
+            </td>
+
+            <!-- Parameter -->
+            <td style="padding: 0.75rem 1rem; font-weight: 600;">
+              {{ qc.parameter }}
+              {% if qc.method %}
+                <div class="mono" style="font-size: 0.75rem; color: #777;">{{ qc.method }}</div>
+              {% endif %}
+            </td>
+
+            <!-- Spec / Limit -->
+            <td style="padding: 0.75rem 1rem;" class="mono" style="font-size: 0.85rem;">
+              {% if qc.limit_type == 'nominal' %}
+                {{ qc.spec_value }} {% if qc.tolerance %}±{{ qc.tolerance }}{% endif %} {{ qc.unit or '' }}
+              {% elif qc.limit_type == 'minimum' %}
+                &ge; {{ qc.spec_value }} {{ qc.unit or '' }} (Min)
+              {% elif qc.limit_type == 'maximum' %}
+                &le; {{ qc.spec_value }} {{ qc.unit or '' }} (Max)
+              {% elif qc.limit_type == 'range' %}
+                {{ qc.spec_value }} &ndash; {{ qc.upper_limit }} {{ qc.unit or '' }}
+              {% else %}
+                {{ qc.spec_value }} {{ qc.unit or '' }}
+              {% endif %}
+            </td>
+
+            <!-- Actual -->
+            <td style="padding: 0.75rem 1rem; text-align: right;" class="mono">
+              <strong>{{ qc.actual if qc.actual is not none else '—' }}</strong>
+              <span style="font-size: 0.8rem; color: #777;">{{ qc.unit or '' }}</span>
+            </td>
+
+            <!-- Verdict -->
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              {% if qc.verdict == 'PASS' %}
+                <span class="badge badge-pass" style="font-size: 0.8rem; padding: 3px 8px; background-color: var(--snm-pass); color: #fff;">PASS</span>
+              {% elif qc.verdict == 'FAIL' %}
+                <span class="badge badge-fail" style="font-size: 0.8rem; padding: 3px 8px; background-color: var(--snm-fail); color: #fff;">FAIL</span>
+              {% else %}
+                <span class="badge badge-gray" style="font-size: 0.8rem; padding: 3px 8px;">PENDING</span>
+              {% endif %}
+            </td>
+
+            <!-- Action -->
+            <td style="padding: 0.75rem 1rem; text-align: right;">
+              <a href="/qc/{{ qc.id }}" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+                View Details →
+              </a>
+            </td>
+
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dye Recipe {{ r.recipe_no }} — {{ r.target_shade }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/recipes" style="color: var(--snm-olive); text-decoration: underline;">Dye Recipes</a> / {{ r.recipe_no }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        {{ r.recipe_no }} — {{ r.target_shade }}
+      </h1>
+      <span style="display: inline-block; padding: 0.25rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-family: var(--font-heading); text-transform: uppercase;
+        {% if r.status == 'Approved' %}background: #EAF4E7; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+        {% elif r.status == 'Lab Dip' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+        {% elif r.status == 'Draft' %}background: #F0EEEA; color: #555; border: 1px solid #CCC;
+        {% else %}background: #FBEBEB; color: var(--snm-fail); border: 1px solid var(--snm-fail);{% endif %}">
+        {{ r.status }}
+      </span>
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    {% if r.status != 'Approved' %}
+    <a href="/recipes/{{ r.id }}/edit" class="btn btn-secondary" style="font-family: var(--font-heading);">Edit Recipe</a>
+    
+    <!-- Chief Technical Approve Form -->
+    <form method="POST" action="/recipes/{{ r.id }}/approve" style="display: inline;" onsubmit="return confirm('Confirm formal technical approval for recipe {{ r.recipe_no }} ({{ r.target_shade }})?');">
+      <button type="submit" class="btn btn-primary" style="background: var(--snm-pass); border-color: var(--snm-pass); font-family: var(--font-heading); text-transform: uppercase;">
+        ✓ Approve Recipe
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Full Formulation Details -->
+  <div>
+    
+    <!-- Batch & Substrate Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        BATCH & SUBSTRATE SPECIFICATION
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Target Shade</div>
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--snm-machine-black);">{{ r.target_shade }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Substrate</div>
+          <div style="font-size: 1rem; color: var(--snm-olive); font-weight: 500;">{{ r.substrate }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Batch Mass</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ r.batch_kg or '—' }} <span style="font-size: 0.85rem; font-weight: normal;">kg</span></div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Associated Job</div>
+          <div style="font-size: 0.95rem;">
+            {% if r.job_no %}
+            <a href="/jobs/{{ r.job_id }}" style="color: var(--snm-olive); text-decoration: underline; font-family: var(--font-mono);">
+              {{ r.job_no }} — {{ r.job_product }}
+            </a>
+            {% else %}
+            <span style="color: #888; font-style: italic;">Master Lab Dip (No Job)</span>
+            {% endif %}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Dyed On Date</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ r.dyed_on }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dyestuff Recipe Table Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        DYESTUFF FORMULATION (% ON WEIGHT OF FABRIC)
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; color: #666; font-size: 0.75rem;">
+            <th style="padding: 0.5rem; text-align: left;">#</th>
+            <th style="padding: 0.5rem; text-align: left;">Dyestuff Name</th>
+            <th style="padding: 0.5rem; text-align: right;">Concentration (% OWF)</th>
+            <th style="padding: 0.5rem; text-align: right;">Quantity (Grams)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in r.math.dye_breakdown %}
+          <tr style="border-bottom: 1px solid #F0EEEA;">
+            <td style="padding: 0.6rem 0.5rem; font-family: var(--font-mono); color: #888;">{{ d.num }}</td>
+            <td style="padding: 0.6rem 0.5rem; font-weight: 500; color: #222;">{{ d.name }}</td>
+            <td style="padding: 0.6rem 0.5rem; text-align: right; font-family: var(--font-mono); font-weight: 600;">{{ "%.4f"|format(d.pct) }} %</td>
+            <td style="padding: 0.6rem 0.5rem; text-align: right; font-family: var(--font-mono); color: var(--snm-olive); font-weight: bold;">
+              {{ "%.2f"|format(d.grams) }} g
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" style="padding: 1rem; text-align: center; color: #999;">No dyestuffs specified.</td>
+          </tr>
+          {% endfor %}
+          <tr style="border-top: 2px solid var(--snm-line); background: var(--snm-paper); font-weight: bold;">
+            <td colspan="2" style="padding: 0.6rem 0.5rem; font-family: var(--font-heading); text-transform: uppercase;">Total Dyestuff OWF</td>
+            <td style="padding: 0.6rem 0.5rem; text-align: right; font-family: var(--font-mono);">{{ "%.4f"|format(r.math.total_pct) }} %</td>
+            <td style="padding: 0.6rem 0.5rem; text-align: right; font-family: var(--font-mono); color: var(--snm-olive);">{{ "%.2f"|format(r.math.total_dye_grams) }} g</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Process Parameters Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        DYEBATH CONDITIONS & CHEMICAL AUXILIARIES
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Liquor Ratio</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ r.liquor_ratio or '1:10' }}</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Bath Volume</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ r.math.liquor_volume_litres }} <span style="font-size: 0.8rem; font-weight: normal;">L</span></div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Temperature</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ r.temp_c }} °C</div>
+        </div>
+        <div style="background: #F9F8F5; padding: 0.6rem; border-radius: 2px;">
+          <div style="font-size: 0.7rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Hold Time & pH</div>
+          <div style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: bold;">{{ r.time_min }}m <span style="font-size: 0.8rem; color: #666;">(pH {{ r.ph }})</span></div>
+        </div>
+      </div>
+
+      {% if r.auxiliaries %}
+      <div style="margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--snm-line);">
+        <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase; margin-bottom: 0.25rem;">Chemical Auxiliaries & Levelling Agents</div>
+        <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">{{ r.auxiliaries }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Governance and Audit Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        FORMULATION AUDIT & RELEASE
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+        <div>
+          <span style="color: #666;">Formulated By:</span>
+          <strong>{{ r.creator_name or r.created_by }}</strong>
+          <div style="font-size: 0.75rem; color: #888; font-family: var(--font-mono);">{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '' }}</div>
+        </div>
+        <div>
+          <span style="color: #666;">Approved By:</span>
+          {% if r.approved_by %}
+            <strong style="color: var(--snm-pass);">{{ r.approver_name or r.approved_by }}</strong>
+            <div style="font-size: 0.75rem; color: #888; font-family: var(--font-mono);">{{ r.approved_at.strftime('%Y-%m-%d %H:%M') if r.approved_at else '' }}</div>
+          {% else %}
+            <span style="color: #999; font-style: italic;">Pending Technical Release</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Shade Quality Verdict & Summary Card -->
+  <div style="position: sticky; top: 1rem;">
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 1rem;">
+        SHADE QUALITY VERDICT
+      </div>
+
+      <div style="text-align: center; padding: 1.25rem 0.5rem; margin-bottom: 1rem; border-radius: 4px;
+        {% if r.shade_result == 'Matched to Master' %}background: #EAF4E7; border: 2px solid var(--snm-pass);
+        {% elif r.shade_result == 'Close - Acceptable' %}background: #FEF7EA; border: 2px solid var(--snm-hold);
+        {% elif r.shade_result == 'Off-shade' %}background: #FDF2F2; border: 2px solid var(--snm-fail);
+        {% else %}background: #F6F4EE; border: 1px solid var(--snm-line);{% endif %}">
+        
+        <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">
+          Lab Dip / Batch Evaluation
+        </div>
+        <div style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: bold; margin-top: 0.25rem;
+          {% if r.shade_result == 'Matched to Master' %}color: var(--snm-pass);
+          {% elif r.shade_result == 'Close - Acceptable' %}color: var(--snm-hold);
+          {% elif r.shade_result == 'Off-shade' %}color: var(--snm-fail);
+          {% else %}color: #888;{% endif %}">
+          {{ r.shade_result or 'PENDING REVIEW' }}
+        </div>
+      </div>
+
+      <div style="font-size: 0.85rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+          <span style="color: #666;">Total % OWF:</span>
+          <strong style="font-family: var(--font-mono);">{{ "%.4f"|format(r.math.total_pct) }}%</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+          <span style="color: #666;">Total Dye Mass:</span>
+          <strong style="font-family: var(--font-mono); color: var(--snm-olive);">{{ "%.2f"|format(r.math.total_dye_grams) }} g</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: #666;">Dyebath Volume:</span>
+          <strong style="font-family: var(--font-mono);">{{ r.math.liquor_volume_litres }} L</strong>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

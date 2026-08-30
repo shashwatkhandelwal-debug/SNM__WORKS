@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Costing & Financial Register — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      PRODUCT COSTING & ESTIMATION REGISTER
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Raw materials conversion, process route overheads, and financial sign-off sheets.
+    </div>
+  </div>
+  <div>
+    <a href="/costing/new" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      + Prepare Cost Sheet
+    </a>
+  </div>
+</div>
+
+<!-- Summary Metrics Ribbon -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Cost Sheets</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_count }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Approved & Locked</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-pass);">{{ total_approved }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Draft Estimations</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-hold);">{{ total_draft }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Cumulative Mfg Cost</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">₹ {{ total_mfg_cost_sum }}</div>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/costing" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Status Filter -->
+    <div style="flex: 1; min-width: 180px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Status
+      </label>
+      <select name="status_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+        <option value="Draft" {% if selected_status == 'Draft' %}selected{% endif %}>Draft</option>
+        <option value="Approved" {% if selected_status == 'Approved' %}selected{% endif %}>Approved & Locked</option>
+        <option value="Archived" {% if selected_status == 'Archived' %}selected{% endif %}>Archived</option>
+      </select>
+    </div>
+
+    <!-- Search -->
+    <div style="flex: 2; min-width: 220px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Job / Product / Customer
+      </label>
+      <input type="text" name="search" value="{{ search }}" placeholder="e.g. JOB-01, Webbing, Ordnance..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_status != 'all' or search %}
+      <a href="/costing" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Job Number</th>
+        <th style="padding: 0.75rem 1rem;">Product / Customer</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Batch Qty</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Yarn Cost/unit</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Mfg Cost/unit</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Total Mfg Cost</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in costings %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-weight: 600; font-family: var(--font-mono);">
+          <a href="/costing/{{ c.job_id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ c.job_no }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 500; color: var(--snm-machine-black);">{{ c.product }}</div>
+          <div style="font-size: 0.75rem; color: #777;">{{ c.customer_name or 'Internal / Stock' }}</div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          {{ c.qty }} {{ c.unit }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono); color: #444;">
+          ₹ {{ "%.2f"|format(c.yarn_cost_unit) }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+          ₹ {{ "%.2f"|format(c.mfg_cost_unit) }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">
+          ₹ {{ "%.2f"|format(c.total_mfg_cost) }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; font-weight: bold;
+            {% if c.status == 'Approved' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% elif c.status == 'Draft' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% else %}background: #F0EEEA; color: #777; border: 1px solid var(--snm-line);{% endif %}">
+            {{ c.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/costing/{{ c.job_id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+            View Sheet
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="padding: 2.5rem; text-align: center; color: #888;">
+          No product cost sheets found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

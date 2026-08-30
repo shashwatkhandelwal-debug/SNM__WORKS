@@ -529,3 +529,38 @@ Full data in `MIL-W-4088K.md`. Key facts for calculations:
 - Weave: 2 up 2 down herringbone twill, 1 reversal at centre
 - Strongest type: XXVI at 15,000 lb minimum
 - All 30 types, both class configurations: 60 variants, 560 requirements in database
+
+---
+
+## Current State
+
+Built and working:
+
+- Sign in, dashboard, base template
+- SKUs with image upload and SNM branding overlay
+- Marketing queue, campaign posts, mock publishing to 5 platforms
+- LinkedIn OAuth and settings page
+- Job cards at /jobs
+- QC checks at /qc (just completed)
+
+Database tables modified beyond original schema:
+
+- skus — added post_status, post_draft, platform_results, post_approved_at, post_published_at, rejection_reason, catalogue_visible
+- campaigns — new table created
+- platform_connections — new table created
+
+Next to build in order:
+
+- Lab tests /lab-tests
+- CAPA /capa
+- Constructions /constructions
+- Dye recipes /recipes
+- Downtime /downtime
+- Despatch /despatch
+- Organisation and roles /organisation
+- My Tasks /tasks
+- Costing /costing
+- Test certificate PDF
+
+Supabase project: eayrmjmzjokeeuwazmjy, region ap-south-1
+

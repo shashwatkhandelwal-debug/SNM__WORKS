@@ -20,9 +20,6 @@ logger = logging.getLogger("snm_works.marketing")
 router = APIRouter(prefix="/marketing", tags=["marketing"])
 templates = Jinja2Templates(directory="templates")
 
-# In-memory storage for promotional campaigns
-MEM_CAMPAIGNS: Dict[str, Dict[str, Any]] = {}
-
 
 async def get_authenticated_user(request: Request) -> Dict[str, Any]:
     """
@@ -72,59 +69,53 @@ async def marketing_queue_view(
     queued_campaigns: List[Dict[str, Any]] = []
 
     if database.pool is not None:
-        try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, user["claims"])
-                    
-                    # 1. Fetch queued SKUs
-                    rows = await conn.fetch(
-                        """
-                        SELECT s.*, c.weave, c.width_mm, c.warp_ends, c.picks_per_cm,
-                               c.warp_denier, c.weft_denier, c.warp_crimp, c.weft_crimp
-                        FROM skus s
-                        LEFT JOIN constructions c ON c.id = s.construction_id
-                        WHERE s.post_status = 'queued'
-                        ORDER BY s.created_on DESC
-                        """
-                    )
-                    for r in rows:
-                        row_dict = dict(r)
-                        if isinstance(row_dict.get("post_draft"), str):
-                            try:
-                                row_dict["post_draft"] = json.loads(row_dict["post_draft"])
-                            except Exception:
-                                pass
-                        if not row_dict.get("post_draft"):
-                            try:
-                                row_dict["post_draft"] = generate_post(row_dict, construction=row_dict)
-                            except DefenceProductError:
-                                continue
-                        queued_skus.append(row_dict)
+        async with database.pool.acquire() as conn:
+            async with conn.transaction():
+                await set_rls_claims(conn, user["claims"])
+                
+                # 1. Fetch queued SKUs
+                rows = await conn.fetch(
+                    """
+                    SELECT s.*, c.weave, c.width_mm, c.warp_ends, c.picks_per_cm,
+                           c.warp_denier, c.weft_denier, c.warp_crimp, c.weft_crimp
+                    FROM skus s
+                    LEFT JOIN constructions c ON c.id = s.construction_id
+                    WHERE s.post_status = 'queued'
+                    ORDER BY s.created_on DESC
+                    """
+                )
+                for r in rows:
+                    row_dict = dict(r)
+                    if isinstance(row_dict.get("post_draft"), str):
+                        try:
+                            row_dict["post_draft"] = json.loads(row_dict["post_draft"])
+                        except Exception:
+                            pass
+                    if not row_dict.get("post_draft"):
+                        try:
+                            row_dict["post_draft"] = generate_post(row_dict, construction=row_dict)
+                        except DefenceProductError:
+                            continue
+                    queued_skus.append(row_dict)
 
-                    # 2. Fetch queued Campaigns
-                    try:
-                        c_rows = await conn.fetch(
-                            """
-                            SELECT * FROM campaigns
-                            WHERE post_status = 'queued'
-                            ORDER BY scheduled_at DESC, created_at DESC
-                            """
-                        )
-                        for cr in c_rows:
-                            cr_dict = dict(cr)
-                            if isinstance(cr_dict.get("post_draft"), str):
-                                try:
-                                    cr_dict["post_draft"] = json.loads(cr_dict["post_draft"])
-                                except Exception:
-                                    pass
-                            queued_campaigns.append(cr_dict)
-                    except Exception:
-                        pass
-        except Exception as exc:
-            logger.warning(f"Failed to query queued items from database: {exc}")
+                # 2. Fetch queued Campaigns from PostgreSQL (No in-memory fallback)
+                c_rows = await conn.fetch(
+                    """
+                    SELECT * FROM campaigns
+                    WHERE post_status = 'queued'
+                    ORDER BY scheduled_at DESC, created_at DESC
+                    """
+                )
+                for cr in c_rows:
+                    cr_dict = dict(cr)
+                    if isinstance(cr_dict.get("post_draft"), str):
+                        try:
+                            cr_dict["post_draft"] = json.loads(cr_dict["post_draft"])
+                        except Exception:
+                            pass
+                    queued_campaigns.append(cr_dict)
 
-    # Merge in-memory queued SKUs
+    # Merge in-memory queued SKUs for backward compatibility if any
     try:
         from routers.skus import MEM_SKUS
         for m_id, m_sku in MEM_SKUS.items():
@@ -133,12 +124,6 @@ async def marketing_queue_view(
                     queued_skus.append(m_sku)
     except Exception:
         pass
-
-    # Merge in-memory queued Campaigns
-    for c_id, c_camp in MEM_CAMPAIGNS.items():
-        if c_camp.get("post_status") == "queued":
-            if not any(c.get("id") == c_id for c in queued_campaigns):
-                queued_campaigns.append(c_camp)
 
     return templates.TemplateResponse(
         request=request,
@@ -181,7 +166,7 @@ async def new_campaign_view(request: Request):
         except Exception:
             pass
 
-    # Merge in-memory ready SKUs
+    # Merge in-memory ready SKUs if any
     try:
         from routers.skus import MEM_SKUS
         for m_id, m_sku in MEM_SKUS.items():
@@ -199,93 +184,109 @@ async def new_campaign_view(request: Request):
         context={
             "user": user,
             "ready_skus": ready_skus,
-            "now_str": now_str,
+            "default_scheduled_at": now_str,
         }
     )
 
 
-@router.post("/campaign/generate-image")
-async def generate_campaign_image_endpoint(
+@router.post("/campaign/generate-preview", response_class=HTMLResponse)
+async def generate_campaign_preview(
     request: Request,
-    occasion: str = Form("Independence Day 2026"),
-    headline: str = Form("Proud to manufacture in Kanpur, India"),
-    body: Optional[str] = Form(None),
+    occasion: str = Form(...),
+    headline: str = Form(...),
+    body: str = Form(...),
+    featured_sku_id: Optional[str] = Form(None),
 ):
     """
-    Generates a branded Pillow PNG graphic for the promotional campaign
-    and returns an inline HTMX preview snippet.
+    HTMX live-preview endpoint for campaign creator.
+    Generates preview captions for all 5 platforms and returns preview card.
     """
     try:
         user = await get_authenticated_user(request)
-        token = request.cookies.get("access_token")
     except HTTPException:
-        return Response(status_code=status.HTTP_401_UNAUTHORIZED, content="Authentication required")
+        return HTMLResponse("<div class='alert alert-fail'>Authentication required</div>")
 
-    png_bytes = generate_campaign_graphic(
-        occasion=occasion,
-        headline=headline,
-        body=body,
+    clean_occasion = occasion.strip()[:80]
+    clean_headline = headline.strip()[:100]
+    clean_body = body.strip()[:500]
+
+    featured_sku_dict: Optional[Dict[str, Any]] = None
+    if featured_sku_id and featured_sku_id.strip():
+        if database.pool is not None:
+            try:
+                async with database.pool.acquire() as conn:
+                    async with conn.transaction():
+                        await set_rls_claims(conn, user["claims"])
+                        row = await conn.fetchrow("SELECT * FROM skus WHERE id::text = $1", featured_sku_id.strip())
+                        if row:
+                            featured_sku_dict = dict(row)
+            except Exception:
+                pass
+        if not featured_sku_dict:
+            try:
+                from routers.skus import MEM_SKUS
+                featured_sku_dict = MEM_SKUS.get(featured_sku_id.strip())
+            except Exception:
+                pass
+
+    campaign_data = {
+        "occasion": clean_occasion,
+        "headline": clean_headline,
+        "body": clean_body,
+        "featured_sku_id": featured_sku_id,
+    }
+
+    post_draft = generate_campaign_post(campaign_data, featured_sku=featured_sku_dict)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="marketing/_campaign_preview.html",
+        context={
+            "occasion": clean_occasion,
+            "headline": clean_headline,
+            "body": clean_body,
+            "featured_sku": featured_sku_dict,
+            "post_draft": post_draft,
+        }
     )
 
-    temp_id = f"temp-{uuid.uuid4()}"
-    photo_key = await upload_file_to_storage(
-        bucket_id="campaign-images",
-        destination_path=f"{temp_id}.png",
-        file_bytes=png_bytes,
-        content_type="image/png",
-        user_token=token,
-    )
 
-    return HTMLResponse(
-        f"""
-        <div id="campaign-image-preview" style="border: 2px solid var(--snm-olive); border-radius: 4px; overflow: hidden; background: #000; margin-top: 1rem;">
-          <img src="/marketing/campaign/{temp_id}/image-preview" alt="Generated Campaign Graphic" style="width: 100%; height: auto; display: block;">
-          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--snm-paper); padding: 0.5rem 0.75rem;">
-            <span class="badge badge-pass" style="font-size: 0.75rem;">BRANDED GRAPHIC READY</span>
-            <input type="hidden" name="image_temp_id" value="{temp_id}">
-            <a href="/marketing/campaign/{temp_id}/image-preview" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
-              View Full Size ↗
-            </a>
-          </div>
-        </div>
-        """
-    )
-
-
-@router.get("/campaign/{campaign_id}/image-preview")
-async def get_campaign_image_preview(campaign_id: str):
+@router.get("/campaign/image-preview", response_class=Response)
+async def preview_campaign_image(
+    occasion: str = "Independence Day 2026",
+    headline: str = "Proudly Weaving Defence-Grade Narrow Fabrics for India",
+    body: str = "Swadeshi Niwar Mills salutes the armed forces with MIL-spec technical webbing.",
+):
     """
-    Serves the campaign PNG graphic directly in browser.
+    Returns dynamically generated banner PNG for live visual preview in form.
     """
-    file_bytes = await get_file_from_storage("campaign-images", f"{campaign_id}.png")
-    if file_bytes:
-        return Response(content=file_bytes, media_type="image/png")
+    graphic_bytes = generate_campaign_graphic(
+        occasion=occasion.strip()[:80],
+        headline=headline.strip()[:100],
+        body=body.strip()[:500],
+    )
+    return Response(content=graphic_bytes, media_type="image/png")
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign graphic not found.")
 
-
-@router.post("/campaign")
+@router.post("/campaign/create")
 async def create_campaign(
     request: Request,
     occasion: str = Form(...),
     headline: str = Form(...),
     body: str = Form(...),
     featured_sku_id: Optional[str] = Form(None),
-    platforms: List[str] = Form(...),
     scheduled_at: Optional[str] = Form(None),
-    image_temp_id: Optional[str] = Form(None),
+    platforms: List[str] = Form(["linkedin", "instagram", "facebook", "twitter", "whatsapp"]),
 ):
     """
-    Creates and queues a promotional campaign post.
-    Generates platform-specific captions and places into the marketing approval queue.
+    Creates a new promotional marketing campaign, generates banner graphic,
+    builds platform-specific captions, and queues for owner approval.
+    Persists directly to PostgreSQL campaigns table.
     """
-    try:
-        user = await get_authenticated_user(request)
-        token = request.cookies.get("access_token")
-    except HTTPException:
-        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    token = request.cookies.get("access_token")
+    user = await get_authenticated_user(request)
 
-    clean_occasion = occasion.strip()
+    clean_occasion = occasion.strip()[:80]
     clean_headline = headline.strip()[:100]
     clean_body = body.strip()[:500]
     campaign_id = str(uuid.uuid4())
@@ -336,32 +337,36 @@ async def create_campaign(
     post_draft = generate_campaign_post(campaign_data, featured_sku=featured_sku_dict)
     campaign_data["post_draft"] = post_draft
 
-    # Store in memory
-    MEM_CAMPAIGNS[campaign_id] = campaign_data
-
-    # Store in PostgreSQL if table exists
-    if database.pool is not None:
+    # Parse scheduled_at datetime for asyncpg timestamptz
+    sched_dt: datetime
+    if scheduled_at and scheduled_at.strip():
         try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, user["claims"])
-                    await conn.execute(
-                        """
-                        INSERT INTO campaigns (id, occasion, headline, body, featured_sku_id, platforms, scheduled_at, post_status, post_draft)
-                        VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6, $7::timestamptz, $8, $9::jsonb)
-                        """,
-                        campaign_id,
-                        clean_occasion,
-                        clean_headline,
-                        clean_body,
-                        featured_sku_id.strip() if featured_sku_id else None,
-                        platforms,
-                        scheduled_at or datetime.now().isoformat(),
-                        "queued",
-                        json.dumps(post_draft),
-                    )
-        except Exception as exc:
-            logger.warning(f"Could not persist campaign into database: {exc}")
+            sched_dt = datetime.fromisoformat(scheduled_at.strip())
+        except Exception:
+            sched_dt = datetime.now()
+    else:
+        sched_dt = datetime.now()
+
+    # Store directly in PostgreSQL campaigns table (No in-memory fallback)
+    if database.pool is not None:
+        async with database.pool.acquire() as conn:
+            async with conn.transaction():
+                await set_rls_claims(conn, user["claims"])
+                await conn.execute(
+                    """
+                    INSERT INTO campaigns (id, occasion, headline, body, featured_sku_id, platforms, scheduled_at, post_status, post_draft)
+                    VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6, $7, $8, $9::jsonb)
+                    """,
+                    uuid.UUID(campaign_id),
+                    clean_occasion,
+                    clean_headline,
+                    clean_body,
+                    uuid.UUID(featured_sku_id.strip()) if featured_sku_id else None,
+                    platforms,
+                    sched_dt,
+                    "queued",
+                    json.dumps(post_draft, ensure_ascii=False),
+                )
 
     return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -384,24 +389,16 @@ async def approve_post(
     target_campaign: Optional[Dict[str, Any]] = None
     post_draft: Optional[Dict[str, Any]] = None
 
-    # Check if item is in MEM_CAMPAIGNS
-    if item_id in MEM_CAMPAIGNS:
-        target_campaign = MEM_CAMPAIGNS[item_id]
-        post_draft = target_campaign.get("post_draft")
-
-    # Check database for SKU or Campaign
+    # Check database for Campaign or SKU
     if database.pool is not None:
         async with database.pool.acquire() as conn:
             async with conn.transaction():
                 await set_rls_claims(conn, user["claims"])
                 # Check campaign
-                try:
-                    c_row = await conn.fetchrow("SELECT * FROM campaigns WHERE id::text = $1", item_id)
-                    if c_row:
-                        target_campaign = dict(c_row)
-                        post_draft = target_campaign.get("post_draft")
-                except Exception:
-                    pass
+                c_row = await conn.fetchrow("SELECT * FROM campaigns WHERE id::text = $1", item_id)
+                if c_row:
+                    target_campaign = dict(c_row)
+                    post_draft = target_campaign.get("post_draft")
 
                 # Check SKU
                 if not target_campaign:
@@ -433,24 +430,21 @@ async def approve_post(
         target_campaign["platform_results"] = platform_results
 
         if database.pool is not None:
-            try:
-                async with database.pool.acquire() as conn:
-                    async with conn.transaction():
-                        await set_rls_claims(conn, user["claims"])
-                        await conn.execute(
-                            """
-                            UPDATE campaigns
-                            SET post_status = 'published',
-                                platform_results = $1::jsonb,
-                                post_approved_at = now(),
-                                post_published_at = now()
-                            WHERE id::text = $2
-                            """,
-                            json.dumps(platform_results),
-                            item_id
-                        )
-            except Exception:
-                pass
+            async with database.pool.acquire() as conn:
+                async with conn.transaction():
+                    await set_rls_claims(conn, user["claims"])
+                    await conn.execute(
+                        """
+                        UPDATE campaigns
+                        SET post_status = 'published',
+                            platform_results = $1::jsonb,
+                            post_approved_at = now(),
+                            post_published_at = now()
+                        WHERE id::text = $2
+                        """,
+                        json.dumps(platform_results, ensure_ascii=False),
+                        item_id
+                    )
 
         is_htmx = request.headers.get("hx-request") == "true"
         if is_htmx:
@@ -524,7 +518,7 @@ async def approve_post(
                             post_published_at = now()
                         WHERE id::text = $2
                         """,
-                        json.dumps(platform_results),
+                        json.dumps(platform_results, ensure_ascii=False),
                         item_id
                     )
         except Exception as exc:
@@ -532,6 +526,7 @@ async def approve_post(
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
+        sku_code = (target_sku.get("sku_code") if target_sku else item_id)
         return HTMLResponse(
             f"""
             <div class="card alert alert-pass" id="sku-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-pass);">
@@ -539,7 +534,7 @@ async def approve_post(
                 <div>
                   <strong>Post Successfully Published!</strong>
                   <div style="font-family: var(--font-mono); font-size: 0.8rem; margin-top: 0.25rem;">
-                    SKU {item_id} dispatched to LinkedIn, Instagram, Facebook, IndiaMart, and TradeIndia.
+                    SKU {sku_code} dispatched to LinkedIn, Instagram, Facebook, X, and WhatsApp Catalogue.
                   </div>
                 </div>
                 <span class="badge badge-pass">PUBLISHED</span>
@@ -572,12 +567,7 @@ async def reject_post(
             detail="Rejection reason must be at least 10 characters.",
         )
 
-    # Check Campaign in memory
-    if item_id in MEM_CAMPAIGNS:
-        MEM_CAMPAIGNS[item_id]["post_status"] = "rejected"
-        MEM_CAMPAIGNS[item_id]["rejection_reason"] = reason.strip()
-
-    # Check SKU in memory
+    # Check SKU in memory for backward compatibility
     try:
         from routers.skus import MEM_SKUS
         if item_id in MEM_SKUS:
@@ -587,35 +577,29 @@ async def reject_post(
         pass
 
     if database.pool is not None:
-        try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, user["claims"])
-                    await conn.execute(
-                        """
-                        UPDATE skus
-                        SET post_status = 'rejected',
-                            rejection_reason = $1
-                        WHERE id::text = $2
-                        """,
-                        reason.strip(),
-                        item_id
-                    )
-                    try:
-                        await conn.execute(
-                            """
-                            UPDATE campaigns
-                            SET post_status = 'rejected',
-                                rejection_reason = $1
-                            WHERE id::text = $2
-                            """,
-                            reason.strip(),
-                            item_id
-                        )
-                    except Exception:
-                        pass
-        except Exception as exc:
-            logger.warning(f"Could not persist post rejection in database: {exc}")
+        async with database.pool.acquire() as conn:
+            async with conn.transaction():
+                await set_rls_claims(conn, user["claims"])
+                await conn.execute(
+                    """
+                    UPDATE skus
+                    SET post_status = 'rejected',
+                        rejection_reason = $1
+                    WHERE id::text = $2
+                    """,
+                    reason.strip(),
+                    item_id
+                )
+                await conn.execute(
+                    """
+                    UPDATE campaigns
+                    SET post_status = 'rejected',
+                        rejection_reason = $1
+                    WHERE id::text = $2
+                    """,
+                    reason.strip(),
+                    item_id
+                )
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:

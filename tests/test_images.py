@@ -133,15 +133,13 @@ async def test_image_upload_and_preview_endpoints():
     Test 4: POST /skus/{sku_id}/upload-photo brands the photo, stores it,
     and GET /skus/{sku_id}/image-preview serves the branded image directly.
     """
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-        # Step 1: Login
-        login_res = await client.post(
-            "/auth/login",
-            data={"email": settings.test_supervisor_email, "password": settings.test_supervisor_password},
-            follow_redirects=False,
-        )
-        cookies = client.cookies
-
+    from tests.conftest import make_test_token, TEST_USERS
+    token = make_test_token(user_id="00000000-0000-0000-0000-000000000001", email="yashkhandelwal95@gmail.com", role_code="owner")
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test",
+        cookies={"access_token": token}
+    ) as client:
         # Step 2: Create a ready SKU
         sku_payload = {
             "sku_code": "SNM-BRAND-TEST",
@@ -152,7 +150,7 @@ async def test_image_upload_and_preview_endpoints():
             "status": "Ready",
             "catalogue_visible": "true",
         }
-        create_res = await client.post("/skus", data=sku_payload, cookies=cookies, follow_redirects=False)
+        create_res = await client.post("/skus", data=sku_payload, follow_redirects=False)
         sku_id = create_res.headers.get("location").split("/")[-1]
 
         # Step 3: Upload raw image
@@ -164,7 +162,6 @@ async def test_image_upload_and_preview_endpoints():
         upload_res = await client.post(
             f"/skus/{sku_id}/upload-photo",
             files={"image_file": ("test_photo.jpg", img_bytes, "image/jpeg")},
-            cookies=cookies,
         )
         assert upload_res.status_code == 303 or upload_res.status_code == 200
 
@@ -174,14 +171,13 @@ async def test_image_upload_and_preview_endpoints():
         assert preview_res.headers["content-type"] == "image/jpeg"
 
         # Step 5: Generate Campaign Image
-        camp_img_res = await client.post(
-            "/marketing/campaign/generate-image",
-            data={
+        camp_img_res = await client.get(
+            "/marketing/campaign/image-preview",
+            params={
                 "occasion": "Independence Day 2026",
                 "headline": "Proud to manufacture in Kanpur, India",
                 "body": "Celebrating 77 years of Indian Independence.",
             },
-            cookies=cookies,
         )
         assert camp_img_res.status_code == 200
-        assert "BRANDED GRAPHIC READY" in camp_img_res.text
+        assert camp_img_res.headers["content-type"] == "image/png"

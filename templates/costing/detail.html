@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Cost Sheet — {{ costing.job_no }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/costing" style="color: var(--snm-olive); text-decoration: underline;">Costing Register</a> / {{ costing.job_no }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        COST SHEET: {{ costing.job_no }}
+      </h1>
+      <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; font-weight: bold;
+        {% if costing.status == 'Approved' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+        {% elif costing.status == 'Draft' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+        {% else %}background: #F0EEEA; color: #777; border: 1px solid var(--snm-line);{% endif %}">
+        {{ costing.status }}
+      </span>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    {% if costing.status == 'Draft' %}
+    <a href="/costing/{{ costing.job_id }}/edit" class="btn btn-secondary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      Edit Parameters
+    </a>
+    {% endif %}
+    <a href="/costing" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Register
+    </a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Itemized Cost Breakdown Sheet -->
+  <div>
+    
+    <!-- Job & Customer Header Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+        <div>
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #777;">Product</div>
+          <div style="font-weight: 600; color: var(--snm-machine-black);">{{ costing.product }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #777;">Customer</div>
+          <div style="font-weight: 500; color: #444;">{{ costing.customer_name or 'Internal Stock / General' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #777;">Order Volume</div>
+          <div style="font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ costing.qty }} {{ costing.unit }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown Table Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        ITEMIZED UNIT MANUFACTURING ECONOMICS
+      </div>
+
+      <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; margin-bottom: 1rem;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; color: #444;">
+            <th style="padding: 0.6rem 0.75rem;">Cost Head</th>
+            <th style="padding: 0.6rem 0.75rem;">Parameters & Basis</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">Unit Cost (₹)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">Total Batch Cost (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 1. Raw Materials -->
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Raw Yarn Consumption</td>
+            <td style="padding: 0.6rem 0.75rem; font-family: var(--font-mono); color: #666;">
+              {{ costing.yarn_consumption }} g/m @ ₹ {{ costing.yarn_rate }}/kg (+{{ costing.wastage_pct }}% waste)
+            </td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              ₹ {{ "%.2f"|format(costing.yarn_cost_unit) }}
+            </td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              ₹ {{ "%.2f"|format(costing.yarn_cost_unit * costing.qty) }}
+            </td>
+          </tr>
+
+          <!-- 2. Direct Process Conversion -->
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Dyeing / Scouring</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Chemicals & Energy</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.dyeing) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.dyeing * costing.qty) }}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Coating / Finishing</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Polymer & Curing</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.coating) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.coating * costing.qty) }}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Weaving Labour</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Operator & Shift Wages</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.labour) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.labour * costing.qty) }}</td>
+          </tr>
+
+          <!-- 3. Overheads & Logistics -->
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Factory Overhead</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Plant Electricity & Maintenance</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.overhead) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.overhead * costing.qty) }}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Packing & Boxing</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Cartons & Strapping</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.packing) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.packing * costing.qty) }}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.6rem 0.75rem; font-weight: 600; color: var(--snm-machine-black);">Freight / Transport</td>
+            <td style="padding: 0.6rem 0.75rem; color: #666;">Delivery to Depot</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.freight) }}</td>
+            <td style="padding: 0.6rem 0.75rem; text-align: right; font-family: var(--font-mono);">₹ {{ "%.2f"|format(costing.freight * costing.qty) }}</td>
+          </tr>
+
+          <!-- Total Manufacturing Cost -->
+          <tr style="background: #FAF9F6; font-weight: bold; border-top: 2px solid var(--snm-line);">
+            <td colspan="2" style="padding: 0.75rem; color: var(--snm-machine-black);">TOTAL NET MANUFACTURING COST (C)</td>
+            <td style="padding: 0.75rem; text-align: right; font-family: var(--font-mono); color: var(--snm-olive); font-size: 1rem;">
+              ₹ {{ "%.2f"|format(costing.mfg_cost_unit) }}
+            </td>
+            <td style="padding: 0.75rem; text-align: right; font-family: var(--font-mono); color: var(--snm-olive); font-size: 1rem;">
+              ₹ {{ "%.2f"|format(costing.total_mfg_cost) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pricing Formula Pending Withheld Output -->
+    <div class="card" style="background: #FEF7EA; border: 2px solid var(--snm-hold); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-hold); text-transform: uppercase; margin-bottom: 0.5rem;">
+        ⚠️ Commercial Selling Price & Margin Calculation
+      </div>
+      <div style="font-size: 0.95rem; font-style: italic; color: #555; margin-bottom: 0.5rem;">
+        Pricing formula pending confirmation
+      </div>
+      <div style="font-size: 0.8rem; color: #777; line-height: 1.4;">
+        Target Margin parameter recorded: <strong>{{ costing.margin_pct }}%</strong>. The final quoted selling price and net profit realization will be activated once the commercial pricing formula (Margin on Price vs Markup on Cost) is confirmed by executive management.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Sign-off & Audit Details -->
+  <div>
+    
+    <!-- Financial Sign-off Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        FINANCIAL SIGN-OFF & LOCK
+      </div>
+
+      {% if costing.status == 'Approved' %}
+      <div style="background: #E8EDE4; border: 1px solid var(--snm-pass); border-radius: 4px; padding: 1rem; text-align: center;">
+        <div style="font-size: 1.1rem; font-weight: bold; color: var(--snm-pass); font-family: var(--font-heading);">
+          ✓ APPROVED & LOCKED
+        </div>
+        <div style="font-size: 0.85rem; color: #444; margin-top: 0.5rem;">
+          Signed off by <strong>{{ costing.approver_name }}</strong>
+        </div>
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #666; margin-top: 0.2rem;">
+          {{ costing.approved_at.strftime('%Y-%m-%d %H:%M UTC') if costing.approved_at else '' }}
+        </div>
+      </div>
+      <div style="font-size: 0.75rem; color: #888; margin-top: 0.75rem; line-height: 1.3;">
+        * All 12 cost-bearing parameters are frozen by the PostgreSQL database trigger.
+      </div>
+      {% else %}
+      
+      {% if can_approve and not is_creator %}
+      <form method="POST" action="/costing/{{ costing.job_id }}/approve" onsubmit="return confirm('Approve this cost sheet? This permanently freezes all cost figures.');">
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-family: var(--font-heading); text-transform: uppercase; font-size: 1rem; padding: 0.6rem 1rem; background: var(--snm-pass); border-color: var(--snm-pass);">
+          ✓ Approve & Lock Cost Sheet
+        </button>
+      </form>
+      <div style="font-size: 0.75rem; color: #888; margin-top: 0.75rem; line-height: 1.3;">
+        * Requires Chief Financial or Chief Executive clearance. Gated by Non-Negotiable Rule 6 self-approval constraint.
+      </div>
+      {% elif is_creator %}
+      <div style="background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; color: #666; line-height: 1.4;">
+        <strong>Self-Approval Blocked:</strong> Under Non-Negotiable Rule 6, you prepared this cost sheet and cannot sign off on it. Another financial executive must perform the final approval.
+      </div>
+      {% else %}
+      <div style="background: #F6F4EE; border: 1px solid var(--snm-line); border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; color: #666; line-height: 1.4;">
+        Pending financial approval by Chief Financial or Chief Executive.
+      </div>
+      {% endif %}
+
+      {% endif %}
+    </div>
+
+    <!-- Audit Metadata Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.9rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        RECORD METADATA
+      </div>
+      <div style="font-size: 0.8rem; color: #555; display: flex; flex-direction: column; gap: 0.4rem;">
+        <div>Prepared by: <strong>{{ costing.creator_name or costing.created_by }}</strong></div>
+        <div>Created on: {{ costing.created_at.strftime('%Y-%m-%d %H:%M UTC') if costing.created_at else '—' }}</div>
+        <div>Last updated: {{ costing.updated_at.strftime('%Y-%m-%d %H:%M UTC') if costing.updated_at else '—' }}</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

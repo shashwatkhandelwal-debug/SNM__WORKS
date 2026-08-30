@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Test Certificates of Conformance — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      CONFORMANCE TEST CERTIFICATES (COA)
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Defence specification test certificates, cryptographic seals, and customer release logs.
+    </div>
+  </div>
+</div>
+
+<!-- Ready for Certification Banner (if jobs are eligible) -->
+{% if ready_jobs %}
+<div class="card" style="background: #FAF9F6; border: 2px solid var(--snm-olive); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+  <div style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-olive); margin-bottom: 0.5rem;">
+    ✓ JOBS READY FOR TEST CERTIFICATE ISSUANCE (100% PASS RATE)
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+    {% for rj in ready_jobs %}
+    <div style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ rj.job_no }}</div>
+        <div style="font-size: 0.8rem; color: #555;">{{ rj.product }}</div>
+        <div style="font-size: 0.75rem; color: var(--snm-pass); font-weight: 500;">{{ rj.qc_count }} QC + {{ rj.lab_count }} Lab Tests (All Pass)</div>
+      </div>
+      <a href="/certificates/preview/{{ rj.id }}" class="btn btn-primary" style="font-family: var(--font-heading); font-size: 0.75rem; padding: 0.35rem 0.6rem;">
+        Preview & Issue
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Search Filter -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/certificates" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <div style="flex: 1; min-width: 250px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Certificate / Job / Customer
+      </label>
+      <input type="text" name="search" value="{{ search }}" placeholder="e.g. TC-2026, JOB-01, Ordnance..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if search %}
+      <a href="/certificates" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Certificates Table -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Certificate No</th>
+        <th style="padding: 0.75rem 1rem;">Job / Despatch</th>
+        <th style="padding: 0.75rem 1rem;">Product / Customer</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Tests Included</th>
+        <th style="padding: 0.75rem 1rem;">Issued Date & By</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in certificates %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-weight: bold; font-family: var(--font-mono);">
+          <a href="/certificates/{{ c.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ c.cert_no }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-family: var(--font-mono); font-weight: 500;">{{ c.job_no }}</div>
+          {% if c.despatch_no %}
+          <div style="font-size: 0.75rem; color: #777;">Despatch: {{ c.despatch_no }}</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 500; color: var(--snm-machine-black);">{{ c.product }}</div>
+          <div style="font-size: 0.75rem; color: #777;">{{ c.customer_name or 'Internal Stock / General' }}</div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center; font-family: var(--font-mono); font-size: 0.8rem;">
+          {{ c.total_qc_checks }} QC + {{ c.total_lab_tests }} Lab
+        </td>
+        <td style="padding: 0.75rem 1rem; font-size: 0.8rem;">
+          <div>{{ c.issued_at.strftime('%Y-%m-%d %H:%M') if c.issued_at else '' }}</div>
+          <div style="color: #777;">{{ c.issuer_name }}</div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; font-weight: bold;
+            {% if c.status == 'Issued' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% else %}background: #FBEBE8; color: var(--snm-fail); border: 1px solid var(--snm-fail);{% endif %}">
+            {{ c.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/certificates/{{ c.id }}/download" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; font-family: var(--font-heading);">
+            ↓ Download PDF
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="padding: 2.5rem; text-align: center; color: #888;">
+          No issued test certificates found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

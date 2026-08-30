@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Organisation Functions & Roles — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      ORGANISATION FUNCTIONS & ROLES
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      The 11 operational functions, 29 specialized textile mill roles, and work routing taxonomy.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/organisation/users" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      Staff Directory & Roles
+    </a>
+    <a href="/organisation/matrix" class="btn btn-secondary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      Permission Matrix
+    </a>
+    <a href="/organisation/conflicts" class="btn btn-secondary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      Role Conflicts
+    </a>
+  </div>
+</div>
+
+<!-- Summary Metrics Ribbon -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Mill Functions</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_functions }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Defined Roles</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ total_roles }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Active Staff Profiles</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_users }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Conflict Warnings</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: {% if conflicts_count > 0 %}var(--snm-hold){% else %}var(--snm-pass){% endif %};">{{ conflicts_count }}</div>
+  </div>
+</div>
+
+<!-- Functions Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+  {% for f in functions %}
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; display: flex; flex-direction: column;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem;">
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: var(--snm-olive); background: #E8EDE4; padding: 0.15rem 0.4rem; border-radius: 3px;">
+          {{ f.code }}
+        </span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--snm-machine-black); margin: 0.3rem 0 0 0;">
+          {{ f.name }}
+        </h2>
+      </div>
+      <span style="font-size: 0.75rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+        {{ f.role_count }} Roles
+      </span>
+    </div>
+
+    <div style="font-size: 0.85rem; color: #555; font-style: italic; margin-bottom: 1rem; flex-grow: 1;">
+      "{{ f.mandate }}"
+    </div>
+
+    <div>
+      <div style="font-size: 0.7rem; font-family: var(--font-heading); text-transform: uppercase; color: #888; margin-bottom: 0.4rem;">
+        Roles in Function
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+        {% for r in f.roles %}
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #FAF9F6; padding: 0.4rem 0.6rem; border-radius: 3px; border: 1px solid #ECE8DE;">
+          <div>
+            <span style="font-weight: 500; font-size: 0.85rem; color: var(--snm-machine-black);">{{ r.name }}</span>
+            <span style="font-size: 0.7rem; font-family: var(--font-heading); text-transform: uppercase; margin-left: 0.3rem;
+              {% if r.level == 'chief' %}color: var(--snm-olive); font-weight: bold;
+              {% elif r.level == 'manager' %}color: #555;
+              {% else %}color: #888;{% endif %}">
+              ({{ r.level }})
+            </span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; color: {% if r.active_holders_count > 0 %}var(--snm-olive){% else %}#999{% endif %};">
+            {{ r.active_holders_count }} holder{% if r.active_holders_count != 1 %}s{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

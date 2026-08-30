@@ -17,6 +17,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 import database
+from database import get_db
+from auth.dependencies import current_user, require
 from auth.jwt import decode_access_token
 from auth.middleware import set_rls_claims
 from services.image_processor import brand_product_image
@@ -49,44 +51,36 @@ async def get_user_claims(request: Request) -> Dict[str, Any]:
 
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
-async def list_skus(request: Request):
-    """
-    Renders the list of all SKUs with an inline creation form.
-    """
-    try:
-        claims = await get_user_claims(request)
-        user_info = {
-            "email": claims.get("email"),
-            "full_name": claims.get("user_metadata", {}).get("full_name") or claims.get("email"),
-        }
-    except HTTPException:
-        return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
-
+async def list_skus(
+    request: Request,
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("skus", "read")),
+):
+    user_info = {
+        "email": user.get("email"),
+        "full_name": user.get("claims", {}).get("user_metadata", {}).get("full_name") or user.get("email"),
+    }
     skus_list: List[Dict[str, Any]] = []
 
-    if database.pool is not None:
-        try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, claims)
-                    rows = await conn.fetch(
-                        """
-                        SELECT s.*, c.weave, c.width_mm
-                        FROM skus s
-                        LEFT JOIN constructions c ON c.id = s.construction_id
-                        ORDER BY s.created_on DESC, s.sku_code ASC
-                        """
-                    )
-                    for r in rows:
-                        row_dict = dict(r)
-                        if isinstance(row_dict.get("post_draft"), str):
-                            try:
-                                row_dict["post_draft"] = json.loads(row_dict["post_draft"])
-                            except Exception:
-                                pass
-                        skus_list.append(row_dict)
-        except Exception as exc:
-            logger.warning(f"Could not load SKUs from database: {exc}")
+    try:
+        rows = await conn.fetch(
+            """
+            SELECT s.*, c.weave, c.width_mm
+            FROM skus s
+            LEFT JOIN constructions c ON c.id = s.construction_id
+            ORDER BY s.created_on DESC, s.sku_code ASC
+            """
+        )
+        for r in rows:
+            row_dict = dict(r)
+            if isinstance(row_dict.get("post_draft"), str):
+                try:
+                    row_dict["post_draft"] = json.loads(row_dict["post_draft"])
+                except Exception:
+                    pass
+            skus_list.append(row_dict)
+    except Exception as exc:
+        logger.warning(f"Could not load SKUs from database: {exc}")
 
     # Merge in-memory SKUs
     for m_id, m_sku in MEM_SKUS.items():

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Downtime {{ d.log_no }} — {{ d.machine }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/downtime" style="color: var(--snm-olive); text-decoration: underline;">Downtime</a> / {{ d.log_no }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        {{ d.log_no }} — {{ d.machine }}
+      </h1>
+      <span style="display: inline-block; padding: 0.25rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-family: var(--font-heading); text-transform: uppercase;
+        {% if 'Breakdown' in d.reason or 'Fault' in d.reason %}background: #FDF2F2; color: var(--snm-fail); border: 1px solid var(--snm-fail);
+        {% elif 'Breakage' in d.reason or 'Knotting' in d.reason %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+        {% else %}background: #E8EDE4; color: var(--snm-olive); border: 1px solid var(--snm-olive);{% endif %}">
+        {{ d.reason }}
+      </span>
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    {% if can_edit %}
+    <a href="/downtime/{{ d.id }}/edit" class="btn btn-secondary" style="font-family: var(--font-heading);">Edit Log</a>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Stoppage Details -->
+  <div>
+    
+    <!-- Machine & Shift Details -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        STOPPAGE TELEMETRY
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Machine / Loom</div>
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--snm-machine-black);">{{ d.machine }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Production Shift</div>
+          <div style="font-size: 1rem; color: #333;">{{ d.shift }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Stoppage Date</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ d.logged_on }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Affected Job Card</div>
+          <div style="font-size: 0.95rem;">
+            {% if d.job_no %}
+            <a href="/jobs/{{ d.job_id }}" style="color: var(--snm-olive); text-decoration: underline; font-family: var(--font-mono);">
+              {{ d.job_no }} — {{ d.job_product }}
+            </a>
+            {% else %}
+            <span style="color: #888; font-style: italic;">No Job Linkage</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reason & Remarks -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        ROOT CAUSE & REMARKS
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase; margin-bottom: 0.25rem;">Stoppage Category</div>
+        <div style="font-size: 1rem; font-weight: 500; color: var(--snm-machine-black); margin-bottom: 1rem;">{{ d.reason }}</div>
+      </div>
+      {% if d.remarks %}
+      <div style="border-top: 1px solid var(--snm-line); padding-top: 0.75rem;">
+        <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase; margin-bottom: 0.25rem;">Technician / Operator Notes</div>
+        <div style="font-size: 0.9rem; color: #333; line-height: 1.5;">{{ d.remarks }}</div>
+      </div>
+      {% else %}
+      <div style="font-size: 0.85rem; color: #888; font-style: italic;">No additional remarks entered.</div>
+      {% endif %}
+    </div>
+
+    <!-- Audit Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        LOG AUDIT
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+        <div>
+          <span style="color: #666;">Logged By:</span>
+          <strong>{{ d.operator_name or d.operator_id }}</strong>
+        </div>
+        <div>
+          <span style="color: #666;">Recorded At:</span>
+          <span style="font-family: var(--font-mono);">{{ d.created_at.strftime('%Y-%m-%d %H:%M') if d.created_at else '' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Lost Time Metric Card -->
+  <div style="position: sticky; top: 1rem;">
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 1rem;">
+        LOST TIME SUMMARY
+      </div>
+
+      <div style="text-align: center; padding: 1.5rem 0.5rem; background: #FDF2F2; border: 2px solid var(--snm-fail); border-radius: 4px; margin-bottom: 1rem;">
+        <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">
+          Total Stoppage Duration
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: bold; color: var(--snm-fail); margin-top: 0.25rem;">
+          {{ d.formatted_duration }}
+        </div>
+        <div style="font-size: 0.85rem; font-family: var(--font-mono); color: #888; margin-top: 0.25rem;">
+          {{ d.minutes }} minutes
+        </div>
+      </div>
+
+      <div style="font-size: 0.8rem; color: #666; line-height: 1.4;">
+        * Stoppage recorded directly into works telemetry database. Updates restricted to production management and maintenance officers.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

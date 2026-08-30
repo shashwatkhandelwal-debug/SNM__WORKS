@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Cost Sheet — {{ costing.job_no }}{% else %}New Product Cost Sheet{% endif %} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/costing" style="color: var(--snm-olive); text-decoration: underline;">Costing Register</a> / {% if is_edit %}Edit Cost Sheet{% else %}New Cost Sheet{% endif %}
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+      {% if is_edit %}EDIT COST SHEET ({{ costing.job_no }}){% else %}PREPARE PRODUCT COST SHEET{% endif %}
+    </h1>
+  </div>
+  <div>
+    <a href="/costing{% if is_edit %}/{{ costing.job_id }}{% endif %}" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Cancel
+    </a>
+  </div>
+</div>
+
+<form method="POST" action="{% if is_edit %}/costing/{{ costing.job_id }}{% else %}/costing{% endif %}" id="costing-form">
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+    
+    <!-- Left Column: Cost Input Fields -->
+    <div>
+      
+      <!-- Section 1: Job Selection & Batch -->
+      <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          1. JOB CARD & ORDER VOLUME
+        </div>
+
+        {% if not is_edit %}
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+            Select Target Job Card *
+          </label>
+          <select name="job_id" id="job_id" required style="width: 100%; padding: 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+            <option value="">-- Choose Job --</option>
+            {% for j in available_jobs %}
+            <option value="{{ j.id }}" {% if selected_job and selected_job.id == j.id %}selected{% endif %}>
+              {{ j.job_no }} — {{ j.product }} ({{ j.qty_ordered }} {{ j.unit }}) [{{ j.customer_name or 'Internal' }}]
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% else %}
+        <div style="margin-bottom: 1rem; background: #FAF9F6; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #777;">Job Card</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ costing.job_no }}</div>
+          <div style="font-size: 0.85rem; color: #444; margin-top: 0.2rem;">{{ costing.product }}</div>
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Batch Quantity *
+            </label>
+            <input type="number" step="0.01" min="0.01" name="qty" id="qty" value="{{ costing.qty if is_edit else (selected_job.qty_ordered if selected_job else 1000) }}" required style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Unit *
+            </label>
+            <input type="text" name="unit" id="unit" value="{{ costing.unit if is_edit else (selected_job.unit if selected_job else 'm') }}" required style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Raw Material Cost -->
+      <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          2. RAW YARN & MATERIAL CONSUMPTION
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Yarn Rate (₹ / kg) *
+            </label>
+            <input type="number" step="0.01" min="0" name="yarn_rate" id="yarn_rate" value="{{ costing.yarn_rate if is_edit else 280.00 }}" required style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Consumption (g/m) *
+            </label>
+            <input type="number" step="0.01" min="0" name="yarn_consumption" id="yarn_consumption" value="{{ costing.yarn_consumption if is_edit else 45.00 }}" required style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Loom Wastage (%)
+            </label>
+            <input type="number" step="0.01" min="0" name="wastage_pct" id="wastage_pct" value="{{ costing.wastage_pct if is_edit else 5.00 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Process Conversion & Labour -->
+      <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          3. DIRECT PROCESSING & CONVERSION (₹ / unit)
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Dyeing / Scouring
+            </label>
+            <input type="number" step="0.01" min="0" name="dyeing" id="dyeing" value="{{ costing.dyeing if is_edit else 2.50 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Coating / Finishing
+            </label>
+            <input type="number" step="0.01" min="0" name="coating" id="coating" value="{{ costing.coating if is_edit else 1.20 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Weaving Labour
+            </label>
+            <input type="number" step="0.01" min="0" name="labour" id="labour" value="{{ costing.labour if is_edit else 3.80 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Factory Overheads & Packaging -->
+      <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          4. OVERHEADS & LOGISTICS (₹ / unit)
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Factory Overhead
+            </label>
+            <input type="number" step="0.01" min="0" name="overhead" id="overhead" value="{{ costing.overhead if is_edit else 1.50 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Packing / Boxing
+            </label>
+            <input type="number" step="0.01" min="0" name="packing" id="packing" value="{{ costing.packing if is_edit else 0.80 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+              Freight / Delivery
+            </label>
+            <input type="number" step="0.01" min="0" name="freight" id="freight" value="{{ costing.freight if is_edit else 0.60 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+            Target Margin Parameter (%)
+          </label>
+          <input type="number" step="0.01" min="0" name="margin_pct" id="margin_pct" value="{{ costing.margin_pct if is_edit else 15.00 }}" style="width: 100%; padding: 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase; font-size: 1rem; padding: 0.6rem 1.5rem;">
+        {% if is_edit %}Save Changes to Cost Sheet{% else %}Create Draft Cost Sheet{% endif %}
+      </button>
+
+    </div>
+
+    <!-- Right Column: Live Computed Economics Breakdown -->
+    <div>
+      <div class="card" style="background: white; border: 2px solid var(--snm-olive); border-radius: 4px; padding: 1.25rem; position: sticky; top: 1rem;">
+        <div style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          LIVE UNIT ECONOMICS
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 0.3rem;">
+            <span style="color: #666;">Raw Yarn Cost:</span>
+            <span style="font-family: var(--font-mono); font-weight: bold; color: #333;" id="disp-yarn-cost">₹ 0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 0.3rem;">
+            <span style="color: #666;">Direct Processing:</span>
+            <span style="font-family: var(--font-mono); font-weight: bold; color: #333;" id="disp-process-cost">₹ 0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 0.3rem;">
+            <span style="color: #666;">Overhead & Logistics:</span>
+            <span style="font-family: var(--font-mono); font-weight: bold; color: #333;" id="disp-overhead-cost">₹ 0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; background: #FAF9F6; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--snm-line); margin-top: 0.3rem;">
+            <span style="font-weight: bold; color: var(--snm-machine-black);">Total Mfg Cost / unit:</span>
+            <span style="font-family: var(--font-mono); font-weight: bold; font-size: 1.05rem; color: var(--snm-olive);" id="disp-mfg-unit">₹ 0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; padding: 0.3rem 0.5rem;">
+            <span style="color: #666;">Total Order Mfg Cost:</span>
+            <span style="font-family: var(--font-mono); font-weight: bold; color: #444;" id="disp-mfg-total">₹ 0.00</span>
+          </div>
+        </div>
+
+        <!-- Commercial Pricing Confirmation Banner -->
+        <div style="margin-top: 1.25rem; background: #FEF7EA; border: 1px solid var(--snm-hold); border-radius: 4px; padding: 0.75rem;">
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: var(--snm-hold); font-weight: bold; margin-bottom: 0.2rem;">
+            Commercial Selling Price
+          </div>
+          <div style="font-size: 0.85rem; font-style: italic; color: #555;">
+            Pricing formula pending confirmation
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: #888; margin-top: 1rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem; line-height: 1.3;">
+          * Confidential financial record. Once approved by Chief Financial, all cost parameters are frozen at the database trigger level.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+function recalc() {
+  const qty = parseFloat(document.getElementById('qty').value) || 0;
+  const yarnRate = parseFloat(document.getElementById('yarn_rate').value) || 0;
+  const yarnCons = parseFloat(document.getElementById('yarn_consumption').value) || 0;
+  const wastage = parseFloat(document.getElementById('wastage_pct').value) || 0;
+  const dyeing = parseFloat(document.getElementById('dyeing').value) || 0;
+  const coating = parseFloat(document.getElementById('coating').value) || 0;
+  const labour = parseFloat(document.getElementById('labour').value) || 0;
+  const overhead = parseFloat(document.getElementById('overhead').value) || 0;
+  const packing = parseFloat(document.getElementById('packing').value) || 0;
+  const freight = parseFloat(document.getElementById('freight').value) || 0;
+
+  const yarnCost = (yarnCons / 1000.0) * yarnRate * (1.0 + (wastage / 100.0));
+  const processCost = dyeing + coating + labour;
+  const overheadCost = overhead + packing + freight;
+  const mfgCost = yarnCost + processCost + overheadCost;
+  const totalMfgCost = mfgCost * qty;
+
+  document.getElementById('disp-yarn-cost').innerText = '₹ ' + yarnCost.toFixed(2);
+  document.getElementById('disp-process-cost').innerText = '₹ ' + processCost.toFixed(2);
+  document.getElementById('disp-overhead-cost').innerText = '₹ ' + overheadCost.toFixed(2);
+  document.getElementById('disp-mfg-unit').innerText = '₹ ' + mfgCost.toFixed(2);
+  document.getElementById('disp-mfg-total').innerText = '₹ ' + totalMfgCost.toFixed(2);
+}
+
+document.querySelectorAll('#costing-form input').forEach(input => {
+  input.addEventListener('input', recalc);
+});
+recalc();
+</script>
+{% endblock %}

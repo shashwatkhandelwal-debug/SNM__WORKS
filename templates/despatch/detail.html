@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Despatch {{ d.despatch_no }} — {{ d.customer_name or 'Shipment' }} — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/despatch" style="color: var(--snm-olive); text-decoration: underline;">Despatch</a> / {{ d.despatch_no }}
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+        {{ d.despatch_no }} — {{ d.customer_name or 'Finished Goods' }}
+      </h1>
+      <span style="display: inline-block; padding: 0.25rem 0.6rem; border-radius: 3px; font-size: 0.8rem; font-family: var(--font-heading); text-transform: uppercase;
+        {% if d.status == 'Dispatched' or d.status == 'Delivered' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+        {% elif d.status == 'Ready for Dispatch' or d.status == 'In Transit' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+        {% elif d.status == 'Cancelled' %}background: #F0EEEA; color: #888;
+        {% else %}background: #F6F4EE; color: #555; border: 1px solid var(--snm-line);{% endif %}">
+        {{ d.status }}
+      </span>
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <a href="/despatch/{{ d.id }}/edit" class="btn btn-secondary" style="font-family: var(--font-heading);">Edit Details</a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Consignment Details -->
+  <div>
+    
+    <!-- 1. Job & Consignment Summary -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        SHIPMENT & PRODUCTION JOB
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Customer / Consignee</div>
+          <div style="font-size: 1.1rem; font-weight: 600; color: var(--snm-machine-black);">{{ d.customer_name or 'Commercial Buyer' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Production Job Card</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono);">
+            <a href="/jobs/{{ d.job_id }}" style="color: var(--snm-olive); text-decoration: underline; font-weight: 600;">
+              {{ d.job_no }}
+            </a>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Product Specification</div>
+          <div style="font-size: 0.95rem; color: #333;">{{ d.job_product }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Despatch Date</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ d.despatched_on }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Packaging, Weight & Quantity -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        PACKAGING & WEIGHT
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Shipped Quantity</div>
+          <div style="font-size: 1.3rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">
+            {{ d.qty }} <span style="font-size: 0.9rem; font-weight: normal;">{{ d.unit }}</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Rolls / Packages</div>
+          <div style="font-size: 1.3rem; font-family: var(--font-mono); font-weight: bold; color: #444;">
+            {{ d.rolls or '—' }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Gross Weight</div>
+          <div style="font-size: 1.3rem; font-family: var(--font-mono); font-weight: bold; color: #444;">
+            {% if d.gross_wt %}{{ d.gross_wt }} kg{% else %}—{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Billing & Logistics -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        BILLING & TRANSPORT TRACKING
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">GST Invoice No</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); font-weight: 600; color: #333;">{{ d.invoice_no or '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">GST E-Way Bill</div>
+          <div style="font-size: 1rem; font-family: var(--font-mono); color: #333;">{{ d.eway_bill or '—' }}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem;">
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Transporter</div>
+          <div style="font-size: 0.95rem; font-weight: 500;">{{ d.transporter or '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">LR / Tracking No</div>
+          <div style="font-size: 0.95rem; font-family: var(--font-mono);">{{ d.lr_no or '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #666; font-family: var(--font-heading); text-transform: uppercase;">Destination</div>
+          <div style="font-size: 0.95rem; font-weight: 500;">{{ d.destination or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Quality Hold & Audit Card -->
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 0.75rem;">
+        QUALITY CLEARANCE & AUDIT
+      </div>
+
+      {% if d.on_qc_hold %}
+      <div style="background: #FDF2F2; border: 1px solid var(--snm-fail); border-radius: 4px; padding: 0.75rem; margin-bottom: 1rem;">
+        <div style="font-weight: bold; color: var(--snm-fail); font-size: 0.85rem; font-family: var(--font-heading); text-transform: uppercase;">
+          ⚠️ JOB WAS ON QC HOLD AT TIME OF DESPATCH
+        </div>
+        <div style="font-size: 0.85rem; color: #333; margin-top: 0.25rem;">
+          <strong>Concession Override:</strong> {{ d.override_reason or 'No override reason recorded.' }}
+        </div>
+      </div>
+      {% else %}
+      <div style="background: #E8EDE4; border: 1px solid var(--snm-pass); border-radius: 4px; padding: 0.75rem; margin-bottom: 1rem; color: var(--snm-pass); font-size: 0.85rem; font-weight: 500;">
+        ✓ Job passed all QC Line Checks and Laboratory Tests. Clear for customer delivery.
+      </div>
+      {% endif %}
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+        <div>
+          <span style="color: #666;">Logged By:</span>
+          <strong>{{ d.creator_name or d.created_by }}</strong>
+        </div>
+        <div>
+          <span style="color: #666;">Created At:</span>
+          <span style="font-family: var(--font-mono);">{{ d.created_at.strftime('%Y-%m-%d %H:%M') if d.created_at else '' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Quality Assurance Release Sign-off -->
+  <div style="position: sticky; top: 1rem;">
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem; margin-bottom: 1rem;">
+        QA RELEASE SIGN-OFF
+      </div>
+
+      {% if d.status == 'Dispatched' or d.status == 'Delivered' or d.approved_by %}
+      <div style="text-align: center; padding: 1.5rem 0.5rem; background: #E8EDE4; border: 2px solid var(--snm-pass); border-radius: 4px; margin-bottom: 1rem;">
+        <div style="font-size: 1.5rem; color: var(--snm-pass); font-weight: bold;">✓ RELEASED</div>
+        <div style="font-size: 0.85rem; font-family: var(--font-heading); text-transform: uppercase; color: var(--snm-olive); margin-top: 0.5rem;">
+          Authorized QA Clearance
+        </div>
+        <div style="font-size: 0.9rem; font-weight: bold; color: var(--snm-machine-black); margin-top: 0.25rem;">
+          {{ d.approver_name or d.approved_by }}
+        </div>
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #666; margin-top: 0.25rem;">
+          {{ d.approved_at.strftime('%Y-%m-%d %H:%M') if d.approved_at else '' }}
+        </div>
+      </div>
+      {% else %}
+      
+      <!-- Pending QA Release -->
+      <div style="padding: 1rem; background: #FEF7EA; border: 1px solid var(--snm-hold); border-radius: 4px; margin-bottom: 1.25rem;">
+        <div style="font-size: 0.85rem; font-weight: bold; color: var(--snm-hold); font-family: var(--font-heading); text-transform: uppercase;">
+          Pending QA Dispatch Release
+        </div>
+        <div style="font-size: 0.8rem; color: #666; margin-top: 0.25rem; line-height: 1.4;">
+          Goods cannot physically depart the gate until Quality Assurance sign-off is recorded.
+        </div>
+      </div>
+
+      {% if d.created_by == user.id %}
+      <div style="font-size: 0.8rem; color: #888; font-style: italic; margin-bottom: 1rem; line-height: 1.4;">
+        * Segregation of duties: You created this dispatch note and cannot perform the QA release sign-off.
+      </div>
+      {% else %}
+      <form method="POST" action="/despatch/{{ d.id }}/approve">
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; background: var(--snm-olive); border-color: var(--snm-olive);">
+          ✓ Authorize QA Release
+        </button>
+      </form>
+      {% endif %}
+
+      {% endif %}
+
+      <div style="font-size: 0.75rem; color: #888; margin-top: 1rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem; line-height: 1.4;">
+        * QA release sign-off is restricted to Chief Quality Officer (<code>chief_quality</code>). Rule 6 database check constraint prevents self-approval.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

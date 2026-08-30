@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}CAPA Register — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1300px; margin: 0 auto;">
+  
+  <!-- Header Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">QUA — QUALITY ASSURANCE</span>
+          <span class="mono" style="font-size: 0.8rem; color: #666;">CORRECTIVE & PREVENTIVE ACTION</span>
+        </div>
+        <h1 style="font-size: 1.65rem; margin: 0.2rem 0;">CAPA Register & Investigations</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Non-conformance root cause analysis, containment, systemic preventive action, and independent verification.
+        </p>
+      </div>
+      <div>
+        <a href="/capa/new" class="btn btn-olive">
+          + New CAPA
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="GET" action="/capa" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      
+      <!-- Status Filter Pills -->
+      <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+        <a 
+          href="/capa?status=all{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if status_filter == 'all' or not status_filter %}btn-olive{% else %}btn-outline{% endif %}"
+        >
+          All ({{ capas|length }})
+        </a>
+        {% for st in status_stages %}
+        <a 
+          href="/capa?status={{ st }}{% if source_filter != 'all' %}&source={{ source_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+          class="btn btn-sm {% if status_filter == st %}btn-olive{% else %}btn-outline{% endif %}"
+        >
+          {{ st }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <!-- Search & Source Filter -->
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-grow: 1; max-width: 500px; justify-content: flex-end;">
+        <select name="source" class="form-control" style="width: 170px;" onchange="this.form.submit()">
+          <option value="all" {% if source_filter == 'all' or not source_filter %}selected{% endif %}>All Sources</option>
+          {% for src in sources %}
+          <option value="{{ src }}" {% if source_filter == src %}selected{% endif %}>{{ src }}</option>
+          {% endfor %}
+        </select>
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="Search CAPA #, problem, job #..." 
+          value="{{ q }}" 
+          class="form-control" 
+          style="min-width: 180px;"
+        />
+        <button type="submit" class="btn btn-sm btn-outline">Filter</button>
+        {% if status_filter != 'all' or source_filter != 'all' or q %}
+        <a href="/capa" class="btn btn-sm btn-outline" style="color: #666;">Reset</a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <!-- CAPA Register Table -->
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="table" style="margin-bottom: 0; width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: var(--snm-paper); border-bottom: 2px solid var(--snm-line);">
+          <th style="padding: 0.75rem 1rem; text-align: left;">CAPA #</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Raised Date</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Source & Job</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Problem Statement</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Owner (Assignee)</th>
+          <th style="padding: 0.75rem 1rem; text-align: left;">Due Date</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if capas %}
+          {% for item in capas %}
+          <tr style="border-bottom: 1px solid var(--snm-line); {% if item.is_overdue %}background-color: #fff9f8;{% endif %}">
+            
+            <!-- CAPA No -->
+            <td style="padding: 0.75rem 1rem;">
+              <a href="/capa/{{ item.id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: none;">
+                {{ item.capa_no }}
+              </a>
+            </td>
+
+            <!-- Raised Date & Raiser -->
+            <td style="padding: 0.75rem 1rem;">
+              <div class="mono" style="font-size: 0.9rem;">{{ item.raised_on }}</div>
+              <div style="font-size: 0.75rem; color: #666;">by {{ item.raiser_name or 'QA Team' }}</div>
+            </td>
+
+            <!-- Source & Job Link -->
+            <td style="padding: 0.75rem 1rem;">
+              <span class="badge" style="background: var(--snm-greige); color: var(--snm-machine-black); font-size: 0.75rem;">
+                {{ item.source }}
+              </span>
+              {% if item.job_no %}
+              <div style="margin-top: 0.25rem;">
+                <a href="/jobs/{{ item.job_id }}" class="mono" style="font-size: 0.85rem; color: #444; text-decoration: underline;">
+                  {{ item.job_no }}
+                </a>
+              </div>
+              {% elif item.reference %}
+              <div class="mono" style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">
+                Ref: {{ item.reference }}
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- Problem Statement -->
+            <td style="padding: 0.75rem 1rem; max-width: 320px;">
+              <div style="font-weight: 500; font-size: 0.9rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ item.problem }}
+              </div>
+              {% if item.root_cause %}
+              <div style="font-size: 0.8rem; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span style="font-weight: 600;">Root cause:</span> {{ item.root_cause }}
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- Owner (Assignee) -->
+            <td style="padding: 0.75rem 1rem;">
+              {% if item.owner_name %}
+              <div style="font-size: 0.85rem; font-weight: 500;">{{ item.owner_name }}</div>
+              {% else %}
+              <span style="font-size: 0.8rem; color: #888; font-style: italic;">Unassigned</span>
+              {% endif %}
+            </td>
+
+            <!-- Due Date & Overdue Badge -->
+            <td style="padding: 0.75rem 1rem;">
+              {% if item.due_date %}
+              <div class="mono" style="font-size: 0.85rem; {% if item.is_overdue %}color: var(--snm-fail); font-weight: 700;{% endif %}">
+                {{ item.due_date }}
+              </div>
+              {% if item.is_overdue %}
+              <span class="badge badge-fail" style="font-size: 0.7rem; padding: 0.1rem 0.35rem; margin-top: 0.15rem;">OVERDUE</span>
+              {% endif %}
+              {% else %}
+              <span style="color: #999; font-size: 0.85rem;">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Status Badge -->
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              {% if item.status == 'Closed' %}
+              <span class="badge badge-pass" style="font-weight: 700;">✓ CLOSED</span>
+              {% elif item.status == 'Cancelled' %}
+              <span class="badge" style="background: #999; color: white;">CANCELLED</span>
+              {% elif item.status == 'Under Verification' %}
+              <span class="badge" style="background: #7a5299; color: white;">VERIFYING</span>
+              {% elif item.status == 'Action Taken' %}
+              <span class="badge" style="background: var(--snm-olive); color: white;">ACTION TAKEN</span>
+              {% elif item.status == 'Investigating' %}
+              <span class="badge" style="background: #d97706; color: white;">INVESTIGATING</span>
+              {% else %}
+              <span class="badge" style="background: var(--snm-greige); color: var(--snm-machine-black); border: 1px solid var(--snm-line);">OPEN</span>
+              {% endif %}
+            </td>
+
+            <!-- Action Link -->
+            <td style="padding: 0.75rem 1rem; text-align: right;">
+              <a href="/capa/{{ item.id }}" class="btn btn-sm btn-outline" style="padding: 0.25rem 0.6rem;">
+                View →
+              </a>
+            </td>
+
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="padding: 2.5rem; text-align: center; color: #777;">
+              <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">No CAPA records found.</div>
+              <p style="font-size: 0.85rem; margin: 0;">Raise a new Corrective & Preventive Action or adjust your filter query.</p>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

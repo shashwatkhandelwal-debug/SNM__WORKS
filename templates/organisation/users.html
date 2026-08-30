@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Directory & Roles — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/organisation" style="color: var(--snm-olive); text-decoration: underline;">Organisation</a> / Staff Directory
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+      STAFF DIRECTORY & ROLE ASSIGNMENTS
+    </h1>
+  </div>
+  <div>
+    <a href="/organisation" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Organisation
+    </a>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Staff Member</th>
+        <th style="padding: 0.75rem 1rem;">Email</th>
+        <th style="padding: 0.75rem 1rem;">Status</th>
+        <th style="padding: 0.75rem 1rem;">Assigned Roles (Union of Capabilities)</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in staff_list %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--snm-machine-black);">
+          <a href="/organisation/users/{{ u.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ u.full_name }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+          {{ u.email or '—' }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          {% if u.active %}
+          <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #E8EDE4; color: var(--snm-pass); font-weight: bold;">
+            ACTIVE
+          </span>
+          {% else %}
+          <span style="display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #FDF2F2; color: var(--snm-fail); font-weight: bold;">
+            DEACTIVATED
+          </span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+            {% for r in u.roles %}
+            <span style="display: inline-block; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.75rem; background: #F0EEEA; border: 1px solid var(--snm-line); color: var(--snm-machine-black);">
+              <strong>[{{ r.function_code }}]</strong> {{ r.name }}
+            </span>
+            {% else %}
+            <span style="color: #999; font-style: italic;">No roles assigned</span>
+            {% endfor %}
+          </div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/organisation/users/{{ u.id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+            Manage Roles
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

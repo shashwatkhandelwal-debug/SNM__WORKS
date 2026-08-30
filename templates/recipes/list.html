@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Dye Recipes — Technical Formulation Register — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      DYE RECIPES REGISTER
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Substrate chemical formulation, dyestuff %, liquor volume, and shade matching release.
+    </div>
+  </div>
+  <div>
+    <a href="/recipes/new" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">
+      + New Dye Recipe
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/recipes" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Substrate Filter -->
+    <div style="flex: 1; min-width: 150px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Substrate
+      </label>
+      <select name="substrate_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_substrate == 'all' %}selected{% endif %}>All Substrates</option>
+        {% for sub in substrates %}
+        <option value="{{ sub }}" {% if selected_substrate == sub %}selected{% endif %}>{{ sub }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div style="flex: 1; min-width: 150px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Status
+      </label>
+      <select name="status_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Search Box -->
+    <div style="flex: 2; min-width: 200px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Recipe / Shade / Substrate
+      </label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. REC-0001, Olive Green, Nylon 6,6..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_substrate != 'all' or selected_status != 'all' or search_query %}
+      <a href="/recipes" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Recipe No</th>
+        <th style="padding: 0.75rem 1rem;">Dyed Date</th>
+        <th style="padding: 0.75rem 1rem;">Target Shade</th>
+        <th style="padding: 0.75rem 1rem;">Substrate</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Batch (kg)</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Dyestuff % OWF</th>
+        <th style="padding: 0.75rem 1rem;">Shade Match</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in recipes %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+          <a href="/recipes/{{ item.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ item.recipe_no }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+          {{ item.dyed_on }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 600; color: var(--snm-machine-black);">{{ item.target_shade }}</div>
+          {% if item.job_no %}
+          <div style="font-size: 0.75rem; color: #777; font-family: var(--font-mono);">Job: {{ item.job_no }}</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #E8EDE4; color: var(--snm-olive);">
+            {{ item.substrate }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          {{ item.batch_kg or '—' }}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          <strong>{{ item.math.total_pct }}%</strong>
+          {% if item.math.total_dye_grams > 0 %}
+          <div style="font-size: 0.75rem; color: #888;">{{ item.math.total_dye_grams }} g</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          {% if item.shade_result == 'Matched to Master' %}
+            <span style="color: var(--snm-pass); font-weight: 500;">✓ Matched</span>
+          {% elif item.shade_result == 'Close - Acceptable' %}
+            <span style="color: var(--snm-hold); font-weight: 500;">≈ Close</span>
+          {% elif item.shade_result == 'Off-shade' %}
+            <span style="color: var(--snm-fail); font-weight: bold;">✕ Off-shade</span>
+          {% else %}
+            <span style="color: #999; font-style: italic;">Pending</span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase;
+            {% if item.status == 'Approved' %}background: #EAF4E7; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% elif item.status == 'Lab Dip' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% elif item.status == 'Draft' %}background: #F0EEEA; color: #555; border: 1px solid #CCC;
+            {% else %}background: #FBEBEB; color: var(--snm-fail); border: 1px solid var(--snm-fail);{% endif %}">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/recipes/{{ item.id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">View</a>
+          {% if item.status != 'Approved' %}
+          <a href="/recipes/{{ item.id }}/edit" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; color: #444; border: 1px solid var(--snm-line); margin-left: 0.25rem;">Edit</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" style="padding: 2rem; text-align: center; color: #888;">
+          No dye recipes found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

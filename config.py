@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     )
     supabase_jwt_secret: Optional[str] = None
     database_url: Optional[str] = None
+    local_test_database_url: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("LOCAL_TEST_DATABASE_URL")
+    )
     test_supervisor_email: str = "supervisor.test@snmills.com"
     test_supervisor_password: str = ""
     environment: str = Field(

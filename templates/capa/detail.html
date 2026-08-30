@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}CAPA {{ capa.capa_no }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+  
+  <!-- Breadcrumb & Top Actions -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+    <a href="/capa" style="color: var(--snm-olive); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+      ← Back to CAPA Register
+    </a>
+    <div style="display: flex; gap: 0.5rem;">
+      {% if capa.status != 'Closed' and capa.status != 'Cancelled' %}
+      <a href="/capa/{{ capa.id }}/edit" class="btn btn-sm btn-outline">
+        Edit CAPA Details
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Status Banner Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 6px solid {% if capa.status == 'Closed' %}var(--snm-pass){% elif capa.status == 'Cancelled' %}#999{% elif capa.is_overdue %}var(--snm-fail){% else %}var(--snm-olive){% endif %};">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+          <span class="mono" style="font-size: 1.3rem; font-weight: 700; color: var(--snm-machine-black);">
+            {{ capa.capa_no }}
+          </span>
+          <span class="badge" style="font-size: 0.8rem; background: var(--snm-greige); color: var(--snm-machine-black);">
+            Source: {{ capa.source }}
+          </span>
+        </div>
+        <div style="font-size: 0.85rem; color: #555;">
+          Raised on <strong class="mono">{{ capa.raised_on }}</strong> by <strong>{{ capa.raiser_name or 'QA Team' }}</strong>
+          {% if capa.raiser_email %}<span class="mono" style="color: #777;">({{ capa.raiser_email }})</span>{% endif %}
+        </div>
+      </div>
+
+      <div style="text-align: right;">
+        <div style="margin-bottom: 0.35rem;">
+          {% if capa.status == 'Closed' %}
+          <span class="badge badge-pass" style="font-size: 1rem; padding: 0.35rem 0.85rem; font-weight: 700;">
+            ✓ CLOSED & VERIFIED
+          </span>
+          {% elif capa.status == 'Cancelled' %}
+          <span class="badge" style="font-size: 1rem; padding: 0.35rem 0.85rem; background: #888; color: white;">
+            CANCELLED
+          </span>
+          {% elif capa.status == 'Under Verification' %}
+          <span class="badge" style="font-size: 1rem; padding: 0.35rem 0.85rem; background: #7a5299; color: white;">
+            UNDER VERIFICATION
+          </span>
+          {% elif capa.status == 'Action Taken' %}
+          <span class="badge" style="font-size: 1rem; padding: 0.35rem 0.85rem; background: var(--snm-olive); color: white;">
+            ACTION TAKEN
+          </span>
+          {% elif capa.status == 'Investigating' %}
+          <span class="badge" style="font-size: 1rem; padding: 0.35rem 0.85rem; background: #d97706; color: white;">
+            INVESTIGATING
+          </span>
+          {% else %}
+          <span class="badge" style="font-size: 1rem; padding: 0.35rem 0.85rem; background: var(--snm-greige); color: var(--snm-machine-black); border: 1px solid var(--snm-line);">
+            OPEN
+          </span>
+          {% endif %}
+        </div>
+        
+        {% if capa.due_date %}
+        <div class="mono" style="font-size: 0.85rem; {% if capa.is_overdue %}color: var(--snm-fail); font-weight: 700;{% else %}color: #666;{% endif %}">
+          Due: {{ capa.due_date }} {% if capa.is_overdue %}<span class="badge badge-fail" style="font-size: 0.65rem;">OVERDUE</span>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Origin / Linked Records Grid -->
+  {% if capa.job_no or capa.qc_check_id or capa.lab_test_id or capa.reference %}
+  <div class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); padding: 1rem 1.25rem;">
+    <h4 style="font-size: 0.9rem; margin: 0 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.5px; color: #666;">
+      Linked Production & Quality Records
+    </h4>
+    <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+      
+      {% if capa.job_no %}
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Production Job:</span><br>
+        <a href="/jobs/{{ capa.job_id }}" class="mono" style="font-weight: 600; color: var(--snm-olive);">
+          {{ capa.job_no }}
+        </a>
+        <span style="font-size: 0.85rem; color: #444;">({{ capa.job_product }})</span>
+      </div>
+      {% endif %}
+
+      {% if capa.customer_name %}
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Customer:</span><br>
+        <span style="font-weight: 500; font-size: 0.85rem;">{{ capa.customer_name }}</span>
+      </div>
+      {% endif %}
+
+      {% if capa.check_no %}
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Failing QC Check:</span><br>
+        <a href="/qc" class="mono" style="font-weight: 600; color: var(--snm-fail);">
+          {{ capa.check_no }}
+        </a>
+      </div>
+      {% endif %}
+
+      {% if capa.lab_test_no %}
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Failing Lab Test:</span><br>
+        <a href="/lab-tests/{{ capa.lab_test_id }}" class="mono" style="font-weight: 600; color: var(--snm-fail);">
+          {{ capa.lab_test_no }}
+        </a>
+      </div>
+      {% endif %}
+
+      {% if capa.reference %}
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Reference:</span><br>
+        <span class="mono" style="font-weight: 500; font-size: 0.85rem;">{{ capa.reference }}</span>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Core Investigation & Action Details -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+    
+    <!-- Problem Statement Card -->
+    <div class="card">
+      <h3 style="font-size: 1.05rem; margin-top: 0; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+        1. Non-Conformance / Problem
+      </h3>
+      <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: #222; margin: 0.5rem 0 0 0;">
+        {{ capa.problem }}
+      </p>
+    </div>
+
+    <!-- Root Cause Analysis Card -->
+    <div class="card">
+      <h3 style="font-size: 1.05rem; margin-top: 0; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+        2. Root Cause Analysis
+      </h3>
+      {% if capa.root_cause %}
+      <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: #222; margin: 0.5rem 0 0 0;">
+        {{ capa.root_cause }}
+      </p>
+      {% else %}
+      <p style="font-size: 0.85rem; color: #888; font-style: italic; margin: 0.5rem 0 0 0;">
+        Investigation pending. Use "Edit Details" to record root cause findings.
+      </p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Actions Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+    
+    <!-- Immediate Correction Card -->
+    <div class="card">
+      <h3 style="font-size: 1.05rem; margin-top: 0; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+        3. Immediate Correction & Containment
+      </h3>
+      {% if capa.correction %}
+      <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: #222; margin: 0.5rem 0 0 0;">
+        {{ capa.correction }}
+      </p>
+      {% else %}
+      <p style="font-size: 0.85rem; color: #888; font-style: italic; margin: 0.5rem 0 0 0;">
+        No immediate containment action recorded.
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- Preventive Action Card -->
+    <div class="card">
+      <h3 style="font-size: 1.05rem; margin-top: 0; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+        4. Systemic Preventive Action
+      </h3>
+      {% if capa.preventive %}
+      <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: #222; margin: 0.5rem 0 0 0;">
+        {{ capa.preventive }}
+      </p>
+      {% else %}
+      <p style="font-size: 0.85rem; color: #888; font-style: italic; margin: 0.5rem 0 0 0;">
+        No systemic preventive action recorded.
+      </p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Responsibility & Timeline Card -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <h3 style="font-size: 1.05rem; margin-top: 0; color: var(--snm-olive); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+      5. Responsibility & Implementation Target
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Assigned Implementer (Owner):</span>
+        <div style="font-weight: 600; font-size: 0.95rem; margin-top: 0.15rem;">
+          {{ capa.owner_name or 'Unassigned' }}
+        </div>
+        {% if capa.owner_email %}<div class="mono" style="font-size: 0.8rem; color: #666;">{{ capa.owner_email }}</div>{% endif %}
+      </div>
+
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Target Due Date:</span>
+        <div class="mono" style="font-weight: 600; font-size: 0.95rem; margin-top: 0.15rem; {% if capa.is_overdue %}color: var(--snm-fail);{% endif %}">
+          {{ capa.due_date or 'No date set' }}
+        </div>
+      </div>
+
+      <div>
+        <span style="font-size: 0.8rem; color: #777;">Raised By:</span>
+        <div style="font-weight: 600; font-size: 0.95rem; margin-top: 0.15rem;">
+          {{ capa.raiser_name or 'QA Team' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification & Closure Section -->
+  <div class="card" style="border-left: 5px solid {% if capa.status == 'Closed' %}var(--snm-pass){% else %}#7a5299{% endif %};">
+    <h3 style="font-size: 1.15rem; margin-top: 0; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem;">
+      6. Verification of Effectiveness & Final Closure
+    </h3>
+
+    {% if capa.status == 'Closed' %}
+      <div style="background: #f4faf2; border: 1px solid #d0e8cb; border-radius: 4px; padding: 1.25rem; margin-top: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-pass" style="font-weight: 700;">✓ VERIFIED EFFECTIVE & CLOSED</span>
+          <span class="mono" style="font-size: 0.85rem; color: #555;">{{ capa.verified_at }}</span>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <strong style="font-size: 0.9rem;">Verified By:</strong> {{ capa.verifier_name }}
+        </div>
+        <div>
+          <strong style="font-size: 0.9rem;">Verification Evidence / Notes:</strong>
+          <p style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: #222; margin: 0.25rem 0 0 0;">
+            {{ capa.verification_notes }}
+          </p>
+        </div>
+      </div>
+    {% elif capa.status == 'Cancelled' %}
+      <div style="padding: 1rem 0; color: #777; font-style: italic;">
+        This CAPA record was cancelled and requires no verification.
+      </div>
+    {% else %}
+      <div style="margin-top: 0.75rem;">
+        <p style="font-size: 0.85rem; color: #555; margin-bottom: 1rem;">
+          Formal verification requires independent QA sign-off confirming that containment and preventive actions are fully executed and effective.
+        </p>
+
+        <form method="POST" action="/capa/{{ capa.id }}/verify" style="background: var(--snm-paper); padding: 1.25rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+          <div style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 600;">
+              Effectiveness Verification Notes & Evidence *
+            </label>
+            <textarea 
+              name="verification_notes" 
+              rows="3" 
+              class="form-control" 
+              required 
+              placeholder="Describe evidence of effectiveness (e.g. 3 consecutive pass test certificates, calibration record verified, audit inspection clear)..."
+            ></textarea>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div style="font-size: 0.8rem; color: #777;">
+              <strong>Segregation of Duties:</strong> Sign-off must be performed by a quality authority other than {{ capa.raiser_name or 'the raiser' }}.
+            </div>
+            <button type="submit" class="btn btn-olive" style="font-weight: 600; padding: 0.5rem 1.5rem;">
+              ✓ Sign-off & Close CAPA
+            </button>
+          </div>
+        </form>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

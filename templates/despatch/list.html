@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Despatch & Shipments Register — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      DESPATCH & FINISHED GOODS SHIPMENTS
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      GST Invoice notes, E-Way bills, transporter tracking, QC hold gates, and Quality Assurance release clearance.
+    </div>
+  </div>
+  <div>
+    <a href="/despatch/new" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em;">
+      + New Despatch Note
+    </a>
+  </div>
+</div>
+
+<!-- Summary Metrics Ribbon -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Shipments</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_count }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Quantity Shipped</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ "{:,.1f}".format(total_qty) }} <span style="font-size: 0.9rem; font-weight: normal;">m/units</span></div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Rolls / Packages</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ total_rolls }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Pending QA Release</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: {% if pending_release_count > 0 %}var(--snm-hold){% else %}#666{% endif %};">{{ pending_release_count }}</div>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/despatch" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Status Filter -->
+    <div style="flex: 1; min-width: 180px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Shipment Status
+      </label>
+      <select name="status_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Search Box -->
+    <div style="flex: 2; min-width: 200px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Search Despatch / Invoice / Job / Destination
+      </label>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. DSP-0001, INV-..., OFK Kanpur..." style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if selected_status != 'all' or search_query %}
+      <a href="/despatch" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Despatch No</th>
+        <th style="padding: 0.75rem 1rem;">Date</th>
+        <th style="padding: 0.75rem 1rem;">Job Card & Customer</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Quantity</th>
+        <th style="padding: 0.75rem 1rem;">Invoice & E-Way</th>
+        <th style="padding: 0.75rem 1rem;">Transporter / Destination</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">QC Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Shipment Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in entries %}
+      <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+          <a href="/despatch/{{ item.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+            {{ item.despatch_no }}
+          </a>
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+          {{ item.despatched_on }}
+        </td>
+        <td style="padding: 0.75rem 1rem;">
+          <a href="/jobs/{{ item.job_id }}" style="color: var(--snm-olive); text-decoration: underline; font-family: var(--font-mono); font-weight: 500;">
+            {{ item.job_no }}
+          </a>
+          <div style="font-size: 0.75rem; color: #666; margin-top: 0.1rem;">
+            {{ item.customer_name or 'Commercial Buyer' }} — {{ item.job_product }}
+          </div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: right; font-family: var(--font-mono);">
+          <strong>{{ item.qty }} {{ item.unit }}</strong>
+          {% if item.rolls %}
+          <div style="font-size: 0.75rem; color: #888;">({{ item.rolls }} rolls)</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.8rem;">
+          <div>{{ item.invoice_no or '—' }}</div>
+          {% if item.eway_bill %}
+          <div style="font-size: 0.7rem; color: #777;">EWB: {{ item.eway_bill }}</div>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; font-size: 0.8rem;">
+          <div style="font-weight: 500;">{{ item.destination or '—' }}</div>
+          <div style="font-size: 0.75rem; color: #666;">{{ item.transporter or '' }} {% if item.lr_no %}(LR: {{ item.lr_no }}){% endif %}</div>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          {% if item.on_qc_hold %}
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #FDF2F2; color: var(--snm-fail); border: 1px solid var(--snm-fail);">
+            QC HOLD
+          </span>
+          {% else %}
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); background: #E8EDE4; color: var(--snm-pass);">
+            QC CLEAR
+          </span>
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase;
+            {% if item.status == 'Dispatched' or item.status == 'Delivered' %}background: #E8EDE4; color: var(--snm-pass); border: 1px solid var(--snm-pass);
+            {% elif item.status == 'Ready for Dispatch' or item.status == 'In Transit' %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);
+            {% elif item.status == 'Cancelled' %}background: #F0EEEA; color: #888;
+            {% else %}background: #F6F4EE; color: #555; border: 1px solid var(--snm-line);{% endif %}">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          <a href="/despatch/{{ item.id }}" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" style="padding: 2rem; text-align: center; color: #888;">
+          No despatch records found matching criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Segregation of Duties Conflicts — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-size: 0.85rem; font-family: var(--font-heading); color: #888; text-transform: uppercase;">
+      <a href="/organisation" style="color: var(--snm-olive); text-decoration: underline;">Organisation</a> / Conflicts
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin-top: 0.25rem;">
+      SEGREGATION OF DUTIES & ROLE CONFLICTS
+    </h1>
+  </div>
+  <div>
+    <a href="/organisation" class="btn btn-secondary" style="font-family: var(--font-heading);">
+      ← Back to Organisation
+    </a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+  
+  <!-- Left Column: Defined Conflict Rules -->
+  <div>
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        DEFINED SEGREGATION OF DUTIES RULES
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for r in rules %}
+        <div style="background: #FAF9F6; border: 1px solid #ECE8DE; border-radius: 4px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="font-weight: bold; font-size: 0.9rem; color: var(--snm-machine-black);">
+              {{ r.role_a_name }} ↔ {{ r.role_b_name }}
+            </div>
+            <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase;
+              {% if r.severity == 'block' %}background: #FDF2F2; color: var(--snm-fail); border: 1px solid var(--snm-fail);
+              {% else %}background: #FEF7EA; color: var(--snm-hold); border: 1px solid var(--snm-hold);{% endif %}">
+              {{ r.severity }}
+            </span>
+          </div>
+          <div style="font-size: 0.85rem; color: #555; line-height: 1.4;">
+            {{ r.reason }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Active Mill Conflicts -->
+  <div>
+    <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1rem; color: var(--snm-machine-black); border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        ACTIVE CONFLICTS IN MILL
+      </div>
+
+      {% if active_conflicts %}
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for c in active_conflicts %}
+        <div style="background: #FEF7EA; border: 1px solid var(--snm-hold); border-radius: 4px; padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <a href="/organisation/users/{{ c.user_id }}" style="font-weight: bold; color: var(--snm-machine-black); text-decoration: underline;">
+              {{ c.full_name }}
+            </a>
+            <span style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: var(--snm-hold); font-weight: bold;">
+              ⚠️ {{ c.severity }}
+            </span>
+          </div>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); color: #666; margin-bottom: 0.5rem;">
+            Holds: {{ c.role_a_name }} & {{ c.role_b_name }}
+          </div>
+          <div style="font-size: 0.8rem; color: #444;">
+            {{ c.reason }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding: 2rem 1rem; text-align: center; color: var(--snm-pass); background: #E8EDE4; border-radius: 4px;">
+        ✓ Zero segregation-of-duties conflicts detected in active staff assignments.
+      </div>
+      {% endif %}
+
+      <div style="font-size: 0.75rem; color: #888; margin-top: 1rem; border-top: 1px solid var(--snm-line); padding-top: 0.75rem; line-height: 1.4;">
+        * Blocking conflicts (e.g. Purchase + Accounts) are strictly prevented by Postgres database trigger. Warning conflicts are permitted during initial rollout and audited.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

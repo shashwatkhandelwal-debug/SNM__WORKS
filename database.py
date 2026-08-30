@@ -35,16 +35,17 @@ def format_dsn(raw_dsn: Optional[str]) -> Optional[str]:
     return raw_dsn
 
 
-async def init_db_pool() -> Optional[asyncpg.Pool]:
+async def init_db_pool(dsn_override: Optional[str] = None) -> Optional[asyncpg.Pool]:
     """
-    Initializes the asyncpg connection pool connecting as snm_app on port 5432.
+    Initializes the asyncpg connection pool connecting to Postgres.
     """
     global pool
-    if not settings.database_url:
+    target_url = dsn_override or settings.local_test_database_url or settings.database_url
+    if not target_url:
         logger.warning("DATABASE_URL is not set; database connection pool not initialized.")
         return None
 
-    dsn = format_dsn(settings.database_url)
+    dsn = format_dsn(target_url)
     try:
         pool = await asyncpg.create_pool(
             dsn=dsn,
