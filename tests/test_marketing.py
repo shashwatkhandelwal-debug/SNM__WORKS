@@ -478,3 +478,58 @@ async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
         assert platform_res["instagram"]["status"] != "published"
     finally:
         await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_campaign_form_creation_and_queue_html_card_rendering(dev_client):
+    """
+    Test 13: End-to-end campaign form creation, HTMX graphic preview,
+    and verification of rendered campaign card in /marketing/queue.
+    """
+    # 1. Verify GET /marketing/campaign redirects to /marketing/queue
+    index_res = await dev_client.get("/marketing/campaign", follow_redirects=False)
+    assert index_res.status_code == 303
+    assert index_res.headers["location"] == "/marketing/queue"
+
+    # 2. Verify form action on /marketing/campaign/new
+    form_res = await dev_client.get("/marketing/campaign/new")
+    assert form_res.status_code == 200
+    assert 'action="/marketing/campaign/create"' in form_res.text
+    assert 'hx-post="/marketing/campaign/generate-image"' in form_res.text
+
+    # 3. Test HTMX live graphic preview button endpoint
+    preview_res = await dev_client.post(
+        "/marketing/campaign/generate-image",
+        data={
+            "occasion": "Independence Day 2026",
+            "headline": "Proud to manufacture in Kanpur, India",
+            "body": "Celebrating Indian technical textile engineering.",
+        },
+    )
+    assert preview_res.status_code == 200
+    assert "Live Branded Graphic Preview" in preview_res.text
+    assert "/marketing/campaign/image-preview?" in preview_res.text
+
+    # 4. Submit form payload to /marketing/campaign/create
+    form_data = {
+        "occasion": "Independence Day 2026",
+        "headline": "Proud to manufacture in Kanpur, India",
+        "body": "Swadeshi Niwar Mills technical textiles engineered for extreme strength.",
+        "platforms": ["linkedin", "instagram", "facebook", "indiamart", "tradeindia"],
+    }
+    submit_res = await dev_client.post(
+        "/marketing/campaign/create",
+        data=form_data,
+        follow_redirects=False,
+    )
+    assert submit_res.status_code == 303
+    assert submit_res.headers["location"] == "/marketing/queue"
+
+    # 5. Fetch /marketing/queue and assert rendered campaign card
+    queue_res = await dev_client.get("/marketing/queue")
+    assert queue_res.status_code == 200
+    assert "Independence Day 2026" in queue_res.text
+    assert "Proud to manufacture in Kanpur, India" in queue_res.text
+    assert "camp-card-" in queue_res.text
+    assert "CAMPAIGN" in queue_res.text
+

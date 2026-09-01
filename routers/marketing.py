@@ -308,7 +308,6 @@ async def campaign_index_redirect():
     return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.post("/campaign")
 @router.post("/campaign/create")
 async def create_campaign(
     request: Request,
