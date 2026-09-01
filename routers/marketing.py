@@ -11,9 +11,10 @@ from fastapi.templating import Jinja2Templates
 import database
 from auth.jwt import decode_access_token
 from auth.middleware import set_rls_claims
+from services.ai_image import GeminiImageGenerationError, generate_hybrid_sku_image
 from services.campaign_image import generate_campaign_graphic
 from services.post_generator import DefenceProductError, generate_post, generate_campaign_post
-from services.publishers import publish_to_all_platforms
+from services.publishers import SUPPORTED_PLATFORMS, publish_post_to_platforms, publish_to_all_platforms
 from services.storage import get_file_from_storage, upload_file_to_storage
 
 logger = logging.getLogger("snm_works.marketing")
@@ -229,6 +230,15 @@ async def generate_campaign_preview(
             except Exception:
                 pass
 
+        if featured_sku_dict:
+            std = str(featured_sku_dict.get("standard") or "").strip().upper()
+            code = str(featured_sku_dict.get("sku_code") or "").strip().upper()
+            if std.startswith("MIL-") or "MIL-W-" in std or "MIL-SPEC" in std or "MIL-" in code:
+                return HTMLResponse(
+                    "<div class='alert alert-fail'><strong>Defence Product Blocked:</strong> Defence specification products cannot be featured in marketing campaigns.</div>",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
     campaign_data = {
         "occasion": clean_occasion,
         "headline": clean_headline,
@@ -276,12 +286,13 @@ async def create_campaign(
     body: str = Form(...),
     featured_sku_id: Optional[str] = Form(None),
     scheduled_at: Optional[str] = Form(None),
-    platforms: List[str] = Form(["linkedin", "instagram", "facebook", "twitter", "whatsapp"]),
+    platforms: List[str] = Form(["linkedin", "instagram", "facebook", "indiamart", "tradeindia"]),
 ):
     """
     Creates a new promotional marketing campaign, generates banner graphic,
     builds platform-specific captions, and queues for owner approval.
     Persists directly to PostgreSQL campaigns table.
+    Blocks defence specification products from featured campaigns.
     """
     token = request.cookies.get("access_token")
     user = await get_authenticated_user(request)
@@ -290,6 +301,10 @@ async def create_campaign(
     clean_headline = headline.strip()[:100]
     clean_body = body.strip()[:500]
     campaign_id = str(uuid.uuid4())
+
+    clean_platforms = [p.strip().lower() for p in platforms if p and p.strip().lower() in SUPPORTED_PLATFORMS]
+    if not clean_platforms:
+        clean_platforms = list(SUPPORTED_PLATFORMS)
 
     featured_sku_dict: Optional[Dict[str, Any]] = None
     if featured_sku_id and featured_sku_id.strip():
@@ -310,6 +325,15 @@ async def create_campaign(
             except Exception:
                 pass
 
+        if featured_sku_dict:
+            std = str(featured_sku_dict.get("standard") or "").strip().upper()
+            code = str(featured_sku_dict.get("sku_code") or "").strip().upper()
+            if std.startswith("MIL-") or "MIL-W-" in std or "MIL-SPEC" in std or "MIL-" in code:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Defence specification SKUs cannot be featured in marketing campaigns.",
+                )
+
     # Ensure graphic exists or generate one
     graphic_bytes = generate_campaign_graphic(occasion=clean_occasion, headline=clean_headline, body=clean_body)
     image_path = await upload_file_to_storage(
@@ -326,7 +350,7 @@ async def create_campaign(
         "headline": clean_headline,
         "body": clean_body,
         "featured_sku_id": featured_sku_id.strip() if featured_sku_id else None,
-        "platforms": platforms,
+        "platforms": clean_platforms,
         "scheduled_at": scheduled_at or datetime.now().isoformat(),
         "image_path": image_path,
         "post_status": "queued",
@@ -362,11 +386,134 @@ async def create_campaign(
                     clean_headline,
                     clean_body,
                     uuid.UUID(featured_sku_id.strip()) if featured_sku_id else None,
-                    platforms,
+                    clean_platforms,
                     sched_dt,
                     "queued",
                     json.dumps(post_draft, ensure_ascii=False),
                 )
+
+    return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/sku/{sku_id}/generate-ai-image")
+async def generate_sku_ai_image(
+    request: Request,
+    sku_id: str,
+):
+    """
+    Generates a hybrid AI marketing hero image (Gemini Nano Banana 2 + Pillow branding overlay)
+    for a given SKU, uploads to storage, updates photo_path in PostgreSQL/memory,
+    and returns an updated HTML snippet or redirects.
+    Fails LOUDLY on API errors, rate limits, or missing credentials.
+    """
+    try:
+        user = await get_authenticated_user(request)
+        token = request.cookies.get("access_token")
+    except HTTPException:
+        return HTMLResponse("<div class='alert alert-fail'>Authentication required</div>", status_code=401)
+
+    sku_dict: Optional[Dict[str, Any]] = None
+    construction_dict: Optional[Dict[str, Any]] = None
+
+    # Fetch from PostgreSQL
+    if database.pool is not None:
+        try:
+            async with database.pool.acquire() as conn:
+                async with conn.transaction():
+                    await set_rls_claims(conn, user["claims"])
+                    row = await conn.fetchrow(
+                        """
+                        SELECT s.*, c.weave, c.width_mm, c.warp_ends, c.warp_denier,
+                               c.warp_tenacity, c.efficiency, c.picks_per_cm, c.weft_denier
+                        FROM skus s
+                        LEFT JOIN constructions c ON c.id = s.construction_id
+                        WHERE s.id::text = $1 OR s.sku_code = $1
+                        """,
+                        sku_id
+                    )
+                    if row:
+                        sku_dict = dict(row)
+                        if sku_dict.get("construction_id"):
+                            construction_dict = sku_dict
+        except Exception as exc:
+            logger.warning(f"Error fetching SKU {sku_id} from db: {exc}")
+
+    # Fallback to MEM_SKUS
+    if not sku_dict:
+        try:
+            from routers.skus import MEM_SKUS
+            sku_dict = MEM_SKUS.get(sku_id)
+            if not sku_dict:
+                for s in MEM_SKUS.values():
+                    if s.get("sku_code") == sku_id:
+                        sku_dict = s
+                        break
+        except Exception:
+            pass
+
+    if not sku_dict:
+        raise HTTPException(status_code=404, detail="SKU not found.")
+
+    actual_sku_id = str(sku_dict.get("id") or sku_id)
+
+    # Generate hybrid AI image (Stage 1 AI Hero + Stage 2 Pillow Overlay)
+    try:
+        branded_jpeg_bytes = await generate_hybrid_sku_image(
+            sku_data=sku_dict,
+            construction=construction_dict,
+        )
+    except GeminiImageGenerationError as err:
+        logger.error(f"Gemini image generation failed for SKU {actual_sku_id}: {err.message}")
+        is_htmx = request.headers.get("hx-request") == "true"
+        if is_htmx:
+            return HTMLResponse(
+                f"<div class='alert alert-fail' style='margin-bottom:0.5rem;'><strong>AI Image Generation Failed:</strong> {err.message}</div>",
+                status_code=err.status_code if err.status_code in (400, 429, 502, 504) else 500,
+            )
+        raise HTTPException(status_code=err.status_code if err.status_code in (400, 429, 502, 504) else 500, detail=err.message)
+
+    # Save to storage (One-time save)
+    storage_path = f"{actual_sku_id}.jpg"
+    photo_key = await upload_file_to_storage(
+        bucket_id="sku-images",
+        destination_path=storage_path,
+        file_bytes=branded_jpeg_bytes,
+        content_type="image/jpeg",
+        user_token=token,
+    )
+
+    sku_dict["photo_path"] = photo_key
+    sku_dict["photo_at"] = datetime.now().isoformat()
+
+    # Update database
+    if database.pool is not None:
+        try:
+            async with database.pool.acquire() as conn:
+                async with conn.transaction():
+                    await set_rls_claims(conn, user["claims"])
+                    await conn.execute(
+                        """
+                        UPDATE skus
+                        SET photo_path = $1,
+                            photo_at = now()
+                        WHERE id::text = $2
+                        """,
+                        photo_key,
+                        actual_sku_id,
+                    )
+        except Exception as exc:
+            logger.warning(f"Failed to update photo_path in database: {exc}")
+
+    is_htmx = request.headers.get("hx-request") == "true"
+    if is_htmx:
+        return HTMLResponse(
+            f"""
+            <div class="alert alert-pass" style="margin-bottom: 0.5rem;">
+                ✓ AI Hero Image Generated & Saved Successfully
+            </div>
+            <img src="/storage/sku-images/{photo_key}" alt="AI Branded Webbing" style="width: 100%; border-radius: 4px; border: 1px solid var(--snm-line); margin-bottom: 0.5rem;" />
+            """
+        )
 
     return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -378,6 +525,9 @@ async def approve_post(
 ):
     """
     Approves a queued SKU or Campaign and triggers mock publishing to target platforms.
+    Enforces state machine: only items in 'queued' status can be approved.
+    Enforces defence sanitization: MIL-spec SKUs or campaigns featuring MIL-spec SKUs are blocked.
+    Dispatches strictly to selected platforms.
     Updates post_status to 'published', stores platform_results receipt, and timestamps.
     """
     try:
@@ -400,7 +550,7 @@ async def approve_post(
                     target_campaign = dict(c_row)
                     post_draft = target_campaign.get("post_draft")
 
-                # Check SKU
+                # Check SKU if not campaign
                 if not target_campaign:
                     row = await conn.fetchrow(
                         """
@@ -415,7 +565,50 @@ async def approve_post(
                     if row:
                         target_sku = dict(row)
 
+    # Fallback to MEM_SKUS if not found
+    if not target_campaign and not target_sku:
+        try:
+            from routers.skus import MEM_SKUS
+            target_sku = MEM_SKUS.get(item_id)
+        except Exception:
+            pass
+
+    if not target_campaign and not target_sku:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Marketing item not found.")
+
+    # 1. Handle Campaign Approval
     if target_campaign:
+        current_status = target_campaign.get("post_status")
+        if current_status != "queued":
+            msg = f"Campaign is currently in '{current_status}' status and cannot be approved."
+            if request.headers.get("hx-request") == "true":
+                return HTMLResponse(
+                    f"""<div class="card alert alert-fail" id="camp-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-fail);">
+                        <strong>Action Blocked:</strong> {msg}
+                    </div>""",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+        # Defence validation if featured SKU is linked
+        if target_campaign.get("featured_sku_id"):
+            feat_sku = None
+            if database.pool is not None:
+                async with database.pool.acquire() as conn:
+                    async with conn.transaction():
+                        await set_rls_claims(conn, user["claims"])
+                        feat_row = await conn.fetchrow("SELECT standard, sku_code FROM skus WHERE id = $1", target_campaign["featured_sku_id"])
+                        if feat_row:
+                            feat_sku = dict(feat_row)
+            if feat_sku:
+                std = str(feat_sku.get("standard") or "").strip().upper()
+                code = str(feat_sku.get("sku_code") or "").strip().upper()
+                if std.startswith("MIL-") or "MIL-W-" in std or "MIL-SPEC" in std or "MIL-" in code:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Campaign features a defence specification SKU and cannot be published.",
+                    )
+
         if isinstance(post_draft, str):
             try:
                 post_draft = json.loads(post_draft)
@@ -424,8 +617,8 @@ async def approve_post(
         if not post_draft:
             post_draft = generate_campaign_post(target_campaign)
 
-        # Publish to platforms
-        platform_results = await publish_to_all_platforms(post_draft)
+        target_platforms = target_campaign.get("platforms")
+        platform_results = await publish_post_to_platforms(post_draft, platforms=target_platforms)
         target_campaign["post_status"] = "published"
         target_campaign["platform_results"] = platform_results
 
@@ -448,6 +641,7 @@ async def approve_post(
 
         is_htmx = request.headers.get("hx-request") == "true"
         if is_htmx:
+            plat_names = ", ".join([p.capitalize() for p in platform_results.keys()])
             return HTMLResponse(
                 f"""
                 <div class="card alert alert-pass" id="camp-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-pass);">
@@ -455,7 +649,7 @@ async def approve_post(
                     <div>
                       <strong>Campaign Successfully Published!</strong>
                       <div style="font-family: var(--font-mono); font-size: 0.8rem; margin-top: 0.25rem;">
-                        "{target_campaign.get('headline')}" dispatched to all platforms.
+                        "{target_campaign.get('headline')}" dispatched to {plat_names}.
                       </div>
                     </div>
                     <span class="badge badge-pass">PUBLISHED</span>
@@ -466,44 +660,42 @@ async def approve_post(
 
         return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
 
-    # If SKU
-    if not target_sku:
-        from routers.skus import MEM_SKUS
-        target_sku = MEM_SKUS.get(item_id)
-
-    if target_sku:
-        standard = str(target_sku.get("standard") or "")
-        if standard.upper().startswith("MIL-"):
-            raise HTTPException(
+    # 2. Handle SKU Approval
+    current_status = target_sku.get("post_status")
+    if current_status != "queued":
+        msg = f"SKU is currently in '{current_status}' status and cannot be approved."
+        if request.headers.get("hx-request") == "true":
+            return HTMLResponse(
+                f"""<div class="card alert alert-fail" id="sku-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-fail);">
+                    <strong>Action Blocked:</strong> {msg}
+                </div>""",
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Defence specification SKUs cannot be published.",
             )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
-        post_draft = target_sku.get("post_draft")
-        if isinstance(post_draft, str):
-            try:
-                post_draft = json.loads(post_draft)
-            except Exception:
-                post_draft = None
+    standard = str(target_sku.get("standard") or "")
+    if standard.upper().startswith("MIL-"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Defence specification SKUs cannot be published.",
+        )
 
-        if not post_draft:
-            post_draft = generate_post(target_sku, construction=target_sku)
-    else:
-        post_draft = {
-            "sku_code": item_id,
-            "title": f"Technical Textile Product {item_id}",
-            "standard": "SNM Commercial Standard",
-            "material": "High Tenacity Polyester",
-        }
+    post_draft = target_sku.get("post_draft")
+    if isinstance(post_draft, str):
+        try:
+            post_draft = json.loads(post_draft)
+        except Exception:
+            post_draft = None
 
-    # Dispatch to all 5 mock platforms
-    platform_results = await publish_to_all_platforms(post_draft)
+    if not post_draft:
+        post_draft = generate_post(target_sku, construction=target_sku)
 
-    if target_sku:
-        target_sku["post_status"] = "published"
-        target_sku["platform_results"] = platform_results
+    target_platforms = target_sku.get("platforms")
+    platform_results = await publish_post_to_platforms(post_draft, platforms=target_platforms)
 
-    # Update database record
+    target_sku["post_status"] = "published"
+    target_sku["platform_results"] = platform_results
+
     if database.pool is not None:
         try:
             async with database.pool.acquire() as conn:
@@ -526,7 +718,8 @@ async def approve_post(
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
-        sku_code = (target_sku.get("sku_code") if target_sku else item_id)
+        sku_code = target_sku.get("sku_code") or item_id
+        plat_names = ", ".join([p.capitalize() for p in platform_results.keys()])
         return HTMLResponse(
             f"""
             <div class="card alert alert-pass" id="sku-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-pass);">
@@ -534,7 +727,7 @@ async def approve_post(
                 <div>
                   <strong>Post Successfully Published!</strong>
                   <div style="font-family: var(--font-mono); font-size: 0.8rem; margin-top: 0.25rem;">
-                    SKU {sku_code} dispatched to LinkedIn, Instagram, Facebook, X, and WhatsApp Catalogue.
+                    SKU {sku_code} dispatched to {plat_names}.
                   </div>
                 </div>
                 <span class="badge badge-pass">PUBLISHED</span>
@@ -554,7 +747,8 @@ async def reject_post(
 ):
     """
     Rejects a queued post with a mandatory reason (minimum 10 characters).
-    Updates post_status to 'rejected' and stores the rejection reason.
+    Enforces state machine: only items in 'queued' status can be rejected.
+    Returns correct HTMX replacement target (camp-card- for campaigns, sku-card- for SKUs).
     """
     try:
         user = await get_authenticated_user(request)
@@ -567,48 +761,95 @@ async def reject_post(
             detail="Rejection reason must be at least 10 characters.",
         )
 
-    # Check SKU in memory for backward compatibility
-    try:
-        from routers.skus import MEM_SKUS
-        if item_id in MEM_SKUS:
-            MEM_SKUS[item_id]["post_status"] = "rejected"
-            MEM_SKUS[item_id]["rejection_reason"] = reason.strip()
-    except Exception:
-        pass
+    is_campaign = False
+    is_sku = False
+    current_status = None
 
     if database.pool is not None:
         async with database.pool.acquire() as conn:
             async with conn.transaction():
                 await set_rls_claims(conn, user["claims"])
-                await conn.execute(
-                    """
-                    UPDATE skus
-                    SET post_status = 'rejected',
-                        rejection_reason = $1
-                    WHERE id::text = $2
-                    """,
-                    reason.strip(),
-                    item_id
-                )
-                await conn.execute(
-                    """
-                    UPDATE campaigns
-                    SET post_status = 'rejected',
-                        rejection_reason = $1
-                    WHERE id::text = $2
-                    """,
-                    reason.strip(),
-                    item_id
-                )
+                # Check campaign
+                c_row = await conn.fetchrow("SELECT post_status FROM campaigns WHERE id::text = $1", item_id)
+                if c_row:
+                    is_campaign = True
+                    current_status = c_row["post_status"]
+                else:
+                    s_row = await conn.fetchrow("SELECT post_status FROM skus WHERE id::text = $1", item_id)
+                    if s_row:
+                        is_sku = True
+                        current_status = s_row["post_status"]
+
+    if not is_campaign and not is_sku:
+        try:
+            from routers.skus import MEM_SKUS
+            if item_id in MEM_SKUS:
+                is_sku = True
+                current_status = MEM_SKUS[item_id].get("post_status")
+        except Exception:
+            pass
+
+    if not is_campaign and not is_sku:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Marketing item not found.")
+
+    card_dom_id = f"camp-card-{item_id}" if is_campaign else f"sku-card-{item_id}"
+
+    if current_status != "queued":
+        msg = f"Item is currently in '{current_status}' status and cannot be rejected."
+        if request.headers.get("hx-request") == "true":
+            return HTMLResponse(
+                f"""<div class="card alert alert-fail" id="{card_dom_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-fail);">
+                    <strong>Action Blocked:</strong> {msg}
+                </div>""",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+    # Apply rejection update
+    if is_sku:
+        try:
+            from routers.skus import MEM_SKUS
+            if item_id in MEM_SKUS:
+                MEM_SKUS[item_id]["post_status"] = "rejected"
+                MEM_SKUS[item_id]["rejection_reason"] = reason.strip()
+        except Exception:
+            pass
+
+    if database.pool is not None:
+        async with database.pool.acquire() as conn:
+            async with conn.transaction():
+                await set_rls_claims(conn, user["claims"])
+                if is_campaign:
+                    await conn.execute(
+                        """
+                        UPDATE campaigns
+                        SET post_status = 'rejected',
+                            rejection_reason = $1
+                        WHERE id::text = $2
+                        """,
+                        reason.strip(),
+                        item_id
+                    )
+                else:
+                    await conn.execute(
+                        """
+                        UPDATE skus
+                        SET post_status = 'rejected',
+                            rejection_reason = $1
+                        WHERE id::text = $2
+                        """,
+                        reason.strip(),
+                        item_id
+                    )
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
         return HTMLResponse(
             f"""
-            <div class="card alert alert-fail" id="sku-card-{item_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-fail);">
+            <div class="card alert alert-fail" id="{card_dom_id}" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-fail);">
               <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                  <strong>Post Draft Rejected</strong>
+                  <strong>{'Campaign' if is_campaign else 'Post'} Draft Rejected</strong>
                   <div style="font-family: var(--font-mono); font-size: 0.8rem; margin-top: 0.25rem;">
                     Reason: {reason.strip()}
                   </div>

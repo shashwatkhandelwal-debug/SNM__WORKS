@@ -30,6 +30,7 @@ async def test_construction_creation_and_sequence_numbering(dev_client):
     # Clear table for predictable sequence
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
     await conn.execute("UPDATE jobs SET construction_id = NULL;")
+    await conn.execute("UPDATE skus SET construction_id = NULL;")
     await conn.execute("DELETE FROM constructions;")
 
     # 1. Create first construction (Narrow Woven)
@@ -102,6 +103,10 @@ async def test_construction_concurrent_sequence_generation():
         email=TEST_USERS["product_developer"]["email"],
         role_code=TEST_USERS["product_developer"]["role_code"],
     )
+
+    init_conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    await init_conn.execute("DELETE FROM constructions WHERE product LIKE 'Concurrent stress test webbing %';")
+    await init_conn.close()
 
     async def create_single_construction(idx: int):
         async with httpx.AsyncClient(

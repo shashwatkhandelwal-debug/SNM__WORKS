@@ -11,7 +11,7 @@ FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "f
 BARLOW_BOLD_PATH = os.path.join(FONT_DIR, "BarlowCondensed-Bold.ttf")
 IBM_MONO_PATH = os.path.join(FONT_DIR, "IBMPlexMono-Regular.ttf")
 
-COLOR_OLIVE = (76, 92, 51)      # #4C5C33
+COLOR_OLIVE = (71, 75, 47)      # #474B2F
 COLOR_WHITE = (255, 255, 255)
 COLOR_GREIGE = (233, 229, 218)   # #E9E5DA
 COLOR_LINE = (207, 200, 182)     # #CFC8B6

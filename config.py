@@ -43,6 +43,14 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("LINKEDIN_COMPANY_PAGE_ID", "LINKEDIN_ORGANIZATION_ID")
     )
+    gemini_api_key: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("GEMINI_API_KEY")
+    )
+    gemini_image_model: str = Field(
+        default="gemini-3.1-flash-image",
+        validation_alias=AliasChoices("GEMINI_IMAGE_MODEL")
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

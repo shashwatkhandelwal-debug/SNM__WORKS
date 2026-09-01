@@ -34,17 +34,17 @@ def test_brand_product_image_dimensions_and_banners():
     # Expected height: (1200 * (400/600)) + 160 = 800 + 160 = 960
     assert out_img.size[1] == 960
 
-    # Verify top banner pixel is olive green (#4C5C33 => rgb(76, 92, 51))
+    # Verify top banner pixel is olive green (#474B2F => rgb(71, 75, 47))
     top_pixel = out_img.getpixel((10, 10))
-    assert abs(top_pixel[0] - 76) < 10
-    assert abs(top_pixel[1] - 92) < 10
-    assert abs(top_pixel[2] - 51) < 10
+    assert abs(top_pixel[0] - 71) < 10
+    assert abs(top_pixel[1] - 75) < 10
+    assert abs(top_pixel[2] - 47) < 10
 
     # Verify bottom banner pixel is olive green
     bottom_pixel = out_img.getpixel((10, 950))
-    assert abs(bottom_pixel[0] - 76) < 10
-    assert abs(bottom_pixel[1] - 92) < 10
-    assert abs(bottom_pixel[2] - 51) < 10
+    assert abs(bottom_pixel[0] - 71) < 10
+    assert abs(bottom_pixel[1] - 75) < 10
+    assert abs(bottom_pixel[2] - 47) < 10
 
 
 def test_campaign_image_generation():

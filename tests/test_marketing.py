@@ -1,21 +1,31 @@
 import pytest
 import httpx
+import uuid
+import asyncpg
+from datetime import datetime
+
+from config import settings
+from main import app
 from services.post_generator import (
     DefenceProductError,
+    generate,
     generate_post,
+    generate_campaign_post,
     sanitize_sku_data,
     resolve_strength_to_weight_ratio,
 )
 from services.publishers import (
     publish_to_all_platforms,
+    publish_post_to_platforms,
     publish_linkedin,
     publish_instagram,
     publish_facebook,
     publish_indiamart,
     publish_tradeindia,
+    SUPPORTED_PLATFORMS,
 )
 from services.catalogue import build_catalogue_feed
-from main import app
+from tests.conftest import LOCAL_TEST_DATABASE_URL, make_test_token, TEST_USERS
 
 
 def test_mil_spec_sku_raises_defence_product_error():
@@ -137,10 +147,11 @@ def test_strength_to_weight_ratio_calculation_and_fallback():
 
 
 @pytest.mark.asyncio
-async def test_approved_sku_calls_all_five_mock_publishers():
+async def test_standardized_mock_publisher_contract():
     """
-    Test 3: Approving a SKU triggers all five mock platform publishers
-    (LinkedIn, Instagram, Facebook, IndiaMart, TradeIndia) and returns mock receipts.
+    Test 3: Confirms all 5 mock publishers conform to the standardized contract:
+    success (bool), platform (str), status ("mock_published", NEVER "published"),
+    post_id (str), url (str), error (None), published_at (ISO timestamp).
     """
     sample_post = {
         "sku_code": "SNM-TEST-APPROVE",
@@ -152,22 +163,52 @@ async def test_approved_sku_calls_all_five_mock_publishers():
         "use_case": "Lifting slings and cargo tie-downs",
     }
 
-    results = await publish_to_all_platforms(sample_post)
+    publishers = [
+        publish_linkedin,
+        publish_instagram,
+        publish_facebook,
+        publish_indiamart,
+        publish_tradeindia,
+    ]
 
-    platforms = ["linkedin", "instagram", "facebook", "indiamart", "tradeindia"]
-    for p in platforms:
-        assert p in results
-        if p == "linkedin":
-            assert results[p]["status"] in ["mock_published", "published", "error"]
-        else:
-            assert results[p]["status"] == "mock_published"
-            assert results[p]["post_id"].startswith("mock_")
+    for pub_fn in publishers:
+        res = await pub_fn(sample_post)
+        assert res["success"] is True
+        # Critical assertion: status MUST be "mock_published", NEVER "published"
+        assert res["status"] == "mock_published"
+        assert res["status"] != "published"
+        assert res["platform"] in SUPPORTED_PLATFORMS
+        assert res["post_id"].startswith("mock_")
+        assert res["url"].startswith("https://")
+        assert res["error"] is None
+        assert isinstance(res["published_at"], str)
+        assert "T" in res["published_at"]
+
+
+@pytest.mark.asyncio
+async def test_selective_platform_publishing():
+    """
+    Test 4: publish_post_to_platforms only dispatches to the requested subset of platforms.
+    """
+    sample_post = {
+        "sku_code": "SNM-SELECTIVE",
+        "title": "Narrow Cargo Tape 25mm",
+    }
+
+    # Dispatch to only LinkedIn and Instagram
+    results = await publish_post_to_platforms(sample_post, platforms=["linkedin", "instagram"])
+    assert set(results.keys()) == {"linkedin", "instagram"}
+    assert results["linkedin"]["status"] == "mock_published"
+    assert results["instagram"]["status"] == "mock_published"
+    assert "facebook" not in results
+    assert "indiamart" not in results
+    assert "tradeindia" not in results
 
 
 @pytest.mark.asyncio
 async def test_rejected_sku_enforces_reason_length():
     """
-    Test 4: Rejection endpoint requires a minimum 10 character explanation.
+    Test 5: Rejection endpoint requires a minimum 10 character explanation.
     """
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         # 1. Unauthenticated request redirects
@@ -186,12 +227,10 @@ async def test_rejected_sku_enforces_reason_length():
 
 def test_sku_generate_post_order_of_operations():
     """
-    Test 5: Commercial SKU with Ready status and catalogue_visible=True
+    Test 6: Commercial SKU with Ready status and catalogue_visible=True
     generates post_draft and queued status.
     Defence SKU raises DefenceProductError and is blocked.
     """
-    from services.post_generator import generate
-
     commercial_sku = {
         "sku_code": "SNM-TEST-50",
         "family": "Narrow woven",
@@ -225,11 +264,9 @@ def test_sku_generate_post_order_of_operations():
 
 def test_campaign_generation_and_caption_formatting():
     """
-    Test 6: Promotional campaign generates platform captions respecting limits
+    Test 7: Promotional campaign generates platform captions respecting limits
     and sanitizing inputs.
     """
-    from services.post_generator import generate_campaign_post
-
     camp = {
         "occasion": "Independence Day 2026",
         "headline": "Proud to manufacture in Kanpur, India",
@@ -249,15 +286,140 @@ def test_campaign_generation_and_caption_formatting():
 
 
 @pytest.mark.asyncio
+async def test_campaign_featuring_mil_spec_sku_is_rejected_with_defence_message(dev_client):
+    """
+    Test 8: Bug #6 Check — Creating a promotional campaign featuring a real MIL-spec SKU
+    is strictly rejected with HTTP 400 and the defence security message.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    mil_sku_id = uuid.uuid4()
+    try:
+        # Seed a real MIL-spec SKU in database
+        await conn.execute(
+            """
+            INSERT INTO skus (id, sku_code, family, title, standard, material, status, catalogue_visible, post_status)
+            VALUES ($1, 'MIL-W-4088-TEST-CAMPAIGN', 'Narrow woven', 'Defence Parachute Webbing', 'MIL-W-4088K Type VII', 'Nylon 6.6', 'Ready', false, 'none')
+            ON CONFLICT (sku_code) DO NOTHING;
+            """,
+            mil_sku_id
+        )
+
+        # Attempt to create campaign featuring the defence SKU
+        resp = await dev_client.post(
+            "/marketing/campaign/create",
+            data={
+                "occasion": "DefExpo 2026",
+                "headline": "Featured Military Webbing",
+                "body": "Check out our MIL-spec parachute webbing.",
+                "featured_sku_id": str(mil_sku_id),
+                "platforms": ["linkedin", "instagram"],
+            },
+            follow_redirects=False,
+        )
+
+        # Must be rejected with HTTP 400
+        assert resp.status_code == 400
+        assert "Defence specification SKUs cannot be featured in marketing campaigns" in resp.json()["detail"]
+    finally:
+        await conn.execute("DELETE FROM skus WHERE id = $1;", mil_sku_id)
+        await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_state_machine_guard_on_approve_and_reject(dev_client):
+    """
+    Test 9: State Machine Guard — Only items in 'queued' status can be approved or rejected.
+    Attempting to re-approve an already published item or re-reject a rejected item returns HTTP 400.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    camp_id = uuid.uuid4()
+    try:
+        # 1. Create a queued campaign
+        await conn.execute(
+            """
+            INSERT INTO campaigns (id, occasion, headline, body, post_status, platforms)
+            VALUES ($1, 'Test State Machine', 'State Guard Headline', 'Body copy', 'queued', ARRAY['linkedin', 'instagram']);
+            """,
+            camp_id
+        )
+
+        # 2. First approval succeeds (transitions queued -> published)
+        approve_resp1 = await dev_client.post(f"/marketing/approve/{camp_id}", follow_redirects=False)
+        assert approve_resp1.status_code == 303
+
+        # Verify status is published
+        row = await conn.fetchrow("SELECT post_status, platform_results FROM campaigns WHERE id = $1;", camp_id)
+        assert row["post_status"] == "published"
+        platform_res = row["platform_results"]
+        if isinstance(platform_res, str):
+            import json
+            platform_res = json.loads(platform_res)
+        # Verify platform results use mock_published
+        assert platform_res["linkedin"]["status"] == "mock_published"
+        assert platform_res["linkedin"]["status"] != "published"
+
+        # 3. Second approval attempt on already-published campaign is blocked with HTTP 400
+        approve_resp2 = await dev_client.post(f"/marketing/approve/{camp_id}", follow_redirects=False)
+        assert approve_resp2.status_code == 400
+        assert "is currently in 'published' status and cannot be approved" in approve_resp2.json()["detail"]
+
+        # 4. Attempt to reject an already-published campaign is also blocked
+        reject_resp = await dev_client.post(
+            f"/marketing/reject/{camp_id}",
+            data={"reason": "Cannot reject already published post."},
+            follow_redirects=False,
+        )
+        assert reject_resp.status_code == 400
+        assert "is currently in 'published' status and cannot be rejected" in reject_resp.json()["detail"]
+    finally:
+        await conn.execute("DELETE FROM campaigns WHERE id = $1;", camp_id)
+        await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_campaign_rejection_htmx_card_id_matches(dev_client):
+    """
+    Test 10: Bug #2 Check — Rejecting a campaign via HTMX returns camp-card-{id}, NOT sku-card-{id}.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    camp_id = uuid.uuid4()
+    try:
+        await conn.execute(
+            """
+            INSERT INTO campaigns (id, occasion, headline, body, post_status, platforms)
+            VALUES ($1, 'HTMX Target Check', 'HTMX Headline', 'Body copy for rejection', 'queued', ARRAY['linkedin']);
+            """,
+            camp_id
+        )
+
+        # Reject via HTMX request
+        reject_resp = await dev_client.post(
+            f"/marketing/reject/{camp_id}",
+            data={"reason": "Copy needs significant technical rewrite."},
+            headers={"HX-Request": "true"},
+        )
+
+        assert reject_resp.status_code == 200
+        # Crucial check: must have id="camp-card-{camp_id}", NEVER "sku-card-"
+        assert f'id="camp-card-{camp_id}"' in reject_resp.text
+        assert "Campaign Draft Rejected" in reject_resp.text
+        assert "Copy needs significant technical rewrite." in reject_resp.text
+
+        # Verify in database
+        row = await conn.fetchrow("SELECT post_status, rejection_reason FROM campaigns WHERE id = $1;", camp_id)
+        assert row["post_status"] == "rejected"
+        assert row["rejection_reason"] == "Copy needs significant technical rewrite."
+    finally:
+        await conn.execute("DELETE FROM campaigns WHERE id = $1;", camp_id)
+        await conn.close()
+
+
+@pytest.mark.asyncio
 async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
     """
-    Test 7: Proves that /marketing/campaign/create persists real rows into
-    the PostgreSQL campaigns table (not memory), and /marketing/queue reads
-    from the database with restart-safety.
+    Test 11: Proves that /marketing/campaign/create persists real rows into
+    the PostgreSQL campaigns table, and only dispatches to selected platforms.
     """
-    import asyncpg
-    from tests.conftest import LOCAL_TEST_DATABASE_URL
-
     form_data = {
         "occasion": "Republic Day 2027",
         "headline": "High-Tenacity Technical Webbing Made in Kanpur",
@@ -278,7 +440,7 @@ async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
     assert queue_resp.status_code == 200
     assert "Republic Day 2027" in queue_resp.text
 
-    # 3. Verify real persistence in PostgreSQL via independent database connection
+    # 3. Verify real persistence in PostgreSQL
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
     try:
         row = await conn.fetchrow(
@@ -289,6 +451,7 @@ async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
         camp_id = str(row["id"])
         assert row["headline"] == "High-Tenacity Technical Webbing Made in Kanpur"
         assert row["post_draft"] is not None
+        assert row["platforms"] == ["linkedin", "instagram"]
     finally:
         await conn.close()
 
@@ -299,14 +462,19 @@ async def test_campaign_persists_to_postgresql_and_survives_restart(dev_client):
     )
     assert approve_resp.status_code == 303
 
-    # 5. Confirm status changed in database
+    # 5. Confirm status changed in database and ONLY selected platforms were published
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
     try:
         updated_row = await conn.fetchrow("SELECT * FROM campaigns WHERE id = $1::uuid;", row["id"])
         assert updated_row["post_status"] == "published"
-        assert updated_row["platform_results"] is not None
+        platform_res = updated_row["platform_results"]
+        if isinstance(platform_res, str):
+            import json
+            platform_res = json.loads(platform_res)
+        assert set(platform_res.keys()) == {"linkedin", "instagram"}
+        assert platform_res["linkedin"]["status"] == "mock_published"
+        assert platform_res["linkedin"]["status"] != "published"
+        assert platform_res["instagram"]["status"] == "mock_published"
+        assert platform_res["instagram"]["status"] != "published"
     finally:
         await conn.close()
-
-
-

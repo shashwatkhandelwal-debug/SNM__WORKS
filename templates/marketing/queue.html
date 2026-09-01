@@ -252,6 +252,51 @@
               <span>{{ draft.use_case }}</span>
             </div>
           </div>
+
+          <!-- Product Hero Image / AI Generation -->
+          <div id="sku-image-box-{{ sku.id }}" style="margin-top: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 0.75rem;">
+            <div style="font-family: var(--font-heading); font-size: 0.85rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>PRODUCT HERO IMAGE</span>
+              {% if sku.photo_path %}
+                <span class="badge badge-pass" style="font-size: 0.75rem;">Branded Ready</span>
+              {% else %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">No Image</span>
+              {% endif %}
+            </div>
+
+            {% if sku.photo_path %}
+              <img src="/storage/sku-images/{{ sku.photo_path }}" alt="{{ sku.title or sku.sku_code }}" style="width: 100%; border-radius: 2px; border: 1px solid var(--snm-line); margin-bottom: 0.5rem;" />
+              <button 
+                type="button" 
+                class="btn btn-outline btn-sm" 
+                style="width: 100%; font-size: 0.8rem;"
+                hx-post="/marketing/sku/{{ sku.id }}/generate-ai-image"
+                hx-target="#sku-image-box-{{ sku.id }}"
+                hx-swap="innerHTML"
+                hx-indicator="#ai-spinner-{{ sku.id }}"
+              >
+                ↻ Regenerate AI Hero Image
+              </button>
+            {% else %}
+              <p style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
+                No product photo attached. Generate a photo-realistic hero shot with Google Gemini (Nano Banana 2) and composite mill branding automatically.
+              </p>
+              <button 
+                type="button" 
+                class="btn btn-olive btn-sm" 
+                style="width: 100%; font-size: 0.85rem;"
+                hx-post="/marketing/sku/{{ sku.id }}/generate-ai-image"
+                hx-target="#sku-image-box-{{ sku.id }}"
+                hx-swap="innerHTML"
+                hx-indicator="#ai-spinner-{{ sku.id }}"
+              >
+                ✦ Generate AI Hero Image
+              </button>
+            {% endif %}
+            <div id="ai-spinner-{{ sku.id }}" class="htmx-indicator" style="text-align: center; padding: 0.5rem; font-size: 0.8rem; color: var(--snm-olive); font-family: var(--font-mono);">
+              Generating AI Hero Photo & Overlay...
+            </div>
+          </div>
         </div>
 
         <!-- Right: Platform Captions Preview -->
