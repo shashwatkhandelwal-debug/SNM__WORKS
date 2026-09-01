@@ -34,8 +34,9 @@ def generate_campaign_graphic(
 ) -> bytes:
     """
     Pure Pillow generator for branded promotional campaign social cards.
-    - Background: Olive green #4C5C33
-    - Top Left: White 'SNM WORKS' wordmark
+    - Dimensions: 1200x630 (1.91:1)
+    - Background: Olive green #474B2F
+    - Brand Title: SWADESHI NIWAR MILLS in Barlow Condensed Boldmark
     - Center: Large white bold headline
     - Below Headline: Occasion subtitle in greige
     - Bottom Right: 'Made in Kanpur, India'

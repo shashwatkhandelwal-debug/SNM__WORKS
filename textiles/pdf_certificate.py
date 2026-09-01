@@ -90,7 +90,7 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         fontName="Helvetica",
         fontSize=8.5,
         leading=11,
-        textColor=colors.HexColor("#4C5C33"),
+        textColor=colors.HexColor("#474B2F"),
         alignment=1,
     )
     
@@ -165,7 +165,7 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         fontName="Helvetica-Bold",
         fontSize=9.5,
         leading=12,
-        textColor=colors.HexColor("#4C5C33"),
+        textColor=colors.HexColor("#474B2F"),
     )
 
     story = []
@@ -176,7 +176,7 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     story.append(Paragraph("Technical Textiles Division • Kanpur, Uttar Pradesh, India", style_mill_sub))
     story.append(Paragraph("Narrow Wovens • Technical Fabrics • Defence & Industrial Cordage", style_mill_sub))
     story.append(Spacer(1, 6))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#4C5C33"), spaceBefore=0, spaceAfter=8))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#474B2F"), spaceBefore=0, spaceAfter=8))
     
     story.append(Paragraph("CERTIFICATE OF CONFORMANCE & QUALITY ANALYSIS", style_title))
     story.append(Spacer(1, 8))

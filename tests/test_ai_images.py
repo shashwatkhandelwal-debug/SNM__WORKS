@@ -288,52 +288,58 @@ async def test_generate_hybrid_sku_image_pipeline():
 
 
 @pytest.mark.asyncio
-async def test_marketing_generate_ai_image_endpoint_authenticated():
+async def test_marketing_generate_ai_image_endpoint_authenticated(dev_client):
     """
     Test 9: POST /marketing/sku/{sku_id}/generate-ai-image route executes one-time generation
     and saves photo_path to storage and database.
     """
-    token = make_test_token(
-        user_id="00000000-0000-0000-0000-000000000001",
-        email="yashkhandelwal95@gmail.com",
-        role_code="owner",
-    )
+    from routers.skus import MEM_SKUS
+    MEM_SKUS["SNM-BRAND-TEST"] = {
+        "id": "SNM-BRAND-TEST",
+        "sku_code": "SNM-BRAND-TEST",
+        "family": "Narrow woven",
+        "title": "Industrial High Strength Webbing",
+        "standard": "IS 15041",
+        "material": "Polyester",
+        "colour": "Olive Drab",
+    }
 
     dummy_hero_bytes = io.BytesIO()
     Image.new("RGB", (600, 400), color=(120, 130, 100)).save(dummy_hero_bytes, format="JPEG")
     dummy_hero_bytes_val = dummy_hero_bytes.getvalue()
 
     with patch("services.ai_image.call_gemini_image_api", return_value=dummy_hero_bytes_val):
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app),
-            base_url="http://test",
-            headers={"Cookie": f"access_token={token}", "HX-Request": "true"},
-        ) as client:
-            resp = await client.post("/marketing/sku/SNM-BRAND-TEST/generate-ai-image")
-            assert resp.status_code == 200
-            assert "AI Hero Image Generated & Saved Successfully" in resp.text
-            assert "src=\"/storage/sku-images/" in resp.text
+        resp = await dev_client.post(
+            "/marketing/sku/SNM-BRAND-TEST/generate-ai-image",
+            headers={"HX-Request": "true"},
+        )
+        assert resp.status_code == 200
+        assert "AI Hero Image Generated & Saved Successfully" in resp.text
+        assert "src=\"/storage/sku-images/" in resp.text
 
 
 @pytest.mark.asyncio
-async def test_marketing_generate_ai_image_endpoint_loud_failure():
+async def test_marketing_generate_ai_image_endpoint_loud_failure(dev_client):
     """
     Test 10: POST /marketing/sku/{sku_id}/generate-ai-image surfaces loud error in HTMX response
     when Gemini API fails, without crashing or faking results.
     """
-    token = make_test_token(
-        user_id="00000000-0000-0000-0000-000000000001",
-        email="yashkhandelwal95@gmail.com",
-        role_code="owner",
-    )
+    from routers.skus import MEM_SKUS
+    MEM_SKUS["SNM-BRAND-TEST"] = {
+        "id": "SNM-BRAND-TEST",
+        "sku_code": "SNM-BRAND-TEST",
+        "family": "Narrow woven",
+        "title": "Industrial High Strength Webbing",
+        "standard": "IS 15041",
+        "material": "Polyester",
+        "colour": "Olive Drab",
+    }
 
     with patch("services.ai_image.call_gemini_image_api", side_effect=GeminiImageGenerationError("Quota limit hit", reason="RATE_LIMIT", status_code=429)):
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app),
-            base_url="http://test",
-            headers={"Cookie": f"access_token={token}", "HX-Request": "true"},
-        ) as client:
-            resp = await client.post("/marketing/sku/SNM-BRAND-TEST/generate-ai-image")
-            assert resp.status_code == 429
-            assert "AI Image Generation Failed" in resp.text
-            assert "Quota limit hit" in resp.text
+        resp = await dev_client.post(
+            "/marketing/sku/SNM-BRAND-TEST/generate-ai-image",
+            headers={"HX-Request": "true"},
+        )
+        assert resp.status_code == 429
+        assert "AI Image Generation Failed" in resp.text
+        assert "Quota limit hit" in resp.text
