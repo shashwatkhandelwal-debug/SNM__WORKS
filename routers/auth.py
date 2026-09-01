@@ -151,7 +151,11 @@ async def linkedin_oauth_redirect(request: Request):
     Redirects to LinkedIn OAuth authorization URL with scopes
     w_organization_social and r_organization_social to post to the SNM company page.
     """
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("access_token") or request.cookies.get("sb-access-token")
+    if not token and "authorization" in request.headers:
+        auth_hdr = request.headers.get("authorization", "")
+        if auth_hdr.startswith("Bearer "):
+            token = auth_hdr[7:]
     if not token:
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
