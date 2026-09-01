@@ -278,6 +278,37 @@ async def preview_campaign_image(
     return Response(content=graphic_bytes, media_type="image/png")
 
 
+@router.post("/campaign/generate-image", response_class=HTMLResponse)
+async def generate_campaign_image_card(
+    occasion: str = Form("Independence Day 2026"),
+    headline: str = Form("Proudly Weaving Defence-Grade Narrow Fabrics for India"),
+    body: str = Form("Swadeshi Niwar Mills salutes the armed forces with MIL-spec technical webbing."),
+):
+    """
+    HTMX live visual preview card returning generated banner graphic.
+    """
+    import urllib.parse
+    params = urllib.parse.urlencode({"occasion": occasion.strip(), "headline": headline.strip(), "body": body.strip()})
+    img_url = f"/marketing/campaign/image-preview?{params}"
+    return HTMLResponse(
+        f"""
+        <div class="card" style="padding: 1rem; background: var(--snm-greige); text-align: center; border: 1px solid var(--snm-line);">
+            <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase; color: var(--snm-olive-dark);">Live Branded Graphic Preview (1200 × 630)</div>
+            <img src="{img_url}" alt="Campaign Graphic Preview" style="max-width: 100%; height: auto; border: 1px solid var(--snm-line); border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />
+        </div>
+        """
+    )
+
+
+@router.get("/campaign")
+async def campaign_index_redirect():
+    """
+    Redirects /marketing/campaign to /marketing/queue.
+    """
+    return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/campaign")
 @router.post("/campaign/create")
 async def create_campaign(
     request: Request,
