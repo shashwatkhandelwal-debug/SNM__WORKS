@@ -397,7 +397,7 @@ These are in `tests/test_textiles.py`.
 
 Shop floor uses phones in bright light with dusty hands. Narrow-first.
 
-**Palette** — olive `#4C5C33`, machine black `#1B2017`, greige `#E9E5DA`,
+**Palette** — olive `#474B2F`, machine black `#1B2017`, greige `#E9E5DA`,
 paper `#F6F4EE`, line `#CFC8B6`, pass `#3F6B34`, fail `#A82914`, hold `#9A6407`
 
 **Type** — Barlow Condensed for headings, IBM Plex Sans for body, IBM Plex Mono

@@ -239,7 +239,7 @@ result, and block entry from an instrument whose calibration has expired.
 
 - **JavaScript, not TypeScript.** Match what exists.
 - **No CSS framework.** All styling in `src/index.css` using the variables
-  already defined. Palette: olive `#4C5C33`, machine black `#1B2017`, greige
+  already defined. Palette: olive `#474B2F`, machine black `#1B2017`, greige
   `#E9E5DA`, paper `#F6F4EE`. Fonts: Barlow Condensed for headings, IBM Plex
   Sans for body, IBM Plex Mono for numbers and identifiers.
 - **Adding a register means adding a definition to `modules.js`**, never writing
