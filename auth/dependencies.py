@@ -34,6 +34,10 @@ async def current_user(
 
     claims = decode_access_token(token)
     user_id = claims.get("sub")
+
+    # Inject transaction-scoped RLS claims FIRST so all subsequent queries and RLS policies have identity context
+    await set_rls_claims(conn, claims)
+
     if user_id:
         is_active = await conn.fetchval("SELECT active FROM profiles WHERE id = $1::uuid;", user_id)
         if is_active is False:
@@ -41,9 +45,6 @@ async def current_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User account has been deactivated.",
             )
-
-    # Inject RLS claims into the transaction
-    await set_rls_claims(conn, claims)
 
     return {
         "id": user_id,
