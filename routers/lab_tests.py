@@ -246,6 +246,7 @@ async def new_lab_test_form(
 async def create_lab_test(
     request: Request,
     job_id: Optional[str] = Form(None),
+    yarn_lot_id: Optional[str] = Form(None),
     tested_on: Optional[str] = Form(None),
     test_type: str = Form("Tensile / Breaking Strength"),
     parameter: str = Form(...),
@@ -296,6 +297,13 @@ async def create_lab_test(
         except (ValueError, TypeError):
             resolved_job_id = None
 
+    resolved_lot_id = None
+    if yarn_lot_id and yarn_lot_id.strip():
+        try:
+            resolved_lot_id = uuid.UUID(yarn_lot_id.strip())
+        except (ValueError, TypeError):
+            resolved_lot_id = None
+
     specimen_readings = parse_specimens_input(specimens_raw)
     max_retries = 10
     new_test_uuid = str(uuid.uuid4())
@@ -306,21 +314,22 @@ async def create_lab_test(
                 row = await conn.fetchrow(
                     """
                     INSERT INTO lab_tests (
-                        id, test_id, job_id, tested_on, test_type, parameter,
+                        id, test_id, job_id, yarn_lot_id, tested_on, test_type, parameter,
                         standard, lab, report_no, unit, limit_type, spec_value,
                         tolerance, upper_limit, is_critical, specimens,
                         requirement, remarks, created_by
                     ) VALUES (
-                        $1::uuid, $2, $3, $4, $5, $6,
-                        $7, $8, $9, $10, $11::limit_kind, $12,
-                        $13, $14, $15, $16,
-                        $17, $18, $19
+                        $1::uuid, $2, $3, $4, $5, $6, $7,
+                        $8, $9, $10, $11, $12::limit_kind, $13,
+                        $14, $15, $16, $17,
+                        $18, $19, $20
                     )
                     RETURNING id::text, test_id, verdict
                     """,
                     uuid.UUID(new_test_uuid),
                     generated_test_id,
                     resolved_job_id,
+                    resolved_lot_id,
                     parsed_date,
                     clean_test_type,
                     clean_parameter,
@@ -338,6 +347,18 @@ async def create_lab_test(
                     clean_remarks,
                     creator_id,
                 )
+
+                if resolved_lot_id:
+                    await conn.execute(
+                        """
+                        UPDATE yarn_lots
+                        SET tested_by = $1,
+                            updated_at = now()
+                        WHERE id = $2;
+                        """,
+                        creator_id,
+                        resolved_lot_id,
+                    )
             break
         except asyncpg.UniqueViolationError:
             if attempt == max_retries - 1:

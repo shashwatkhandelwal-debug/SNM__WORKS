@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Receive Goods Receipt Note (GRN) — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1000px; margin: 0 auto; padding: 1.5rem;" x-data="{
+  items: [
+    { yarn_type: 'Nylon 6,6', denier: 840, filament_count: 140, lustre: 'Semi-Dull', colour: 'Raw White / Ecru', supplier_lot_no: '', qty_received: 500, unit: 'kg', storage_location: 'Rack A-1' }
+  ],
+  addItem() {
+    this.items.push({ yarn_type: 'Nylon 6,6', denier: 840, filament_count: 140, lustre: 'Semi-Dull', colour: 'Raw White / Ecru', supplier_lot_no: '', qty_received: 100, unit: 'kg', storage_location: '' });
+  },
+  removeItem(idx) {
+    if (this.items.length > 1) {
+      this.items.splice(idx, 1);
+    }
+  }
+}">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+    <a href="/materials" style="color: var(--snm-olive); text-decoration: none;">Materials</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">Receive GRN Consignment</span>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--snm-olive); margin-bottom: 1.5rem;">
+    <h1 style="font-size: 1.75rem; margin: 0 0 0.5rem; font-family: var(--font-heading); color: var(--snm-machine-black);">
+      INWARD GOODS RECEIPT NOTE (GRN)
+    </h1>
+    <p style="margin: 0; color: #555; font-size: 0.9rem;">
+      Record incoming yarn consignment. Generates sequential GRN number and creates Quarantine yarn lots for QA testing.
+    </p>
+  </div>
+
+  <form method="POST" action="/materials/grn">
+    
+    <!-- Consignment Header Details -->
+    <div class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper);">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 1rem;">
+        1. CONSIGNMENT HEADER
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">DATE RECEIVED *:</label>
+          <input type="date" name="received_date" class="form-control" value="{{ today }}" required>
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">SUPPLIER NAME *:</label>
+          <input type="text" name="supplier_name" class="form-control" placeholder="e.g. Reliance Industries Ltd" required list="suppliers_list">
+          <datalist id="suppliers_list">
+            {% for s in suppliers %}
+              <option value="{{ s.name }}">{{ s.supplier_code }} — {{ s.name }}</option>
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">PURCHASE ORDER REF:</label>
+          <input type="text" name="po_ref" class="form-control" placeholder="e.g. PO-2026-088">
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">CARRIER / VEHICLE NO:</label>
+          <input type="text" name="carrier_vehicle" class="form-control" placeholder="e.g. UP-78-BT-4412">
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">SUPPLIER INVOICE / CHALLAN NO:</label>
+          <input type="text" name="invoice_no" class="form-control" placeholder="e.g. INV-99214">
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">INVOICE DATE:</label>
+          <input type="date" name="invoice_date" class="form-control">
+        </div>
+      </div>
+
+      <div>
+        <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">REMARKS / PACKAGE CONDITION:</label>
+        <input type="text" name="remarks" class="form-control" placeholder="e.g. 20 cartons received in good condition, seals intact">
+      </div>
+    </div>
+
+    <!-- Multi-Lot Item Lines -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black);">
+          2. YARN LOTS RECEIVED (1:MANY)
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" @click="addItem()">
+          + Add Another Yarn Lot
+        </button>
+      </div>
+
+      <template x-for="(item, idx) in items" :key="idx">
+        <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem; margin-bottom: 1rem; position: relative;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.4rem;">
+            <strong class="mono" style="font-size: 0.85rem; color: var(--snm-olive);" x-text="'ITEM #' + (idx + 1) + ' — YARN LOT'"></strong>
+            <button type="button" class="btn btn-sm" style="color: var(--snm-fail); padding: 0.1rem 0.5rem;" @click="removeItem(idx)" x-show="items.length > 1">
+              ✕ Remove
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">YARN TYPE *:</label>
+              <select name="yarn_type" class="form-control" x-model="item.yarn_type" required>
+                <option value="Nylon 6,6">Nylon 6,6</option>
+                <option value="Nylon 6">Nylon 6</option>
+                <option value="Polyester (PET)">Polyester (PET)</option>
+                <option value="Aramid (Nomex/Kevlar)">Aramid</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Polypropylene">Polypropylene</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">DENIER *:</label>
+              <input type="number" step="any" name="denier" class="form-control" x-model="item.denier" required placeholder="e.g. 840">
+            </div>
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">FILAMENT COUNT:</label>
+              <input type="number" name="filament_count" class="form-control" x-model="item.filament_count" placeholder="e.g. 140">
+            </div>
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">COLOUR / LUSTRE:</label>
+              <input type="text" name="colour" class="form-control" x-model="item.colour" placeholder="e.g. Raw White / Ecru">
+            </div>
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">SUPPLIER BATCH / MERGE ID:</label>
+              <input type="text" name="supplier_lot_no" class="form-control" x-model="item.supplier_lot_no" placeholder="e.g. B-8841-A">
+            </div>
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">QTY RECEIVED (KG) *:</label>
+              <input type="number" step="0.01" name="qty_received" class="form-control" x-model="item.qty_received" required placeholder="e.g. 500">
+            </div>
+
+            <input type="hidden" name="unit" value="kg">
+
+            <div>
+              <label class="mono" style="font-size: 0.7rem; display: block; margin-bottom: 0.2rem;">STORAGE LOCATION / RACK:</label>
+              <input type="text" name="storage_location" class="form-control" x-model="item.storage_location" placeholder="e.g. Rack A-12">
+            </div>
+          </div>
+
+        </div>
+      </template>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+      <a href="/materials" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-olive" style="font-size: 1rem; padding: 0.6rem 1.5rem;">
+        ✓ Save GRN & Receive Lots into Quarantine
+      </button>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

@@ -136,7 +136,7 @@ async def call_gemini_image_api(
     with x-goog-api-key header and parses candidates[0].content.parts[].inlineData.
     Fails LOUDLY on missing credentials, rate limits, safety blocks, or network errors.
     """
-    target_key = api_key or settings.gemini_api_key
+    target_key = settings.gemini_api_key if api_key is None else api_key
     if not target_key or not target_key.strip():
         raise GeminiImageGenerationError(
             "GEMINI_API_KEY is not configured in environment.",

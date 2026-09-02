@@ -1,0 +1,597 @@
+{% extends "base.html" %}
+
+{% block title %}{{ spec.spec_no }} Rev {{ spec.revision }} — Specifications Masterbase{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1200px; margin: 0 auto; padding: 1.5rem;" x-data="{ tab: 'requirements', showAddVariant: false, showAddReq: false }">
+  
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+    <a href="/specifications" style="color: var(--snm-olive); text-decoration: none;">Specifications</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">{{ spec.spec_no }} (Rev {{ spec.revision }})</span>
+  </div>
+
+  <!-- Header Master Spec Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--snm-olive);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+          <h1 style="font-size: 2rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); line-height: 1.1;">
+            {{ spec.spec_no }}
+          </h1>
+          <span class="badge badge-gray" style="font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700;">
+            REV {{ spec.revision }}
+          </span>
+          {% if spec.active %}
+            <span class="badge badge-pass" style="font-size: 0.8rem;">ACTIVE STANDARD</span>
+          {% else %}
+            <span class="badge badge-fail" style="font-size: 0.8rem;">PENDING APPROVAL / OBSOLETE</span>
+          {% endif %}
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+          {{ spec.title }}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        {% if not spec.active and can_approve %}
+        <form method="POST" action="/specifications/{{ spec.id }}/approve" style="display: inline;">
+          <button type="submit" class="btn btn-sm btn-olive" onclick="return confirm('Release and activate this specification revision?');">
+            ✓ Approve & Activate Spec
+          </button>
+        </form>
+        {% endif %}
+        <a href="/specifications" class="btn btn-outline btn-sm">← Back to Masterbase</a>
+      </div>
+    </div>
+
+    <!-- Metadata Matrix -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 2px; padding: 1rem; margin-bottom: 1rem; font-size: 0.85rem;">
+      <div>
+        <span class="mono" style="color: #666; display: block; font-size: 0.75rem;">ISSUING AUTHORITY:</span>
+        <strong style="color: var(--snm-machine-black);">{{ spec.issuing_body or '—' }}</strong>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; display: block; font-size: 0.75rem;">DATE OF ISSUE:</span>
+        <strong class="mono" style="color: var(--snm-machine-black);">{{ spec.issued_on or '—' }}</strong>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; display: block; font-size: 0.75rem;">SUPERSEDES:</span>
+        <span class="mono" style="color: var(--snm-machine-black);">{{ spec.supersedes or 'None' }}</span>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; display: block; font-size: 0.75rem;">DISTRIBUTION:</span>
+        <span style="color: var(--snm-machine-black);">{{ spec.distribution or 'Unrestricted' }}</span>
+      </div>
+    </div>
+
+    <!-- Scope Narrative -->
+    {% if spec.scope %}
+    <div style="font-size: 0.9rem; color: #444; line-height: 1.5; border-top: 1px solid var(--snm-line); padding-top: 0.75rem;">
+      <strong style="color: var(--snm-machine-black); font-size: 0.8rem; font-family: var(--font-heading); letter-spacing: 0.05em; display: block; margin-bottom: 0.2rem;">
+        SCOPE & CLASSIFICATION:
+      </strong>
+      {{ spec.scope }}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div style="display: flex; gap: 4px; border-bottom: 2px solid var(--snm-line); margin-bottom: 1.5rem; overflow-x: auto;">
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'requirements' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'requirements'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Requirements ({{ requirements|length }})
+    </button>
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'variants' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'variants'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Type Variants ({{ variants|length }})
+    </button>
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'defects' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'defects'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Table VI Defect Matrix ({{ defects|length }})
+    </button>
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'sampling' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'sampling'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Sampling Plan ({{ sampling_plans|length }})
+    </button>
+    {% if ref_types %}
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'ref_types' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'ref_types'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Reference Physical Types ({{ ref_types|length }})
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- TAB 1: REQUIREMENTS -->
+  <div x-show="tab === 'requirements'">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <div style="font-size: 0.9rem; color: #555;">
+        Technical parameters, limits, and testing clauses.
+      </div>
+      {% if can_create or can_update %}
+      <button type="button" class="btn btn-sm btn-olive" @click="showAddReq = !showAddReq">
+        <span x-text="showAddReq ? '− Cancel' : '+ Add Requirement'"></span>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Add Requirement Form Drawer -->
+    {% if can_create or can_update %}
+    <div x-show="showAddReq" class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.75rem;">
+        ADD SPECIFICATION REQUIREMENT
+      </div>
+      <form method="POST" action="/specifications/{{ spec.id }}/requirements">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">APPLIES TO VARIANT:</label>
+            <select name="variant_id" class="form-control" style="font-size: 0.85rem;">
+              <option value="">(All Variants / Spec-Wide)</option>
+              {% for v in variants %}
+                <option value="{{ v.id }}">{{ v.variant_code }} — {{ v.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">PARAMETER NAME *:</label>
+            <input type="text" name="parameter" class="form-control" placeholder="e.g. Breaking Strength" required>
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">LIMIT KIND *:</label>
+            <select name="limit_type" class="form-control" style="font-size: 0.85rem;" required>
+              <option value="minimum">minimum (≥ spec_value)</option>
+              <option value="maximum">maximum (≤ spec_value)</option>
+              <option value="range">range (spec_value to upper_limit)</option>
+              <option value="nominal">nominal (spec_value ± tolerance)</option>
+              <option value="text">text (qualitative)</option>
+            </select>
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">TARGET / VALUE:</label>
+            <input type="number" step="any" name="spec_value" class="form-control" placeholder="e.g. 4000">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">TOLERANCE (±):</label>
+            <input type="number" step="any" name="tolerance" class="form-control" placeholder="e.g. 1.5">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">UPPER LIMIT (for range):</label>
+            <input type="number" step="any" name="upper_limit" class="form-control" placeholder="e.g. 8.5">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">UNIT:</label>
+            <input type="text" name="unit" class="form-control" placeholder="e.g. lb, mm, g/m, %">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">TEST METHOD / STANDARD:</label>
+            <input type="text" name="test_method" class="form-control" placeholder="e.g. ASTM D5034, FED-STD-191">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">CLAUSE REF:</label>
+            <input type="text" name="clause_ref" class="form-control" placeholder="e.g. 3.6.1">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">TEXT / QUALITATIVE VALUE (if limit kind is text):</label>
+          <input type="text" name="text_value" class="form-control" placeholder="e.g. 2 up 2 down herringbone twill">
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" name="is_critical" value="true">
+            <strong>Critical Release Parameter</strong> (min specimen floor, release gating)
+          </label>
+          <button type="submit" class="btn btn-olive">Save Requirement</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem; width: 80px;">CLAUSE</th>
+            <th style="padding: 0.75rem 1rem;">PARAMETER & DESCRIPTION</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">LIMIT KIND</th>
+            <th style="padding: 0.75rem 1rem;">SPECIFIED TARGET / LIMIT</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">UNIT</th>
+            <th style="padding: 0.75rem 1rem;">TEST METHOD</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">CRITICALITY</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if requirements %}
+          {% for r in requirements %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            
+            <!-- Clause Ref -->
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+              {{ r.clause_ref or '—' }}
+            </td>
+
+            <!-- Parameter -->
+            <td style="padding: 0.85rem 1rem;">
+              <div style="font-weight: 600; color: var(--snm-machine-black); font-size: 0.95rem;">
+                {{ r.parameter }}
+              </div>
+              {% if r.notes %}
+              <div style="font-size: 0.8rem; color: #666; margin-top: 0.15rem;">
+                {{ r.notes }}
+              </div>
+              {% endif %}
+              {% if r.variant_code %}
+              <div style="font-size: 0.75rem; color: var(--snm-olive); font-family: var(--font-mono); margin-top: 0.2rem;">
+                Variant: {{ r.variant_code }}
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- Limit Type Badge -->
+            <td style="padding: 0.85rem 0.75rem; text-align: center;">
+              {% if r.limit_type == 'minimum' %}
+                <span class="badge badge-olive" style="font-size: 0.75rem;">MINIMUM</span>
+              {% elif r.limit_type == 'maximum' %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">MAXIMUM</span>
+              {% elif r.limit_type == 'range' %}
+                <span class="badge" style="background: #D4A373; color: #fff; font-size: 0.75rem;">RANGE</span>
+              {% elif r.limit_type == 'nominal' %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">NOMINAL ±</span>
+              {% elif r.limit_type == 'text' %}
+                <span class="badge" style="background: #5C6152; color: #fff; font-size: 0.75rem;">TEXT / DESCR</span>
+              {% else %}
+                <span class="badge badge-gray">{{ r.limit_type|upper }}</span>
+              {% endif %}
+            </td>
+
+            <!-- Specified Value Display Logic -->
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--snm-machine-black);">
+              {% if r.limit_type == 'text' %}
+                <span style="font-family: var(--font-body); font-weight: 500; color: #333;">
+                  {{ r.text_value or '—' }}
+                </span>
+              {% elif r.limit_type == 'minimum' %}
+                ≥ {{ r.spec_value }}
+              {% elif r.limit_type == 'maximum' %}
+                ≤ {{ r.spec_value }}
+              {% elif r.limit_type == 'range' %}
+                {{ r.spec_value }} – {{ r.upper_limit }}
+              {% elif r.limit_type == 'nominal' %}
+                {{ r.spec_value }}{% if r.tolerance %} ± {{ r.tolerance }}{% endif %}
+              {% else %}
+                {{ r.spec_value or r.text_value or '—' }}
+              {% endif %}
+            </td>
+
+            <!-- Unit -->
+            <td style="padding: 0.85rem 0.75rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+              {{ r.unit or '—' }}
+            </td>
+
+            <!-- Method -->
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: #444;">
+              {{ r.test_method or '—' }}
+            </td>
+
+            <!-- Criticality Flag -->
+            <td style="padding: 0.85rem 0.75rem; text-align: center;">
+              {% if r.is_critical %}
+                <span class="badge badge-fail" style="font-size: 0.75rem; font-weight: 700;">CRITICAL</span>
+              {% else %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">STANDARD</span>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="7" style="padding: 2.5rem; text-align: center; color: #666;">
+              No requirements configured for this specification.
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: TYPE VARIANTS -->
+  <div x-show="tab === 'variants'">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <div style="font-size: 0.9rem; color: #555;">
+        Product variants and type configurations under {{ spec.spec_no }}.
+      </div>
+      {% if can_create or can_update %}
+      <button type="button" class="btn btn-sm btn-olive" @click="showAddVariant = !showAddVariant">
+        <span x-text="showAddVariant ? '− Cancel' : '+ Add Type Variant'"></span>
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Add Variant Form Drawer -->
+    {% if can_create or can_update %}
+    <div x-show="showAddVariant" class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 1px solid var(--snm-line); padding: 1.25rem;">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.75rem;">
+        CREATE NEW SPECIFICATION VARIANT
+      </div>
+      <form method="POST" action="/specifications/{{ spec.id }}/variants">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">VARIANT CODE *:</label>
+            <input type="text" name="variant_code" class="form-control" placeholder="e.g. Type VIII Class 1" required>
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">VARIANT FULL NAME *:</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. MIL-W-4088K Type VIII Class 1" required>
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">CLASS:</label>
+            <input type="text" name="class" class="form-control" placeholder="e.g. 1, 1a, 2">
+          </div>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">DESCRIPTION & APPLICATION:</label>
+          <input type="text" name="description" class="form-control" placeholder="e.g. Parachute harness and critical load-bearing webbing">
+        </div>
+        <div style="text-align: right;">
+          <button type="submit" class="btn btn-olive">Create Variant</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if variants %}
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem;">VARIANT CODE</th>
+            <th style="padding: 0.75rem 1rem;">NAME / DESIGNATION</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">CLASS</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
+            <th style="padding: 0.75rem 1rem;">DESCRIPTION & USE</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in variants %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700;">
+              {{ v.variant_code }}
+            </td>
+            <td style="padding: 0.85rem 1rem; font-weight: 600;">
+              {{ v.name }}
+            </td>
+            <td style="padding: 0.85rem 0.75rem; text-align: center; font-family: var(--font-mono);">
+              {{ v.class or '—' }}
+            </td>
+            <td style="padding: 0.85rem 0.75rem; text-align: center;">
+              {% if v.status == 'Approved' %}
+                <span class="badge badge-pass" style="font-size: 0.75rem;">APPROVED</span>
+              {% else %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">DRAFT</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.85rem 1rem; font-size: 0.9rem; color: #555;">
+              {{ v.description or '—' }}
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: right;">
+              <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
+                {% if v.status == 'Draft' and can_approve and v.created_by != user.id %}
+                <form method="POST" action="/specifications/variants/{{ v.id }}/approve" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-olive" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="return confirm('Approve this specification variant for live production inspection plans?');">
+                    ✓ Approve
+                  </button>
+                </form>
+                {% endif %}
+                <a href="/specifications/variants/{{ v.id }}/plan" class="btn btn-sm btn-outline" style="font-size: 0.75rem; text-decoration: none;">
+                  View Plan →
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <!-- Honest Empty State -->
+    <div class="card" style="padding: 3rem 1.5rem; text-align: center; background: var(--snm-paper); border: 1px dashed var(--snm-line);">
+      <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+        NO TYPE VARIANTS DEFINED YET
+      </div>
+      <p style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
+        This specification currently contains spec-wide generic requirements. Specific variant classes (such as Type VIII Class 1) have not been separated into distinct child variant rows.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- TAB 3: TABLE VI DEFECT CLASSIFICATIONS -->
+  <div x-show="tab === 'defects'">
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem; width: 100px;">CLAUSE</th>
+            <th style="padding: 0.75rem 1rem; width: 220px;">EXAMINATION CATEGORY</th>
+            <th style="padding: 0.75rem 1rem;">DEFECT CONDITION / DESCRIPTION</th>
+            <th style="padding: 0.75rem 1rem; text-align: center; width: 140px;">CLASSIFICATION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if defects %}
+          {% for d in defects %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+              {{ d.clause_ref or 'Table VI' }}
+            </td>
+            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--snm-machine-black); font-size: 0.9rem;">
+              {{ d.examine }}
+            </td>
+            <td style="padding: 0.75rem 1rem; font-size: 0.85rem; color: #333; line-height: 1.4;">
+              {{ d.defect }}
+            </td>
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              {% if d.classification == 'Major' %}
+                <span class="badge badge-olive" style="font-weight: 700; font-size: 0.75rem;">MAJOR</span>
+              {% elif d.classification == 'Minor' %}
+                <span class="badge badge-gray" style="font-weight: 600; font-size: 0.75rem;">MINOR</span>
+              {% else %}
+                <span class="badge badge-gray">{{ d.classification }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="4" style="padding: 2.5rem; text-align: center; color: #666;">
+              No defect classifications loaded for this specification.
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4: SAMPLING & INSPECTION PLAN -->
+  <div x-show="tab === 'sampling'">
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem;">PURPOSE & SCOPE</th>
+            <th style="padding: 0.75rem 1rem;">INSPECTION BASIS</th>
+            <th style="padding: 0.75rem 1rem; text-align: center;">LOT SIZE RANGE</th>
+            <th style="padding: 0.75rem 1rem; text-align: center;">SAMPLE SIZE (ROLLS/UNITS)</th>
+            <th style="padding: 0.75rem 1rem; text-align: center;">ACCEPT LIMIT (Ac)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if sampling_plans %}
+          {% for sp in sampling_plans %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.85rem 1rem; font-weight: 600; font-size: 0.9rem; text-transform: capitalize; color: var(--snm-machine-black);">
+              {{ sp.purpose }}
+            </td>
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+              {{ sp.basis }}
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: center; font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600;">
+              {% if sp.lot_to is none %}
+                {{ sp.lot_from|int }} and above
+              {% else %}
+                {{ sp.lot_from|int }} – {{ sp.lot_to|int }}
+              {% endif %}
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: center; font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--snm-olive);">
+              {{ sp.sample_size|int }}
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: center; font-family: var(--font-mono); font-size: 0.9rem;">
+              {% if sp.accept_number is none %}
+                <span style="color: #888;">—</span>
+              {% else %}
+                <span class="badge badge-pass" style="font-size: 0.8rem;">Ac: {{ sp.accept_number }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="5" style="padding: 2.5rem; text-align: center; color: #666;">
+              No sampling plan records configured for this specification.
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 5: PHYSICAL TYPES REFERENCE TABLE -->
+  {% if ref_types %}
+  <div x-show="tab === 'ref_types'">
+    <div style="margin-bottom: 0.75rem; font-size: 0.85rem; color: #666;">
+      <strong>MIL-W-4088 Physical Types Reference Data</strong> (30 standard construction configurations from MIL-W-4088 Table I).
+    </div>
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.8rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.6rem 0.75rem;">TYPE</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">WIDTH (IN)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">THICKNESS (IN)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">MAX WT (OZ/YD)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">MIN BREAK (LB)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">ENDS (F+B)</th>
+            <th style="padding: 0.6rem 0.75rem; text-align: right;">PICKS (CL1)</th>
+            <th style="padding: 0.6rem 0.75rem;">WEAVE STRUCTURE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in ref_types %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.5rem 0.75rem; font-family: var(--font-mono); font-weight: 700;">
+              Type {{ t.type }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              {{ t.width_in }}{% if t.width_tol_in %} ± {{ t.width_tol_in }}{% endif %}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              {{ t.thick_min_in }} – {{ t.thick_max_in }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              {{ t.weight_max_oz_yd }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--snm-olive);">
+              {{ "{:,}".format(t.break_min_lb) }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              {{ t.ends_face_back }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; text-align: right; font-family: var(--font-mono);">
+              {{ t.picks_class1 }}
+            </td>
+            <td style="padding: 0.5rem 0.75rem; font-size: 0.8rem; color: #444;">
+              {{ t.weave or '—' }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

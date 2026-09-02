@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Material to Job — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 800px; margin: 0 auto; padding: 1.5rem;">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+    <a href="/materials" style="color: var(--snm-olive); text-decoration: none;">Materials</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">Issue Material to Job</span>
+  </div>
+
+  <div class="card" style="border-left: 4px solid var(--snm-olive); margin-bottom: 1.5rem;">
+    <h1 style="font-size: 1.75rem; margin: 0 0 0.5rem; font-family: var(--font-heading); color: var(--snm-machine-black);">
+      ISSUE YARN LOT TO JOB CARD
+    </h1>
+    <p style="margin: 0; color: #555; font-size: 0.9rem;">
+      Draws approved yarn stock against a production Job Card, establishing the physical traceability chain.
+    </p>
+  </div>
+
+  <form method="POST" action="/materials/issue">
+    <div class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper);">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">TARGET JOB CARD *:</label>
+          <select name="job_id" class="form-control" style="font-family: var(--font-mono);" required>
+            <option value="">-- Choose Target Job --</option>
+            {% for j in jobs %}
+              <option value="{{ j.id }}" {% if selected_job_id == j.id %}selected{% endif %}>
+                {{ j.job_no }} — {{ j.product }} ({{ j.qty_ordered }} {{ j.unit }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">APPROVED YARN LOT *:</label>
+          <select name="yarn_lot_id" class="form-control" style="font-family: var(--font-mono);" required>
+            <option value="">-- Choose Approved Lot --</option>
+            {% for l in approved_lots %}
+              <option value="{{ l.id }}" {% if selected_lot_id == l.id %}selected{% endif %}>
+                {{ l.lot_no }} ({{ l.yarn_type }} {{ l.denier|int }}D • {{ "{:,.1f}".format(l.qty_remaining) }} {{ l.unit }} avail)
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">QTY TO ISSUE *:</label>
+          <input type="number" step="0.01" name="qty_issued" class="form-control" required placeholder="e.g. 150">
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">UNIT:</label>
+          <input type="text" name="unit" class="form-control" value="kg" readonly>
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">ISSUE DATE *:</label>
+          <input type="date" name="issued_date" class="form-control" value="{{ today }}" required>
+        </div>
+      </div>
+
+      <div>
+        <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">REMARKS / BEAM NO / LOOM REF:</label>
+        <input type="text" name="remarks" class="form-control" placeholder="e.g. Warping Beam #4, Loom #12">
+      </div>
+
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+      <a href="/materials" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-olive">
+        ✓ Issue Material & Deduct Stock
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

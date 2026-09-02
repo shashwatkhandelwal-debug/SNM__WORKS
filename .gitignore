@@ -47,7 +47,8 @@ yarn-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
-.DS_Store
+# Scratch
+scratch/
 *.swp
 
 # Uploads & Media

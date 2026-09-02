@@ -613,6 +613,31 @@ async def job_detail_view(request: Request, job_id: str):
                             actual_uuid,
                         )
                         lab_tests = [dict(r) for r in lab_rows]
+
+                        iss_rows = await conn.fetch(
+                            """
+                            SELECT 
+                                i.id::text as id,
+                                i.issue_no,
+                                i.issued_date,
+                                i.qty_issued,
+                                i.unit,
+                                i.remarks,
+                                y.id::text as lot_id,
+                                y.lot_no,
+                                y.supplier_name,
+                                y.yarn_type,
+                                y.denier,
+                                y.filament_count,
+                                y.supplier_lot_no
+                            FROM job_material_issues i
+                            JOIN yarn_lots y ON y.id = i.yarn_lot_id
+                            WHERE i.job_id::text = $1
+                            ORDER BY i.issued_date ASC, i.created_at ASC;
+                            """,
+                            actual_uuid,
+                        )
+                        issued_materials = [dict(r) for r in iss_rows]
         except Exception as exc:
             logger.warning(f"Error fetching job details from DB: {exc}")
 
@@ -672,12 +697,148 @@ async def job_detail_view(request: Request, job_id: str):
             "job": job_data,
             "qc_checks": qc_checks,
             "lab_tests": lab_tests,
+            "issued_materials": issued_materials if 'issued_materials' in locals() else [],
             "qc_summary": qc_summary,
             "lab_summary": lab_summary,
             "status_stages": STATUS_STAGES,
             "current_page": "jobs",
             "current_func": "OPS",
         }
+    )
+
+
+@router.get("/{job_id}/inspection-plan", response_class=HTMLResponse)
+async def get_job_inspection_plan(
+    request: Request,
+    job_id: str,
+    variant_id: Optional[str] = None,
+):
+    """
+    GET /jobs/{job_id}/inspection-plan — generates dynamic inspection plan
+    via PostgreSQL spec_check_plan(variant_id) for the job.
+    Requires explicit variant confirmation to prevent fuzzy matching errors.
+    """
+    try:
+        claims = await get_user_claims(request)
+        user_info = {
+            "id": claims.get("sub"),
+            "email": claims.get("email"),
+            "full_name": claims.get("user_metadata", {}).get("full_name") or claims.get("email"),
+        }
+    except HTTPException:
+        return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
+
+    job_data: Optional[Dict[str, Any]] = None
+    available_variants: List[Dict[str, Any]] = []
+    plan_items: List[Dict[str, Any]] = []
+    selected_variant: Optional[Dict[str, Any]] = None
+
+    if database.pool is not None:
+        try:
+            async with database.pool.acquire() as conn:
+                async with conn.transaction():
+                    await set_rls_claims(conn, claims)
+
+                    # 1. Fetch Job
+                    row = await conn.fetchrow(
+                        """
+                        SELECT 
+                            j.id::text as id,
+                            j.job_no,
+                            j.raised_on,
+                            j.customer_id::text as customer_id,
+                            c.name as customer_name,
+                            j.po_ref,
+                            j.product,
+                            j.spec,
+                            j.width_mm,
+                            j.colour,
+                            j.qty_ordered,
+                            j.unit,
+                            j.qty_produced,
+                            j.status,
+                            j.remarks
+                        FROM jobs j
+                        LEFT JOIN customers c ON c.id = j.customer_id
+                        WHERE j.id::text = $1 OR j.job_no = $1;
+                        """,
+                        job_id,
+                    )
+                    if row:
+                        job_data = dict(row)
+
+                    # 2. Fetch Available Specification Variants
+                    v_rows = await conn.fetch(
+                        """
+                        SELECT 
+                            v.id::text as id,
+                            v.variant_code,
+                            v.name,
+                            v.class,
+                            v.description,
+                            s.spec_no,
+                            s.revision,
+                            s.title as spec_title,
+                            s.issuing_body,
+                            s.active as spec_active
+                        FROM spec_variants v
+                        JOIN specifications s ON s.id = v.spec_id
+                        ORDER BY s.spec_no ASC, v.variant_code ASC;
+                        """
+                    )
+                    available_variants = [dict(r) for r in v_rows]
+
+                    # 3. If variant_id is provided, call spec_check_plan
+                    if variant_id and variant_id.strip():
+                        try:
+                            var_uuid = uuid.UUID(variant_id.strip())
+                            v_row = await conn.fetchrow(
+                                """
+                                SELECT 
+                                    v.id::text as id,
+                                    v.variant_code,
+                                    v.name,
+                                    v.class,
+                                    v.description,
+                                    s.spec_no,
+                                    s.revision,
+                                    s.title as spec_title,
+                                    s.issuing_body,
+                                    s.active as spec_active
+                                FROM spec_variants v
+                                JOIN specifications s ON s.id = v.spec_id
+                                WHERE v.id = $1;
+                                """,
+                                var_uuid,
+                            )
+                            if v_row:
+                                selected_variant = dict(v_row)
+                                plan_rows = await conn.fetch(
+                                    "SELECT * FROM spec_check_plan($1::uuid);",
+                                    var_uuid,
+                                )
+                                plan_items = [dict(r) for r in plan_rows]
+                        except ValueError:
+                            pass
+        except Exception as e:
+            logger.error(f"Error fetching job inspection plan: {e}")
+
+    if not job_data:
+        raise HTTPException(HTTP_404_NOT_FOUND, f"Job '{job_id}' not found")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="jobs/inspection_plan.html",
+        context={
+            "user": user_info,
+            "job": job_data,
+            "available_variants": available_variants,
+            "selected_variant_id": variant_id or "",
+            "variant": selected_variant,
+            "plan_items": plan_items,
+            "current_page": "jobs",
+            "current_func": "OPS",
+        },
     )
 
 

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Specifications Masterbase — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1200px; margin: 0 auto; padding: 1.5rem;">
+  
+  <!-- Header Breadcrumb & Actions -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <span class="badge badge-olive" style="font-size: 0.75rem; letter-spacing: 0.05em;">MASTER STANDARDS</span>
+        <span style="font-size: 0.8rem; color: #666; font-family: var(--font-mono);">STAGE 8 • KNOWLEDGE & QA</span>
+      </div>
+      <h1 style="font-size: 2rem; margin: 0; line-height: 1.1; font-family: var(--font-heading); color: var(--snm-machine-black);">
+        SPECIFICATIONS MASTERBASE
+      </h1>
+      <p style="margin: 0.25rem 0 0; color: #555; font-size: 0.95rem;">
+        Defence, MIL-STD, IS, and customer-specific technical textile inspection standards.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      {% if can_create %}
+      <button type="button" class="btn btn-olive" disabled title="Controlled revision publishing workflow">
+        + New Specification
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Search & Filter Form -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
+    <form method="GET" action="/specifications" style="display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem; align-items: center;">
+      <div>
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ q }}" 
+          placeholder="Search by Spec No (e.g. MIL-W-4088), Title, or Issuing Authority..." 
+          class="form-control"
+          style="width: 100%; font-family: var(--font-body);"
+        >
+      </div>
+
+      <div>
+        <select name="status_filter" class="form-control" style="font-family: var(--font-mono); font-size: 0.9rem;">
+          <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+          <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-olive">Filter</button>
+        {% if q or status_filter != 'all' %}
+        <a href="/specifications" class="btn btn-outline">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Specifications Register Table -->
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; letter-spacing: 0.05em; color: var(--snm-machine-black);">
+          <th style="padding: 0.75rem 1rem;">SPEC NUMBER</th>
+          <th style="padding: 0.75rem 0.5rem; text-align: center;">REV</th>
+          <th style="padding: 0.75rem 1rem;">TITLE & SCOPE</th>
+          <th style="padding: 0.75rem 1rem;">ISSUING AUTHORITY</th>
+          <th style="padding: 0.75rem 0.5rem; text-align: center;">VARIANTS</th>
+          <th style="padding: 0.75rem 0.5rem; text-align: center;">REQUIREMENTS</th>
+          <th style="padding: 0.75rem 0.5rem; text-align: center;">DEFECTS</th>
+          <th style="padding: 0.75rem 0.5rem; text-align: center;">SAMPLING</th>
+          <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">ACTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if specs %}
+        {% for s in specs %}
+        <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='var(--snm-greige-light)'" onmouseout="this.style.background='transparent'">
+          
+          <!-- Spec Number -->
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700; color: var(--snm-machine-black);">
+            <a href="/specifications/{{ s.id }}" style="color: var(--snm-olive); text-decoration: none;">
+              {{ s.spec_no }}
+            </a>
+          </td>
+
+          <!-- Revision -->
+          <td style="padding: 0.85rem 0.5rem; text-align: center;">
+            <span class="badge badge-gray" style="font-family: var(--font-mono); font-weight: 600;">
+              Rev {{ s.revision }}
+            </span>
+          </td>
+
+          <!-- Title & Scope -->
+          <td style="padding: 0.85rem 1rem;">
+            <div style="font-weight: 600; font-size: 0.95rem; color: var(--snm-machine-black);">
+              {{ s.title }}
+            </div>
+            {% if s.scope %}
+            <div style="font-size: 0.8rem; color: #666; margin-top: 0.2rem; line-height: 1.3;">
+              {{ s.scope }}
+            </div>
+            {% endif %}
+          </td>
+
+          <!-- Authority -->
+          <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #444;">
+            {{ s.issuing_body or '—' }}
+          </td>
+
+          <!-- Counts -->
+          <td style="padding: 0.85rem 0.5rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem;">
+            {% if s.variant_count > 0 %}
+              <span class="badge badge-olive">{{ s.variant_count }}</span>
+            {% else %}
+              <span style="color: #999;">0</span>
+            {% endif %}
+          </td>
+
+          <td style="padding: 0.85rem 0.5rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem;">
+            <span class="badge badge-gray">{{ s.requirement_count }}</span>
+          </td>
+
+          <td style="padding: 0.85rem 0.5rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem;">
+            <span class="badge badge-gray">{{ s.defect_count }}</span>
+          </td>
+
+          <td style="padding: 0.85rem 0.5rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem;">
+            <span class="badge badge-gray">{{ s.sampling_count }}</span>
+          </td>
+
+          <!-- Status -->
+          <td style="padding: 0.85rem 0.75rem; text-align: center;">
+            {% if s.active %}
+              <span class="badge badge-pass" style="font-size: 0.75rem;">ACTIVE</span>
+            {% else %}
+              <span class="badge badge-fail" style="font-size: 0.75rem;">OBSOLETE</span>
+            {% endif %}
+          </td>
+
+          <!-- Action -->
+          <td style="padding: 0.85rem 1rem; text-align: right;">
+            <a href="/specifications/{{ s.id }}" class="btn btn-outline btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">
+              View Details →
+            </a>
+          </td>
+
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="10" style="padding: 3rem 1rem; text-align: center; color: #666;">
+            <div style="font-size: 1.1rem; font-family: var(--font-heading); margin-bottom: 0.25rem;">NO SPECIFICATIONS FOUND</div>
+            <div style="font-size: 0.85rem;">No technical specifications match the search criteria.</div>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

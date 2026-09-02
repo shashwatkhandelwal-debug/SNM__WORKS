@@ -122,6 +122,18 @@ TEST_USERS = {
         "role_code": "costing_analyst",
         "name": "Costing Analyst",
     },
+    "purchase_officer": {
+        "id": "40404040-4040-4040-4040-404040404040",
+        "email": "purchase.officer@snmills.com",
+        "role_code": "purchase_officer",
+        "name": "Purchase Officer",
+    },
+    "chief_supply_chain": {
+        "id": "50505050-5050-5050-5050-505050505050",
+        "email": "chief.scm@snmills.com",
+        "role_code": "chief_supply_chain",
+        "name": "Chief Supply Chain Officer",
+    },
 }
 
 
@@ -151,6 +163,8 @@ async def db_lifespan():
             LEGACY_ROLE_MAP = {
                 "chief_quality": "owner",
                 "chief_technical": "owner",
+                "chief_supply_chain": "owner",
+                "purchase_officer": "store",
                 "product_developer": "supervisor",
                 "machine_operator": "operator",
                 "shift_supervisor": "supervisor",
@@ -475,6 +489,51 @@ async def costing_analyst_client():
         user_id=TEST_USERS["costing_analyst"]["id"],
         email=TEST_USERS["costing_analyst"]["email"],
         role_code=TEST_USERS["costing_analyst"]["role_code"]
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        yield client
+
+
+@pytest.fixture
+async def store_client():
+    token = make_test_token(
+        user_id=TEST_USERS["store_keeper"]["id"],
+        email=TEST_USERS["store_keeper"]["email"],
+        role_code=TEST_USERS["store_keeper"]["role_code"]
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        yield client
+
+
+@pytest.fixture
+async def purchase_client():
+    token = make_test_token(
+        user_id=TEST_USERS["purchase_officer"]["id"],
+        email=TEST_USERS["purchase_officer"]["email"],
+        role_code=TEST_USERS["purchase_officer"]["role_code"]
+    )
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        yield client
+
+
+@pytest.fixture
+async def chief_supply_chain_client():
+    token = make_test_token(
+        user_id=TEST_USERS["chief_supply_chain"]["id"],
+        email=TEST_USERS["chief_supply_chain"]["email"],
+        role_code=TEST_USERS["chief_supply_chain"]["role_code"]
     )
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),

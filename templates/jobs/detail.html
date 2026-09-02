@@ -12,6 +12,9 @@
     </a>
 
     <div style="display: flex; gap: 0.5rem;">
+      <a href="/jobs/{{ job.id }}/inspection-plan" class="btn btn-outline btn-sm" style="color: var(--snm-olive); border-color: var(--snm-olive); font-weight: 600;">
+        📋 Inspection Plan
+      </a>
       <a href="/jobs/{{ job.id }}/edit" class="btn btn-olive btn-sm">
         ✎ Edit Job Card
       </a>
@@ -235,7 +238,7 @@
     </div>
 
     <!-- Lab Tests List -->
-    <div>
+    <div style="margin-bottom: 1.5rem;">
       <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.5rem; color: var(--snm-machine-black);">
         LABORATORY PHYSICAL & TENSILE TESTS ({{ lab_tests|length }})
       </h3>
@@ -273,6 +276,61 @@
                   {% else %}
                     <span class="badge badge-gray">{{ lt.verdict or 'PENDING' }}</span>
                   {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Materials Issued & Traceability (Yarn Lot -> Job) -->
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin: 0; color: var(--snm-machine-black);">
+          MATERIALS & YARN LOT TRACEABILITY ({{ issued_materials|length }})
+        </h3>
+        <a href="/materials/issue/new?job_id={{ job.id }}" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
+          + Issue Yarn Lot
+        </a>
+      </div>
+
+      {% if not issued_materials %}
+        <div style="background: var(--snm-paper); border: 1px dashed var(--snm-line); padding: 1.25rem; text-align: center; border-radius: 2px; color: #666; font-size: 0.9rem;">
+          No yarn lots issued against this job yet. Click "+ Issue Yarn Lot" to bind raw material stock.
+        </div>
+      {% else %}
+        <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 2px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); text-transform: uppercase;">
+              <tr>
+                <th style="padding: 0.5rem 0.75rem;">Issue No</th>
+                <th style="padding: 0.5rem 0.75rem;">Date</th>
+                <th style="padding: 0.5rem 0.75rem;">Yarn Lot</th>
+                <th style="padding: 0.5rem 0.75rem;">Material & Denier</th>
+                <th style="padding: 0.5rem 0.75rem;">Supplier / Batch</th>
+                <th style="padding: 0.5rem 0.75rem; text-align: right;">Qty Issued</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for iss in issued_materials %}
+              <tr style="border-bottom: 1px solid var(--snm-line);">
+                <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ iss.issue_no }}</strong></td>
+                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ iss.issued_date }}</td>
+                <td style="padding: 0.5rem 0.75rem;">
+                  <a href="/materials/yarn-lots/{{ iss.lot_id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: none;">
+                    {{ iss.lot_no }}
+                  </a>
+                </td>
+                <td style="padding: 0.5rem 0.75rem;">
+                  <strong>{{ iss.yarn_type }}</strong> <span class="mono">{{ iss.denier|int }}D</span>
+                </td>
+                <td style="padding: 0.5rem 0.75rem;">
+                  {{ iss.supplier_name }}{% if iss.supplier_lot_no %} <span class="mono" style="color: #666;">({{ iss.supplier_lot_no }})</span>{% endif %}
+                </td>
+                <td style="padding: 0.5rem 0.75rem; text-align: right;" class="mono">
+                  <strong>{{ "{:,.1f}".format(iss.qty_issued) }} {{ iss.unit }}</strong>
                 </td>
               </tr>
               {% endfor %}

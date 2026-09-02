@@ -43,32 +43,63 @@ ON CONFLICT (type) DO UPDATE SET
   break_min_lb = EXCLUDED.break_min_lb,
   ends_face_back = EXCLUDED.ends_face_back;
 
--- 2. Insert master specification entry for MIL-W-4088K
+
+-- 2. Insert master specification entry for MIL-W-4088K (Rebuilt to match real production data)
 DO $$
 DECLARE
   v_spec_id uuid;
-  v_var_id uuid;
-  r RECORD;
 BEGIN
-  INSERT INTO specifications (spec_no, title, authority, revision, status)
-  VALUES ('MIL-W-4088K', 'Webbing, Textile, Woven Nylon', 'US DoD / Natick RD&E', 'K', 'Active')
-  ON CONFLICT (spec_no) DO UPDATE SET title = EXCLUDED.title
+  INSERT INTO specifications (spec_no, revision, title, issuing_body, issued_on, supersedes, distribution, scope, active)
+  VALUES ('MIL-W-4088', 'K', 'Webbing, Textile, Woven Nylon', 'US Army Natick RD&E Center', '1988-11-21', 'MIL-W-4088J', 'Statement A — approved for public release', 'Untreated nylon webbing. FSC 8305.', true)
+  ON CONFLICT (spec_no, revision) DO UPDATE SET title = EXCLUDED.title
   RETURNING id INTO v_spec_id;
 
-  -- Create Type VIII Variant
-  INSERT INTO spec_variants (spec_id, variant_code, name, class, description)
-  VALUES (v_spec_id, 'Type VIII Class 1', 'MIL-W-4088K Type VIII Class 1', '1', 'Parachute harness and cargo webbing')
-  ON CONFLICT (spec_id, variant_code) DO UPDATE SET name = EXCLUDED.name
-  RETURNING id INTO v_var_id;
+  -- 3. Spec-wide generic requirements (variant_id is NULL)
+  INSERT INTO spec_requirements (spec_id, variant_id, parameter, unit, limit_type, spec_value, tolerance, upper_limit, text_value, test_method, clause_ref, is_critical, sort_order) VALUES (v_spec_id, NULL, 'pH of water extract', 'pH', 'range', 5.0, NULL, 8.5, NULL, 'FED-STD-191 2811', '3.8', false, 20);
+  INSERT INTO spec_requirements (spec_id, variant_id, parameter, unit, limit_type, spec_value, tolerance, upper_limit, text_value, test_method, clause_ref, is_critical, sort_order) VALUES (v_spec_id, NULL, 'Curvature', 'in per yard', 'maximum', 0.25, NULL, NULL, NULL, 'MIL-W-4088K 4.5.1', '3.6.2', false, 21);
+  INSERT INTO spec_requirements (spec_id, variant_id, parameter, unit, limit_type, spec_value, tolerance, upper_limit, text_value, test_method, clause_ref, is_critical, sort_order) VALUES (v_spec_id, NULL, 'Yarn twist, final', 'TPI', 'minimum', 2.5, NULL, NULL, NULL, 'FED-STD-191 4054', '3.3.1.2', false, 22);
+  INSERT INTO spec_requirements (spec_id, variant_id, parameter, unit, limit_type, spec_value, tolerance, upper_limit, text_value, test_method, clause_ref, is_critical, sort_order) VALUES (v_spec_id, NULL, 'Colorfastness — crocking', 'AATCC CTS', 'minimum', 3.5, NULL, NULL, NULL, 'FED-STD-191 5651', '3.4.3', false, 23);
 
-  -- Add Requirements for Type VIII
-  INSERT INTO spec_requirements (variant_id, stage, parameter, limit_type, spec_value, tolerance, upper_limit, unit, method, is_critical)
-  VALUES
-    (v_var_id, 'On-Loom Inspection', 'Width', 'nominal', 43.65625, 1.5875, NULL, 'mm', 'ASTM D3774', false),
-    (v_var_id, 'Final Inspection', 'Thickness', 'range', 1.016, NULL, 1.778, 'mm', 'ASTM D1777', false),
-    (v_var_id, 'Final Inspection', 'Weight per metre', 'maximum', 49.6, NULL, NULL, 'g/m', 'ASTM D3776', false),
-    (v_var_id, 'Final Inspection', 'Breaking Strength', 'minimum', 1814.37, NULL, NULL, 'kgf', 'ASTM D5034 / IS 1969', true),
-    (v_var_id, 'On-Loom Inspection', 'Total Ends', 'nominal', 166, 0, NULL, 'ends', 'Visual', false),
-    (v_var_id, 'On-Loom Inspection', 'Picks per inch', 'nominal', 18, 1, NULL, 'picks/in', 'ASTM D3775', false)
-  ON CONFLICT DO NOTHING;
+  -- 4. Spec defects classification matrix (30 Table VI items)
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Abrasion marks', 'Rupture of yarns, or nap obscuring any yarn over 10% of width or 1 inch', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Yarns (filling)', 'Two yarns per shed (class 1 only)', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Broken or missing end', 'Two or more, or a single end over 6 inches', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Broken or missing end', 'Single end under 6 inches but over 1/4 inch', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Broken or missing pick', 'Two or more regardless of extent', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Coarse or light filling bar', 'Visible difference over 1/4 inch lengthwise', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Coarse or light filling bar', 'Visible difference 1/4 inch or less lengthwise', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Twist or distortion', 'Will not lay flat under manual pressure', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Cut, hole or tear', 'Any cut, hole or tear', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Drop-ply', 'More than 2 ends over 9 linear inches', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Drop-ply', '1 or 2 ends over 9 linear inches', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Edges', 'Frayed, slack or poorly constructed over 1/4 inch', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Floats or skips', 'Three or more of 1/2 inch, or single over 1 inch', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Floats or skips', 'Three or more under 1/2 inch', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Hitchback crack', 'Visible opening between picks', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Jerked-in filling', 'Visible loop of filling pulled in at edges', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Kinks', 'More than 3 in any linear inches', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Knots', 'More than 1 knot in any 9 linear inches', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Mispick, double pick', 'Two or more across the full width', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Mispick, double pick', 'Single across the full width', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Slack end', 'Two or more, or clearly visible loops', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Slack end', 'Single jerked in between picks', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Slub, slug, gout', 'More than twice the thickness of the yarn', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Smash', 'Any smash', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Spot, stain or streak', 'Any clearly visible', 'Minor', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Tight end', 'Clearly visible up to 12 inches', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Wrong draw', 'Extending more than 9 inches', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Dropped knitted stitch on edge', 'Shuttleless looms, classes 1A and 2', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Catch-cord missing', 'Shuttleless looms, classes 1A and 2', 'Major', 'Table VI');
+  INSERT INTO spec_defects (spec_id, examine, defect, classification, clause_ref) VALUES (v_spec_id, 'Width', 'Beyond specified tolerances', 'Minor', 'Table VI');
+
+  -- 5. Spec sampling plan (9 ANSI/ASQC Z1.4 items)
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'end item testing', 0, 800, 2, NULL);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 0, 1200, 3, 0);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'end item testing', 801, 22000, 3, NULL);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 1201, 3200, 5, 0);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 3201, 1E+4, 8, 0);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 10001, 35000, 13, 0);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'end item testing', 22001, NULL, 5, NULL);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 35001, 1.5E+5, 20, 1);
+  INSERT INTO spec_sampling (spec_id, basis, purpose, lot_from, lot_to, sample_size, accept_number) VALUES (v_spec_id, 'yards', 'visual', 150001, NULL, 32, 2);
 END $$;

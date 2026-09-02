@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Yarn Lot {{ lot.lot_no }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1100px; margin: 0 auto; padding: 1.5rem;" x-data="{ showReleaseModal: false }">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+    <a href="/materials" style="color: var(--snm-olive); text-decoration: none;">Materials</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">{{ lot.lot_no }}</span>
+  </div>
+
+  <!-- Header Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--snm-olive);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+          <h1 style="font-size: 2rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); line-height: 1.1;">
+            {{ lot.lot_no }}
+          </h1>
+          {% if lot.qc_status == 'Approved' %}
+            <span class="badge badge-pass" style="font-size: 0.85rem; font-weight: 700;">APPROVED FOR PRODUCTION</span>
+          {% elif lot.qc_status == 'Quarantine' %}
+            <span class="badge badge-hold" style="font-size: 0.85rem; font-weight: 700;">QUARANTINE (PENDING TEST)</span>
+          {% else %}
+            <span class="badge badge-fail" style="font-size: 0.85rem; font-weight: 700;">REJECTED</span>
+          {% endif %}
+          <span class="badge badge-gray mono">{{ lot.yarn_type }}</span>
+        </div>
+        <div style="font-size: 1.1rem; font-weight: 600; color: #444;">
+          {{ lot.supplier_name }}{% if lot.supplier_lot_no %} • Batch: <span class="mono">{{ lot.supplier_lot_no }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        {% if lot.qc_status == 'Quarantine' %}
+          <a href="/lab-tests/new?yarn_lot_id={{ lot.id }}" class="btn btn-sm btn-olive">
+            + Record Incoming Lab Test
+          </a>
+          {% if can_release %}
+          <button type="button" class="btn btn-sm btn-outline" style="border-color: var(--snm-pass); color: var(--snm-pass); font-weight: 700;" @click="showReleaseModal = true">
+            ✓ QA Release / Approve Lot
+          </button>
+          {% endif %}
+        {% elif lot.qc_status == 'Approved' and lot.qty_remaining > 0 %}
+          <a href="/materials/issue/new?lot_id={{ lot.id }}" class="btn btn-sm btn-olive">
+            → Issue Material to Job
+          </a>
+        {% endif %}
+        <a href="/materials" class="btn btn-outline btn-sm">← Back to Materials</a>
+      </div>
+    </div>
+
+    <!-- Inventory Balance Bar -->
+    <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem; margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.35rem;">
+        <span class="mono"><strong>STOCK BALANCE BREAKDOWN:</strong></span>
+        <span class="mono" style="font-weight: 700; color: var(--snm-olive);">
+          {{ "{:,.1f}".format(lot.qty_remaining) }} {{ lot.unit }} Remaining ({{ "{:,.0f}".format((lot.qty_remaining / lot.qty_received) * 100) }}%)
+        </span>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div style="background: #ddd; height: 12px; border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 0.75rem;">
+        <div style="background: var(--snm-olive); width: {{ (lot.qty_remaining / lot.qty_received) * 100 }}%;"></div>
+        <div style="background: #aaa; width: {{ (lot.qty_issued / lot.qty_received) * 100 }}%;"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; font-size: 0.85rem;">
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">QTY RECEIVED:</span>
+          <strong>{{ "{:,.1f}".format(lot.qty_received) }} {{ lot.unit }}</strong>
+        </div>
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">QTY ISSUED TO JOBS:</span>
+          <strong>{{ "{:,.1f}".format(lot.qty_issued) }} {{ lot.unit }}</strong>
+        </div>
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">AVAILABLE BALANCE:</span>
+          <strong style="color: var(--snm-olive);">{{ "{:,.1f}".format(lot.qty_remaining) }} {{ lot.unit }}</strong>
+        </div>
+        <div>
+          <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">WAREHOUSE LOCATION:</span>
+          <span class="mono">{{ lot.storage_location or 'Unassigned' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.85rem;">
+      <div>
+        <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">DENIER & FILAMENT:</span>
+        <strong class="mono">{{ lot.denier|int }}{% if lot.filament_count %}/{{ lot.filament_count }}{% endif %} D</strong>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">COLOUR / LUSTRE:</span>
+        <span>{{ lot.colour }} ({{ lot.lustre or 'Standard' }})</span>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">INWARD GRN:</span>
+        <span class="mono">{{ lot.grn_no or 'Direct Entry' }}</span>
+      </div>
+      <div>
+        <span class="mono" style="color: #666; font-size: 0.75rem; display: block;">DATE RECEIVED:</span>
+        <span class="mono">{{ lot.received_date }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QA Release Modal -->
+  <div x-show="showReleaseModal" class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 2px solid var(--snm-olive); padding: 1.25rem;">
+    <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+      QA RELEASE / STATUS UPDATE
+    </div>
+    <p style="font-size: 0.85rem; color: #555; margin-bottom: 1rem;">
+      Release yarn lot into active production inventory. Enforces 4-Eyes Segregation of Duties (cannot be released by the tester or creator).
+    </p>
+
+    <form method="POST" action="/materials/yarn-lots/{{ lot.id }}/release">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">DECISION *:</label>
+          <select name="qc_status" class="form-control" required>
+            <option value="Approved">✓ Approve (Release for Jobs)</option>
+            <option value="Rejected">✕ Reject (Quarantine / Return to Supplier)</option>
+            <option value="Quarantine">Quarantine (Hold)</option>
+          </select>
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">REMARKS / RELEASE NOTE:</label>
+          <input type="text" name="remarks" class="form-control" placeholder="e.g. Tenacity and denier verified per MIL-W-4088 Class 1 requirements">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="btn btn-outline btn-sm" @click="showReleaseModal = false">Cancel</button>
+        <button type="submit" class="btn btn-olive btn-sm">Confirm Decision</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Linked Incoming Lab Tests -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 0; overflow-x: auto;">
+    <div style="padding: 0.85rem 1.25rem; background: var(--snm-paper); border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center;">
+      <strong style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-machine-black);">
+        INCOMING LAB TEST REPORTS ({{ lab_tests|length }})
+      </strong>
+      <a href="/lab-tests/new?yarn_lot_id={{ lot.id }}" class="btn btn-outline btn-sm">+ New Test</a>
+    </div>
+
+    <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+          <th style="padding: 0.75rem 1rem;">TEST ID</th>
+          <th style="padding: 0.75rem 1rem;">PARAMETER & METHOD</th>
+          <th style="padding: 0.75rem 1rem;">SPECIFIED TARGET</th>
+          <th style="padding: 0.75rem 1rem;">READINGS / SPECIMENS</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">VERDICT</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">APPROVAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if lab_tests %}
+        {% for t in lab_tests %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700; color: var(--snm-olive);">
+            {{ t.test_id }}
+          </td>
+          <td style="padding: 0.85rem 1rem;">
+            <div style="font-weight: 600;">{{ t.parameter }}</div>
+            <div style="font-size: 0.8rem; color: #666;">{{ t.standard or t.test_type }}</div>
+          </td>
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 600;">
+            {% if t.limit_type == 'minimum' %}≥ {{ t.spec_value }}{% elif t.limit_type == 'maximum' %}≤ {{ t.spec_value }}{% else %}{{ t.spec_value }}{% endif %} {{ t.unit or '' }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #444;">
+            {{ t.specimens|join(', ') }}
+          </td>
+          <td style="padding: 0.85rem 1rem; text-align: center;">
+            {% if t.verdict == 'PASS' %}
+              <span class="badge badge-pass" style="font-weight: 700;">PASS</span>
+            {% elif t.verdict == 'FAIL' %}
+              <span class="badge badge-fail" style="font-weight: 700;">FAIL</span>
+            {% else %}
+              <span class="badge badge-gray">{{ t.verdict }}</span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.85rem 1rem; text-align: center;">
+            {% if t.approved_by %}
+              <span class="badge badge-pass" style="font-size: 0.75rem;">APPROVED</span>
+            {% else %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">PENDING</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6" style="padding: 2rem; text-align: center; color: #666;">
+            No incoming lab tests recorded for this lot yet.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Job Issue History -->
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <div style="padding: 0.85rem 1.25rem; background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+      <strong style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--snm-machine-black);">
+        MATERIAL ISSUE & CONSUMPTION HISTORY ({{ issues|length }})
+      </strong>
+    </div>
+
+    <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+          <th style="padding: 0.75rem 1rem;">ISSUE NO</th>
+          <th style="padding: 0.75rem 1rem;">DATE</th>
+          <th style="padding: 0.75rem 1rem;">JOB NO</th>
+          <th style="padding: 0.75rem 1rem;">PRODUCT</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">QTY DRAWN</th>
+          <th style="padding: 0.75rem 1rem;">ISSUED BY</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if issues %}
+        {% for iss in issues %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700; color: var(--snm-olive);">
+            {{ iss.issue_no }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem;">
+            {{ iss.issued_date }}
+          </td>
+          <td style="padding: 0.85rem 1rem;">
+            <a href="/jobs/{{ iss.job_id }}" class="mono" style="font-weight: 700; color: var(--snm-machine-black); text-decoration: none;">
+              {{ iss.job_no }}
+            </a>
+          </td>
+          <td style="padding: 0.85rem 1rem; font-size: 0.9rem;">
+            {{ iss.job_product }}
+          </td>
+          <td style="padding: 0.85rem 1rem; text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--snm-machine-black);">
+            {{ "{:,.1f}".format(iss.qty_issued) }} {{ iss.unit }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #666;">
+            {{ iss.issued_by_email or 'Store Keeper' }}
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6" style="padding: 2rem; text-align: center; color: #666;">
+            No material has been drawn from this yarn lot yet.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

@@ -265,3 +265,94 @@ CREATE POLICY mil_insert ON mil_w_4088_types FOR INSERT TO authenticated
 
 CREATE POLICY mil_update ON mil_w_4088_types FOR UPDATE TO authenticated
   USING (auth_can('specifications', 'update'));
+
+
+-- ---------------------------------------------------------------------------
+-- 14. specifications
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS specs_read ON specifications;
+DROP POLICY IF EXISTS specs_select ON specifications;
+DROP POLICY IF EXISTS specs_insert ON specifications;
+DROP POLICY IF EXISTS specs_update ON specifications;
+
+CREATE POLICY specs_select ON specifications FOR SELECT TO authenticated
+  USING (auth_can('specifications', 'read'));
+
+CREATE POLICY specs_insert ON specifications FOR INSERT TO authenticated
+  WITH CHECK (auth_can('specifications', 'create'));
+
+CREATE POLICY specs_update ON specifications FOR UPDATE TO authenticated
+  USING (auth_can('specifications', 'update') OR auth_can('specifications', 'approve'));
+
+
+-- ---------------------------------------------------------------------------
+-- 15. spec_variants
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS variants_read ON spec_variants;
+DROP POLICY IF EXISTS variants_select ON spec_variants;
+DROP POLICY IF EXISTS variants_insert ON spec_variants;
+DROP POLICY IF EXISTS variants_update ON spec_variants;
+
+CREATE POLICY variants_select ON spec_variants FOR SELECT TO authenticated
+  USING (auth_can('specifications', 'read'));
+
+CREATE POLICY variants_insert ON spec_variants FOR INSERT TO authenticated
+  WITH CHECK (auth_can('specifications', 'create') OR auth_can('specifications', 'update'));
+
+CREATE POLICY variants_update ON spec_variants FOR UPDATE TO authenticated
+  USING (auth_can('specifications', 'update'));
+
+
+-- ---------------------------------------------------------------------------
+-- 16. spec_requirements
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS reqs_read ON spec_requirements;
+DROP POLICY IF EXISTS reqs_select ON spec_requirements;
+DROP POLICY IF EXISTS reqs_insert ON spec_requirements;
+DROP POLICY IF EXISTS reqs_update ON spec_requirements;
+
+CREATE POLICY reqs_select ON spec_requirements FOR SELECT TO authenticated
+  USING (auth_can('specifications', 'read'));
+
+CREATE POLICY reqs_insert ON spec_requirements FOR INSERT TO authenticated
+  WITH CHECK (auth_can('specifications', 'create') OR auth_can('specifications', 'update'));
+
+CREATE POLICY reqs_update ON spec_requirements FOR UPDATE TO authenticated
+  USING (auth_can('specifications', 'update'));
+
+
+-- ---------------------------------------------------------------------------
+-- 17. spec_defects
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS defects_read ON spec_defects;
+DROP POLICY IF EXISTS defects_select ON spec_defects;
+DROP POLICY IF EXISTS defects_insert ON spec_defects;
+DROP POLICY IF EXISTS defects_update ON spec_defects;
+
+CREATE POLICY defects_select ON spec_defects FOR SELECT TO authenticated
+  USING (auth_can('specifications', 'read'));
+
+CREATE POLICY defects_insert ON spec_defects FOR INSERT TO authenticated
+  WITH CHECK (auth_can('specifications', 'create') OR auth_can('specifications', 'update'));
+
+CREATE POLICY defects_update ON spec_defects FOR UPDATE TO authenticated
+  USING (auth_can('specifications', 'update'));
+
+
+-- ---------------------------------------------------------------------------
+-- 18. spec_sampling
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS sampling_read ON spec_sampling;
+DROP POLICY IF EXISTS sampling_select ON spec_sampling;
+DROP POLICY IF EXISTS sampling_insert ON spec_sampling;
+DROP POLICY IF EXISTS sampling_update ON spec_sampling;
+
+CREATE POLICY sampling_select ON spec_sampling FOR SELECT TO authenticated
+  USING (auth_can('specifications', 'read'));
+
+CREATE POLICY sampling_insert ON spec_sampling FOR INSERT TO authenticated
+  WITH CHECK (auth_can('specifications', 'create') OR auth_can('specifications', 'update'));
+
+CREATE POLICY sampling_update ON spec_sampling FOR UPDATE TO authenticated
+  USING (auth_can('specifications', 'update'));
+

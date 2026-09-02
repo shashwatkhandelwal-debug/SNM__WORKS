@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers Directory — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1100px; margin: 0 auto; padding: 1.5rem;" x-data="{ showAdd: false }">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+        <span class="badge badge-olive">SUPPLY CHAIN</span>
+        <span class="badge badge-gray">PURCHASE MASTERS</span>
+      </div>
+      <h1 style="font-size: 2rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); line-height: 1.1;">
+        SUPPLIERS DIRECTORY
+      </h1>
+      <p style="margin: 0.35rem 0 0; color: #555; font-size: 0.95rem;">
+        Approved raw material and chemical vendors.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="button" class="btn btn-olive btn-sm" @click="showAdd = !showAdd">
+        <span x-text="showAdd ? '− Cancel' : '+ Add Supplier'"></span>
+      </button>
+      <a href="/materials" class="btn btn-outline btn-sm">← Back to Materials</a>
+    </div>
+  </div>
+
+  <!-- Add Supplier Form Drawer -->
+  <div x-show="showAdd" class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+    <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 1rem;">
+      ADD NEW SUPPLIER
+    </div>
+    <form method="POST" action="/suppliers">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">SUPPLIER CODE *:</label>
+          <input type="text" name="supplier_code" class="form-control" placeholder="e.g. SUP-001" required>
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">COMPANY NAME *:</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Reliance Industries Ltd" required>
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">CONTACT PERSON:</label>
+          <input type="text" name="contact_person" class="form-control" placeholder="e.g. Rajesh Sharma">
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">EMAIL:</label>
+          <input type="email" name="email" class="form-control" placeholder="e.g. sales@reliance.com">
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">PHONE:</label>
+          <input type="text" name="phone" class="form-control" placeholder="e.g. +91 98765 43210">
+        </div>
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">ADDRESS / PLANT LOCATION:</label>
+          <input type="text" name="address" class="form-control" placeholder="e.g. Hazira, Gujarat">
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <button type="submit" class="btn btn-olive">Save Supplier</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Suppliers Table -->
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+          <th style="padding: 0.75rem 1rem;">CODE</th>
+          <th style="padding: 0.75rem 1rem;">SUPPLIER NAME</th>
+          <th style="padding: 0.75rem 1rem;">CONTACT PERSON</th>
+          <th style="padding: 0.75rem 1rem;">CONTACT DETAILS</th>
+          <th style="padding: 0.75rem 1rem;">LOCATION</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if suppliers %}
+        {% for s in suppliers %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700; color: var(--snm-olive);">
+            {{ s.supplier_code }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-weight: 600;">
+            {{ s.name }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-size: 0.9rem;">
+            {{ s.contact_person or '—' }}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: #555;">
+            {% if s.email %}<div>{{ s.email }}</div>{% endif %}
+            {% if s.phone %}<div>{{ s.phone }}</div>{% endif %}
+            {% if not s.email and not s.phone %}—{% endif %}
+          </td>
+          <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #666;">
+            {{ s.address or '—' }}
+          </td>
+          <td style="padding: 0.85rem 1rem; text-align: center;">
+            {% if s.active %}
+              <span class="badge badge-pass" style="font-size: 0.75rem;">ACTIVE</span>
+            {% else %}
+              <span class="badge badge-fail" style="font-size: 0.75rem;">INACTIVE</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6" style="padding: 3rem; text-align: center; color: #666;">
+            No suppliers registered yet. Click "+ Add Supplier" above to add.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

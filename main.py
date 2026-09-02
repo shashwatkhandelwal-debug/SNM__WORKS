@@ -21,6 +21,8 @@ from routers.organisation import router as organisation_router
 from routers.costing import router as costing_router
 from routers.certificates import router as certificates_router
 from routers.settings import router as settings_router
+from routers.specifications import router as specifications_router
+from routers.materials import router as materials_router
 
 
 @asynccontextmanager
@@ -64,6 +66,8 @@ app.include_router(organisation_router)
 app.include_router(costing_router)
 app.include_router(certificates_router)
 app.include_router(settings_router)
+app.include_router(specifications_router)
+app.include_router(materials_router)
 
 
 @app.get("/health")

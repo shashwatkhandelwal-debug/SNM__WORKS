@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Inspection Plan — Job {{ job.job_no }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1100px; margin: 0 auto; padding: 1.5rem;">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+    <a href="/jobs" style="color: var(--snm-olive); text-decoration: none;">Job Cards</a>
+    <span>/</span>
+    <a href="/jobs/{{ job.id }}" style="color: var(--snm-olive); text-decoration: none;">Job {{ job.job_no }}</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">Inspection Plan</span>
+  </div>
+
+  <!-- Job Context Header Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--snm-olive);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+          <span class="badge badge-olive" style="font-size: 0.9rem; font-family: var(--font-mono);">JOB {{ job.job_no }}</span>
+          <span class="badge badge-gray">{{ job.status|upper }}</span>
+          {% if job.has_hold %}
+            <span class="badge badge-fail">QC HOLD</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.85rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); line-height: 1.1;">
+          {{ job.product }}
+        </h1>
+        <p style="margin: 0.35rem 0 0; color: #555; font-size: 0.95rem;">
+          Customer: <strong>{{ job.customer_name or 'Direct Order' }}</strong>
+          {% if job.spec %} • Stated Spec: <span class="mono">{{ job.spec }}</span>{% endif %}
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="/jobs/{{ job.id }}" class="btn btn-outline btn-sm">← Back to Job Card</a>
+        <a href="/qc/new?job_id={{ job.id }}" class="btn btn-olive btn-sm">+ Manual QC Check</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variant Selection & Confirmation Panel -->
+  <div class="card" style="margin-bottom: 1.5rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+    <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+      SPECIFICATION VARIANT SELECTION
+    </div>
+    <p style="font-size: 0.85rem; color: #555; margin-bottom: 1rem;">
+      Select and confirm the exact specification variant for this job to dynamically execute <code class="mono">spec_check_plan()</code>.
+    </p>
+
+    <form method="GET" action="/jobs/{{ job.id }}/inspection-plan" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+      <div style="flex: 1; min-width: 280px;">
+        <select name="variant_id" class="form-control" style="font-family: var(--font-mono); font-size: 0.9rem;" required>
+          <option value="">-- Choose Specification Variant --</option>
+          {% for v in available_variants %}
+            <option value="{{ v.id }}" {% if selected_variant_id == v.id|string %}selected{% endif %}>
+              {{ v.spec_no }} (Rev {{ v.revision }}) — {{ v.name or v.variant_code }} {% if v.class %}[Class {{ v.class }}]{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-olive">
+          Generate / Confirm Plan →
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if variant and plan_items %}
+  <!-- Active Inspection Plan Table -->
+  <div class="card" style="padding: 0; overflow-x: auto; margin-bottom: 1.5rem;">
+    <div style="padding: 1rem 1.25rem; background: var(--snm-paper); border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <span style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--snm-machine-black);">
+          CONFIRMED INSPECTION CHECKPOINTS
+        </span>
+        <span style="font-size: 0.85rem; color: #666; margin-left: 0.5rem;">
+          ({{ variant.spec_no }} Rev {{ variant.revision }} • {{ variant.name }})
+        </span>
+      </div>
+      <span class="badge badge-olive">{{ plan_items|length }} CHECKPOINTS</span>
+    </div>
+
+    <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; letter-spacing: 0.05em; color: var(--snm-machine-black);">
+          <th style="padding: 0.75rem 1rem; width: 80px;">CLAUSE</th>
+          <th style="padding: 0.75rem 1rem;">PARAMETER</th>
+          <th style="padding: 0.75rem 0.75rem; text-align: center;">LIMIT KIND</th>
+          <th style="padding: 0.75rem 1rem;">SPECIFIED TARGET / LIMIT</th>
+          <th style="padding: 0.75rem 0.75rem; text-align: center;">UNIT</th>
+          <th style="padding: 0.75rem 1rem;">TEST METHOD</th>
+          <th style="padding: 0.75rem 0.75rem; text-align: center;">CRITICALITY</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">SHOP FLOOR ACTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in plan_items %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          
+          <!-- Clause -->
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+            {{ item.clause_ref or '—' }}
+          </td>
+
+          <!-- Parameter -->
+          <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--snm-machine-black); font-size: 0.95rem;">
+            {{ item.parameter }}
+          </td>
+
+          <!-- Limit Kind Badge -->
+          <td style="padding: 0.85rem 0.75rem; text-align: center;">
+            {% if item.limit_type == 'minimum' %}
+              <span class="badge badge-olive" style="font-size: 0.75rem;">MINIMUM</span>
+            {% elif item.limit_type == 'maximum' %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">MAXIMUM</span>
+            {% elif item.limit_type == 'range' %}
+              <span class="badge" style="background: #D4A373; color: #fff; font-size: 0.75rem;">RANGE</span>
+            {% elif item.limit_type == 'nominal' %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">NOMINAL ±</span>
+            {% elif item.limit_type == 'text' %}
+              <span class="badge" style="background: #5C6152; color: #fff; font-size: 0.75rem;">TEXT</span>
+            {% else %}
+              <span class="badge badge-gray">{{ item.limit_type|upper }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Target Value -->
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--snm-machine-black);">
+            {% if item.limit_type == 'text' %}
+              <span style="font-family: var(--font-body); font-weight: 500; color: #333;">
+                {{ item.text_value or '—' }}
+              </span>
+            {% elif item.limit_type == 'minimum' %}
+              ≥ {{ item.spec_value }}
+            {% elif item.limit_type == 'maximum' %}
+              ≤ {{ item.spec_value }}
+            {% elif item.limit_type == 'range' %}
+              {{ item.spec_value }} – {{ item.upper_limit }}
+            {% elif item.limit_type == 'nominal' %}
+              {{ item.spec_value }}{% if item.tolerance %} ± {{ item.tolerance }}{% endif %}
+            {% else %}
+              {{ item.spec_value or item.text_value or '—' }}
+            {% endif %}
+          </td>
+
+          <!-- Unit -->
+          <td style="padding: 0.85rem 0.75rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: #666;">
+            {{ item.unit or '—' }}
+          </td>
+
+          <!-- Method -->
+          <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: #444;">
+            {{ item.test_method or '—' }}
+          </td>
+
+          <!-- Criticality -->
+          <td style="padding: 0.85rem 0.75rem; text-align: center;">
+            {% if item.is_critical %}
+              <span class="badge badge-fail" style="font-size: 0.75rem; font-weight: 700;">CRITICAL</span>
+            {% else %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">STANDARD</span>
+            {% endif %}
+          </td>
+
+          <!-- Action Button: Pre-populates /qc/new form -->
+          <td style="padding: 0.85rem 1rem; text-align: right;">
+            <a 
+              href="/qc/new?job_id={{ job.id }}&parameter={{ item.parameter|urlencode }}&limit_type={{ item.limit_type }}&spec_value={{ item.spec_value or '' }}&tolerance={{ item.tolerance or '' }}&upper_limit={{ item.upper_limit or '' }}&unit={{ item.unit or '' }}&method={{ item.test_method or '' }}" 
+              class="btn btn-sm btn-olive"
+              style="font-size: 0.75rem; padding: 0.3rem 0.6rem; text-decoration: none;"
+            >
+              Record Check →
+            </a>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif not available_variants %}
+  <!-- Honest Empty State: No Variants in DB -->
+  <div class="card" style="padding: 3rem 1.5rem; text-align: center; background: var(--snm-paper); border: 1px dashed var(--snm-line);">
+    <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+      NO SPECIFICATION VARIANTS AVAILABLE
+    </div>
+    <p style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
+      No type variants have been defined under the specifications masterbase yet. Once engineering adds specification variants, you will be able to select them here and generate live inspection plans.
+    </p>
+  </div>
+  {% else %}
+  <!-- Prompt to select a variant -->
+  <div class="card" style="padding: 2.5rem 1.5rem; text-align: center; background: var(--snm-paper); border: 1px dashed var(--snm-line);">
+    <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600; color: var(--snm-machine-black); margin-bottom: 0.35rem;">
+      PLEASE SELECT A SPECIFICATION VARIANT ABOVE
+    </div>
+    <p style="color: #666; font-size: 0.85rem; margin: 0;">
+      Choose the applicable specification type and class to preview and generate the inspection checklist.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

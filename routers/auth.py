@@ -163,8 +163,8 @@ async def linkedin_oauth_redirect(request: Request):
     redirect_uri = settings.linkedin_redirect_uri
     state = secrets.token_urlsafe(16)
 
-    # Scopes for posting on behalf of the company page
-    scopes = "w_organization_social r_organization_social r_liteprofile"
+    # Scopes for OpenID Connect + Company Page Community Management API
+    scopes = "openid profile email w_organization_social r_organization_social"
 
     params = {
         "response_type": "code",
@@ -242,18 +242,28 @@ async def linkedin_oauth_callback(
                 except Exception as exc:
                     logger.warning(f"Could not auto-fetch organizational ACLs: {exc}")
 
-                # Fetch member profile info
+                # Fetch member profile info via modern OpenID Connect userinfo or legacy /v2/me
                 try:
-                    me_resp = await client.get(
-                        "https://api.linkedin.com/v2/me",
+                    userinfo_resp = await client.get(
+                        "https://api.linkedin.com/v2/userinfo",
                         headers={"Authorization": f"Bearer {access_token}"}
                     )
-                    if me_resp.status_code == 200:
-                        me_data = me_resp.json()
-                        fn = me_data.get("localizedFirstName", "")
-                        ln = me_data.get("localizedLastName", "")
-                        if fn or ln:
-                            account_name = f"{fn} {ln} (SNM Administrator)"
+                    if userinfo_resp.status_code == 200:
+                        ui_data = userinfo_resp.json()
+                        name = ui_data.get("name") or f"{ui_data.get('given_name', '')} {ui_data.get('family_name', '')}".strip()
+                        if name:
+                            account_name = f"{name} (SNM Administrator)"
+                    else:
+                        me_resp = await client.get(
+                            "https://api.linkedin.com/v2/me",
+                            headers={"Authorization": f"Bearer {access_token}"}
+                        )
+                        if me_resp.status_code == 200:
+                            me_data = me_resp.json()
+                            fn = me_data.get("localizedFirstName", "")
+                            ln = me_data.get("localizedLastName", "")
+                            if fn or ln:
+                                account_name = f"{fn} {ln} (SNM Administrator)"
                 except Exception:
                     pass
             else:
