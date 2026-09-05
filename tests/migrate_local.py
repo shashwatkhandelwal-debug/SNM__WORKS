@@ -31,6 +31,7 @@ sql_files = [
     'sql/26_traceability.sql',
     'sql/28_spec_pdf_ingestion.sql',
     'sql/29_tally_automation.sql',
+    'sql/30_kpi_public_verify_analytics.sql',
 ]
 
 async def apply_all():

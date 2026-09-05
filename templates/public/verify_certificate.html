@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if is_valid %}Verified: {{ cert.cert_no }}{% else %}Verification Failed{% endif %} — Swadeshi Niwar Mills</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="background-color: var(--snm-paper); min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Header -->
+  <header style="background-color: var(--snm-machine-black); border-bottom: 2px solid var(--snm-olive); padding: 1rem 1.5rem; text-align: center;">
+    <div style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 700; color: var(--snm-greige); letter-spacing: 0.06em;">
+      SWADESHI NIWAR MILLS
+    </div>
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;">
+      Public Certificate of Conformance Verification Portal
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main style="max-width: 680px; width: 100%; margin: 2rem auto; padding: 0 1rem; flex: 1;">
+    {% if is_valid %}
+      {% if cert.status == 'Revoked' %}
+      <div class="card" style="border: 2px solid var(--snm-fail); background: #FFF5F5; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.5rem; color: var(--snm-fail);">⚠️</span>
+          <div>
+            <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--snm-fail);">
+              CERTIFICATE REVOKED
+            </div>
+            <p style="font-size: 0.875rem; color: #555; margin-top: 0.25rem;">
+              This test certificate was officially revoked on {{ cert.revoked_at.strftime('%d %b %Y') if cert.revoked_at else 'N/A' }}.
+              {% if cert.revocation_reason %}<strong>Reason:</strong> {{ cert.revocation_reason }}{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="card" style="border: 2px solid var(--snm-pass); background: #F4F9F2; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.5rem; color: var(--snm-pass);">✓</span>
+          <div>
+            <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--snm-pass);">
+              AUTHENTIC CONFORMANCE CERTIFICATE VERIFIED
+            </div>
+            <div style="font-size: 0.85rem; color: #444; margin-top: 2px;">
+              Cryptographic integrity confirmed against Swadeshi Niwar Mills SHA-256 audit ledger.
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--snm-line); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+          <div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Certificate Number
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--snm-machine-black);">
+              {{ cert.cert_no }}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Status
+            </div>
+            <span class="badge {% if cert.status == 'Issued' %}badge-pass{% else %}badge-fail{% endif %}" style="font-size: 0.85rem;">
+              {{ cert.status }}
+            </span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Product Description
+            </div>
+            <div style="font-weight: 600; color: var(--snm-machine-black); margin-top: 2px;">
+              {{ cert.product }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Standard / Specification
+            </div>
+            <div style="font-family: var(--font-mono); font-weight: 600; color: var(--snm-machine-black); margin-top: 2px;">
+              {{ cert.specification }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Issued Date
+            </div>
+            <div style="font-family: var(--font-mono); color: var(--snm-machine-black); margin-top: 2px;">
+              {{ cert.issued_at.strftime('%d %B %Y') if cert.issued_at else 'N/A' }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #777; text-transform: uppercase;">
+              Verified Quality Records
+            </div>
+            <div style="font-family: var(--font-mono); color: var(--snm-machine-black); margin-top: 2px;">
+              {{ cert.total_qc_checks }} QC Checks &bull; {{ cert.total_lab_tests }} Lab Tests
+            </div>
+          </div>
+        </div>
+
+        <!-- Cryptographic Proof Box -->
+        <div style="background: var(--snm-greige-light); border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+          <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+            CRYPTOGRAPHIC SHA-256 DIGITAL FINGERPRINT
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; word-break: break-all; background: #fff; border: 1px solid #ddd; padding: 0.5rem; border-radius: 2px; color: #333;">
+            <span style="background: #FFF9C4; font-weight: 700; color: #B78103;">{{ hash_fragment }}</span>{{ cert.full_sha256_hash[32:] }}
+          </div>
+          <div style="font-size: 0.75rem; color: #666; margin-top: 0.5rem; line-height: 1.4;">
+            The yellow highlighted 32-character segment represents the verification token encoded on the official certificate document.
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem; border: 1px dashed var(--snm-fail);">
+        <div style="font-size: 2.5rem; color: var(--snm-fail); margin-bottom: 0.75rem;">✕</div>
+        <div style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; color: var(--snm-fail); margin-bottom: 0.5rem;">
+          {% if error_type == 'rate_limited' %}RATE LIMIT EXCEEDED{% else %}CERTIFICATE NOT FOUND{% endif %}
+        </div>
+        <p style="color: #666; font-size: 0.95rem; max-width: 480px; margin: 0 auto 1.5rem; line-height: 1.5;">
+          {{ error_message }}
+        </p>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #888; background: var(--snm-greige-light); display: inline-block; padding: 0.5rem 1rem; border-radius: 2px;">
+          Reference: {{ cert_no or 'INVALID' }}
+        </div>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- Footer -->
+  <footer style="text-align: center; padding: 1.5rem; font-size: 0.8rem; color: #777; border-top: 1px solid var(--snm-line);">
+    Swadeshi Niwar Mills &bull; Technical Textiles Manufacturer &bull; Kanpur, India
+  </footer>
+
+</body>
+</html>

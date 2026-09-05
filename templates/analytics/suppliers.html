@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Supplier Quality Scorecard — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase;">Supply Chain & Material Quality</div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; margin: 0.2rem 0; font-weight: 700; color: var(--snm-black);">SUPPLIER QUALITY SCORECARD</h1>
+    <div style="font-size: 0.85rem; color: #555;">Vendor performance aggregated across raw material GRN receipts, quarantine decisions, and incoming yarn lab tests.</div>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <div class="btn-group" style="display: flex; border: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <a href="/analytics/suppliers?period=30d" class="btn btn-sm {% if period == '30d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">30D</a>
+      <a href="/analytics/suppliers?period=90d" class="btn btn-sm {% if period == '90d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">90D</a>
+      <a href="/analytics/suppliers?period=12m" class="btn btn-sm {% if period == '12m' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">12M</a>
+      <a href="/analytics/suppliers?period=all" class="btn btn-sm {% if period == 'all' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">All</a>
+    </div>
+    <a href="/analytics" class="btn btn-sm btn-outline">← Back to KPIs</a>
+  </div>
+</div>
+
+<div class="card" style="padding: 0; overflow-x: auto;">
+  <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+        <th style="padding: 0.75rem 1rem; text-align: left;">Supplier Code & Name</th>
+        <th style="padding: 0.75rem; text-align: right;">Total Lots</th>
+        <th style="padding: 0.75rem; text-align: right;">Volume (KG)</th>
+        <th style="padding: 0.75rem; text-align: right;">Approved Lots</th>
+        <th style="padding: 0.75rem; text-align: right;">Rejected Lots</th>
+        <th style="padding: 0.75rem; text-align: right;">Lab Test Pass %</th>
+        <th style="padding: 0.75rem; text-align: right;">Avg QC Release Days</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Quality Rating</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in scorecards %}
+      <tr style="border-bottom: 1px solid var(--snm-line);">
+        <td style="padding: 0.75rem 1rem;">
+          <div style="font-weight: 600; color: var(--snm-black);">{{ s.supplier_name }}</div>
+          <div class="mono" style="font-size: 0.75rem; color: #666;">{{ s.supplier_code }}</div>
+        </td>
+        <td class="mono" style="padding: 0.75rem; text-align: right;">{{ s.total_lots_received }}</td>
+        <td class="mono" style="padding: 0.75rem; text-align: right;">{{ "%.1f"|format(s.total_kg_received or 0) }}</td>
+        <td class="mono" style="padding: 0.75rem; text-align: right; color: var(--snm-pass);">{{ s.lots_approved }}</td>
+        <td class="mono" style="padding: 0.75rem; text-align: right; color: {% if s.lots_rejected %}var(--snm-fail){% else %}#888{% endif %}; font-weight: {% if s.lots_rejected %}700{% else %}normal{% endif %};">
+          {{ s.lots_rejected }}
+        </td>
+        <td class="mono" style="padding: 0.75rem; text-align: right; font-weight: 600;">
+          {% if s.total_tests_run %}
+          <span style="color: {% if s.test_pass_rate >= 95.0 %}var(--snm-pass){% elif s.test_pass_rate >= 80.0 %}var(--snm-hold){% else %}var(--snm-fail){% endif %};">
+            {{ s.test_pass_rate }}%
+          </span>
+          <div style="font-size: 0.7rem; color: #888; font-weight: normal;">({{ s.passed_tests }}/{{ s.total_tests_run }})</div>
+          {% else %}
+          <span style="color: #888;">N/A</span>
+          {% endif %}
+        </td>
+        <td class="mono" style="padding: 0.75rem; text-align: right;">
+          {% if s.avg_turnaround_days %}
+          {{ s.avg_turnaround_days }}d
+          {% else %}
+          —
+          {% endif %}
+        </td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">
+          {% if s.total_lots_received == 0 %}
+          <span class="badge badge-sm badge-outline" style="color: #888;">No Receipts</span>
+          {% elif s.lots_rejected == 0 and (not s.total_tests_run or s.test_pass_rate >= 95.0) %}
+          <span class="badge badge-sm" style="background: rgba(63,107,52,0.15); color: var(--snm-pass); border: 1px solid var(--snm-pass);">Grade A (Preferred)</span>
+          {% elif s.lots_rejected <= 1 and (not s.total_tests_run or s.test_pass_rate >= 85.0) %}
+          <span class="badge badge-sm" style="background: rgba(154,100,7,0.15); color: var(--snm-hold); border: 1px solid var(--snm-hold);">Grade B (Acceptable)</span>
+          {% else %}
+          <span class="badge badge-sm" style="background: rgba(168,41,20,0.15); color: var(--snm-fail); border: 1px solid var(--snm-fail);">Grade C (Under Review)</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="padding: 2rem; text-align: center; color: #888;">
+          No supplier records found for the given criteria.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

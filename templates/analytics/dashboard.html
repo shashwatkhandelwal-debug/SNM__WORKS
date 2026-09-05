@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Executive KPI Analytics — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase;">Executive Intelligence & Quality Metrics</div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; margin: 0.2rem 0; font-weight: 700; color: var(--snm-black);">KPI & ANALYTICS DASHBOARD</h1>
+    <div style="font-size: 0.85rem; color: #555;">Real-time aggregation from QC checks, Lab tests, CAPA resolutions, and Despatch timelines.</div>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+    <!-- Period Selector -->
+    <div class="btn-group" style="display: flex; border: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <a href="/analytics?period=7d" class="btn btn-sm {% if period == '7d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">7D</a>
+      <a href="/analytics?period=30d" class="btn btn-sm {% if period == '30d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">30D</a>
+      <a href="/analytics?period=90d" class="btn btn-sm {% if period == '90d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">90D</a>
+      <a href="/analytics?period=12m" class="btn btn-sm {% if period == '12m' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">12M</a>
+      <a href="/analytics?period=all" class="btn btn-sm {% if period == 'all' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">All</a>
+    </div>
+
+    <a href="/analytics/suppliers" class="btn btn-sm btn-outline">Supplier Scorecard</a>
+    <a href="/analytics/reports" class="btn btn-sm btn-outline">Frozen Snapshots</a>
+    <button class="btn btn-sm btn-olive" onclick="document.getElementById('snapshotModal').showModal()">📸 Freeze Report Snapshot</button>
+  </div>
+</div>
+
+<!-- Key Metric Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <!-- Card 1: QC Pass Rate -->
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid {% if metrics.qc.qc_pass_rate >= 95.0 %}var(--snm-pass, #3F6B34){% elif metrics.qc.qc_pass_rate >= 85.0 %}var(--snm-hold, #9A6407){% else %}var(--snm-fail, #A82914){% endif %};">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Shop Floor QC Pass Rate</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--snm-black);">{{ "%.1f"|format(metrics.qc.qc_pass_rate or 0) }}%</span>
+      <span style="font-size: 0.8rem; color: #666;">({{ metrics.qc.pass_qc or 0 }}/{{ metrics.qc.total_qc or 0 }} passed)</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      {{ metrics.qc.fail_qc or 0 }} defective rolls flagged
+    </div>
+  </div>
+
+  <!-- Card 2: Lab Test Pass Rate -->
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid {% if metrics.lab.lab_pass_rate >= 95.0 %}var(--snm-pass, #3F6B34){% elif metrics.lab.lab_pass_rate >= 85.0 %}var(--snm-hold, #9A6407){% else %}var(--snm-fail, #A82914){% endif %};">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Lab Release Pass Rate</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--snm-black);">{{ "%.1f"|format(metrics.lab.lab_pass_rate or 0) }}%</span>
+      <span style="font-size: 0.8rem; color: #666;">({{ metrics.lab.pass_lab or 0 }}/{{ metrics.lab.total_lab or 0 }} tests)</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      MIL-W-4088 / Physical / Chemical
+    </div>
+  </div>
+
+  <!-- Card 3: CAPA Closure Time -->
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--snm-olive);">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Avg CAPA Closure Time</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--snm-black);">{{ "%.1f"|format(metrics.capa.avg_closure_days or 0) }}</span>
+      <span style="font-size: 0.8rem; color: #666;">Days</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      {{ metrics.capa.closed_capa or 0 }} closed / {{ metrics.capa.open_capa or 0 }} open ({% if metrics.capa.overdue_capa %}<strong style="color: var(--snm-fail);">{{ metrics.capa.overdue_capa }} overdue</strong>{% else %}0 overdue{% endif %})
+    </div>
+  </div>
+
+  <!-- Card 4: Despatch On-Time Rate -->
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid {% if metrics.despatch.on_time_rate >= 90.0 %}var(--snm-pass, #3F6B34){% elif metrics.despatch.on_time_rate >= 75.0 %}var(--snm-hold, #9A6407){% else %}var(--snm-fail, #A82914){% endif %};">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Despatch On-Time Delivery</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--snm-black);">{{ "%.1f"|format(metrics.despatch.on_time_rate or 0) }}%</span>
+      <span style="font-size: 0.8rem; color: #666;">({{ metrics.despatch.on_time_count or 0 }}/{{ (metrics.despatch.on_time_count or 0) + (metrics.despatch.late_count or 0) }})</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      {% if metrics.despatch.late_count %}{{ metrics.despatch.late_count }} delayed (avg delay {{ metrics.despatch.avg_delay_days }}d){% else %}No delayed despatches recorded{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Main Analytics Grids -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+  
+  <!-- Section A: Defect Breakdown & Root Causes -->
+  <div class="card" style="padding: 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; text-transform: uppercase;">Top Defect Categories</h3>
+      <span class="badge badge-sm badge-outline">{{ metrics.defects|length }} Types</span>
+    </div>
+
+    {% if metrics.defects %}
+    <table class="table" style="font-size: 0.85rem; width: 100%;">
+      <thead>
+        <tr>
+          <th>Defect Code / Category</th>
+          <th style="text-align: right;">Defect Count</th>
+          <th style="text-align: right;">Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set total_fails = metrics.qc.fail_qc or 1 %}
+        {% for d in metrics.defects %}
+        <tr>
+          <td>
+            <strong style="color: var(--snm-fail, #A82914);">{{ d.defect }}</strong>
+          </td>
+          <td class="mono" style="text-align: right; font-weight: 600;">{{ d.count }}</td>
+          <td class="mono" style="text-align: right; color: #666;">{{ "%.1f"|format(d.count * 100.0 / total_fails) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 2rem 1rem; color: #888; font-size: 0.85rem;">
+      No defects recorded for the selected timeframe.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Section B: Weekly Inspection & Defect Trend -->
+  <div class="card" style="padding: 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; text-transform: uppercase;">QC Inspection Trend Over Time</h3>
+      <span class="badge badge-sm badge-outline">{{ metrics.trends|length }} Weeks</span>
+    </div>
+
+    {% if metrics.trends %}
+    <table class="table" style="font-size: 0.85rem; width: 100%;">
+      <thead>
+        <tr>
+          <th>Week Starting</th>
+          <th style="text-align: right;">Total Checks</th>
+          <th style="text-align: right;">Passed</th>
+          <th style="text-align: right;">Failed</th>
+          <th style="text-align: right;">Pass %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tr in metrics.trends %}
+        <tr>
+          <td class="mono">{{ tr.week_start }}</td>
+          <td class="mono" style="text-align: right;">{{ tr.total_checks }}</td>
+          <td class="mono" style="text-align: right; color: var(--snm-pass);">{{ tr.pass_count }}</td>
+          <td class="mono" style="text-align: right; color: {% if tr.fail_count %}var(--snm-fail){% else %}#888{% endif %};">{{ tr.fail_count }}</td>
+          <td class="mono" style="text-align: right; font-weight: 600;">
+            {% if tr.total_checks %}
+            {{ "%.1f"|format(tr.pass_count * 100.0 / tr.total_checks) }}%
+            {% else %}
+            100.0%
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 2rem 1rem; color: #888; font-size: 0.85rem;">
+      No weekly QC check activity recorded in this period.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Row 2: CAPA Velocity & Despatch Breakdown -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+  
+  <!-- Section C: CAPA Resolution Distribution -->
+  <div class="card" style="padding: 1.25rem;">
+    <div style="border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; text-transform: uppercase;">CAPA Resolution Velocity Distribution</h3>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; text-align: center; margin-bottom: 1rem;">
+      <div style="padding: 0.75rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--snm-pass);">{{ metrics.capa.closed_lt_3d or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">&lt; 3 Days (Rapid)</div>
+      </div>
+      <div style="padding: 0.75rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--snm-olive);">{{ metrics.capa.closed_3_7d or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">3–7 Days (Standard)</div>
+      </div>
+      <div style="padding: 0.75rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--snm-hold);">{{ metrics.capa.closed_8_14d or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">8–14 Days (Extended)</div>
+      </div>
+      <div style="padding: 0.75rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--snm-fail);">{{ metrics.capa.closed_gt_14d or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">&gt; 14 Days (Critical)</div>
+      </div>
+    </div>
+
+    <div style="font-size: 0.8rem; color: #666; line-height: 1.4;">
+      Tracking the cycle time between initial CAPA initiation and formal Quality sign-off.
+    </div>
+  </div>
+
+  <!-- Section D: Delivery Fulfillment Timelines -->
+  <div class="card" style="padding: 1.25rem;">
+    <div style="border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; text-transform: uppercase;">Delivery Timeline Compliance</h3>
+    </div>
+
+    <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-around; padding: 1rem 0;">
+      <div style="text-align: center;">
+        <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--snm-pass);">{{ metrics.despatch.on_time_count or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666;">On-Time Shipments</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--snm-fail);">{{ metrics.despatch.late_count or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666;">Delayed Shipments</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: #888;">{{ metrics.despatch.untracked_count or 0 }}</div>
+        <div style="font-size: 0.75rem; color: #666;">No Due Date Set</div>
+      </div>
+    </div>
+
+    <div style="font-size: 0.8rem; color: #666; line-height: 1.4; border-top: 1px solid var(--snm-line); padding-top: 0.75rem;">
+      Evaluated against Job order promised delivery dates (<span class="mono">jobs.delivery_due</span>).
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Freeze Report Snapshot -->
+<dialog id="snapshotModal" style="max-width: 500px; width: 90%; border: 1px solid var(--snm-line); padding: 1.5rem; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+  <form method="POST" action="/analytics/snapshots">
+    <input type="hidden" name="period" value="{{ period }}">
+    <h3 style="font-family: var(--font-heading); margin-top: 0; font-size: 1.25rem;">Freeze Management Report Snapshot</h3>
+    <p style="font-size: 0.85rem; color: #666;">This locks current metrics for the period <strong class="mono">{{ start_date }}</strong> to <strong class="mono">{{ end_date }}</strong> into an immutable, audit-trailed compliance record.</p>
+
+    <div class="form-group" style="margin-bottom: 1rem;">
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Report Title / Purpose</label>
+      <input type="text" name="title" class="form-control" value="Monthly Management Quality Review ({{ period }})" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--snm-line);">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Executive Notes / Action Items (Optional)</label>
+      <textarea name="notes" class="form-control" rows="3" placeholder="Add management observations, root-cause notes, or OFK review references..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--snm-line);"></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+      <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('snapshotModal').close()">Cancel</button>
+      <button type="submit" class="btn btn-olive btn-sm">🔒 Freeze & Save Snapshot</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

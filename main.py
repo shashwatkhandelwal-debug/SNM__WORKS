@@ -25,6 +25,9 @@ from routers.specifications import router as specifications_router
 from routers.materials import router as materials_router
 from routers.sku_specs import router as sku_specs_router
 from routers.tally import router as tally_router
+from routers.analytics import router as analytics_router
+from routers.public_verify import router as public_verify_router
+
 
 
 @asynccontextmanager
@@ -72,6 +75,9 @@ app.include_router(settings_router)
 app.include_router(specifications_router)
 app.include_router(materials_router)
 app.include_router(tally_router)
+app.include_router(analytics_router)
+app.include_router(public_verify_router)
+
 
 
 @app.get("/health")

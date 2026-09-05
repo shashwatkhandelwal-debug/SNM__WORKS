@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <!-- Cryptographic Verification Seal -->
+    <!-- Cryptographic Verification Seal & Public Verification Link -->
     <div class="card" style="background: #FAF9F6; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1.25rem;">
       <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
         🔒 CRYPTOGRAPHIC DOCUMENT DIGEST (SHA-256)
@@ -77,6 +77,19 @@
       </div>
       <div style="font-size: 0.75rem; color: #777; margin-top: 0.4rem; line-height: 1.3;">
         * Tamper-evident checksum computed against the generated PDF stream. Re-verifiable by external customer or Ordnance quality inspection officers.
+      </div>
+      <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--snm-line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">
+            Public Verification Link (32-char token)
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--snm-olive); margin-top: 2px;">
+            /verify/{{ cert.cert_no }}/{{ cert.sha256_hash[:32] }}
+          </div>
+        </div>
+        <a href="/verify/{{ cert.cert_no }}/{{ cert.sha256_hash[:32] }}" target="_blank" class="btn btn-outline btn-sm" style="font-family: var(--font-heading); text-transform: uppercase;">
+          Open Public Verification ↗
+        </a>
       </div>
     </div>
   </div>
