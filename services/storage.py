@@ -10,6 +10,8 @@ logger = logging.getLogger("snm_works.storage")
 UPLOAD_BASE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads")
 os.makedirs(os.path.join(UPLOAD_BASE_DIR, "sku-images"), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_BASE_DIR, "campaign-images"), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_BASE_DIR, "spec-docs"), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_BASE_DIR, "spec-parsed"), exist_ok=True)
 
 
 async def upload_file_to_storage(

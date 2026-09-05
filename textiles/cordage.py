@@ -1,5 +1,5 @@
 """
-textiles/cordage.py — Rope, Cord, and Braided Structures Calculations
+textiles/cordage.py -- Rope, Cord, and Braided Structures Calculations
 Pure calculation library for round braids, ropes, and cordage.
 
 Formulas:

@@ -25,8 +25,12 @@ sql_files = [
     'sql/19_costing.sql',
     'sql/20_test_certificates.sql',
     'sql/21_rls_batch2.sql',
+    'sql/22_platform_connections.sql',
     'sql/24_variant_approval_workflow.sql',
     'sql/25_materials.sql',
+    'sql/26_traceability.sql',
+    'sql/28_spec_pdf_ingestion.sql',
+    'sql/29_tally_automation.sql',
 ]
 
 async def apply_all():

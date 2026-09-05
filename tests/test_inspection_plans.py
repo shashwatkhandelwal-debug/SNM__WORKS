@@ -50,8 +50,7 @@ async def test_create_variant_permission_enforcement(sales_client, qa_client):
     unauth_resp = await sales_client.post(
         "/specifications/MIL-W-4088/variants",
         data={
-            "variant_code": "Type IX Class 1",
-            "name": "MIL-W-4088K Type IX Class 1",
+            "designation": "Type IX Class 1",
             "class": "1",
             "description": "High tenacity tape",
         },
@@ -62,8 +61,7 @@ async def test_create_variant_permission_enforcement(sales_client, qa_client):
     auth_resp = await qa_client.post(
         "/specifications/MIL-W-4088/variants",
         data={
-            "variant_code": "Type IX Class 1",
-            "name": "MIL-W-4088K Type IX Class 1",
+            "designation": "Type IX Class 1",
             "class": "1",
             "description": "High tenacity tape",
         },
@@ -86,15 +84,14 @@ async def test_draft_variant_not_live_and_self_approval_blocked(
     """
     # Clear existing variants for isolation
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
-    await conn.execute("DELETE FROM spec_variants;")
+    await conn.execute("DELETE FROM spec_variants WHERE designation IN ('Type VIII Class 1', 'Type IX Class 1');")
     await conn.close()
 
     # 1. qa_manager creates a new variant
     create_resp = await qa_client.post(
         "/specifications/MIL-W-4088/variants",
         data={
-            "variant_code": "Type VIII Class 1",
-            "name": "MIL-W-4088K Type VIII Class 1",
+            "designation": "Type VIII Class 1",
             "class": "1",
             "description": "Parachute harness webbing",
         },
@@ -118,7 +115,7 @@ async def test_draft_variant_not_live_and_self_approval_blocked(
 
     # 2. Get variant details from DB
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
-    variant_row = await conn.fetchrow("SELECT * FROM spec_variants WHERE variant_code = 'Type VIII Class 1';")
+    variant_row = await conn.fetchrow("SELECT * FROM spec_variants WHERE designation = 'Type VIII Class 1';")
     assert variant_row is not None
     variant_id = variant_row["id"]
     assert variant_row["status"] == "Draft"
@@ -173,17 +170,18 @@ async def test_job_inspection_plan_with_approved_variant_and_qc_shortcut(
     await qa_client.post(
         "/specifications/MIL-W-4088/variants",
         data={
-            "variant_code": "Type VIII Class 1",
-            "name": "MIL-W-4088K Type VIII Class 1",
+            "designation": "Type VIII Class 1",
             "class": "1",
         },
     )
 
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
-    variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE variant_code = 'Type VIII Class 1';")
+    variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = 'Type VIII Class 1' AND status = 'Approved';")
+    if not variant_id:
+        variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = 'Type VIII Class 1';")
     await conn.close()
 
-    # Approve as chief_quality
+    # Approve as chief_quality if not already approved
     await chief_quality_client.post(f"/specifications/variants/{variant_id}/approve")
 
     job_id = "11111111-0000-0000-0000-000000000001"
@@ -199,7 +197,7 @@ async def test_job_inspection_plan_with_approved_variant_and_qc_shortcut(
     if plan_resp.status_code == HTTP_200_OK:
         text = plan_resp.text
         assert "CONFIRMED INSPECTION CHECKPOINTS" in text
-        assert "Record Check →" in text
+        assert "Record Check ->" in text
         assert f"job_id={job_id}" in text
 
 

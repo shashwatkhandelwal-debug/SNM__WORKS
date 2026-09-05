@@ -1,5 +1,5 @@
 """
-Tests for Organisation & Roles Module — SNM Works
+Tests for Organisation & Roles Module -- SNM Works
 =============================================================================
 1. Organisation dashboard, permission matrix, conflicts, and user directory.
 2. Privileged Self-Grant Prevention (Non-negotiable constraint: admin cannot grant to self).

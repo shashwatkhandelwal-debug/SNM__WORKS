@@ -1,5 +1,5 @@
 """
-textiles/narrow.py — Narrow Wovens (Webbing, Tape, Slings) Calculations
+textiles/narrow.py -- Narrow Wovens (Webbing, Tape, Slings) Calculations
 Pure calculation library for narrow fabrics. No external framework imports.
 
 Formulas:

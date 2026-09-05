@@ -1,5 +1,5 @@
 """
-Tests for Costing & Financial Estimation Module — SNM Works
+Tests for Costing & Financial Estimation Module -- SNM Works
 =============================================================================
 1. Cost sheet creation and unit manufacturing cost computation.
 2. Parameterized pricing formula stub ("pending confirmation" behavior).

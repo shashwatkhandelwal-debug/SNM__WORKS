@@ -290,7 +290,7 @@ async def upload_sku_photo(
         if sku_data.get("post_status") == "queued":
             queued_badge = """
             <div class="alert alert-pass" style="margin-top: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.85rem;">
-              ✓ Photo verified & branded! Marketing draft automatically queued for approval.
+              [x] Photo verified & branded! Marketing draft automatically queued for approval.
             </div>
             """
         return HTMLResponse(
@@ -355,6 +355,8 @@ async def sku_detail_view(
         return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
 
     sku_data: Optional[Dict[str, Any]] = None
+    linked_specs: List[Dict[str, Any]] = []
+    pdf_uploads: List[Dict[str, Any]] = []
 
     if database.pool is not None:
         try:
@@ -373,6 +375,41 @@ async def sku_detail_view(
                     )
                     if row:
                         sku_data = dict(row)
+                        actual_sku_uuid = row["id"]
+
+                        # Fetch linked specifications via junction table
+                        try:
+                            spec_rows = await conn.fetch(
+                                """
+                                SELECT ss.*, s.spec_no, s.revision, s.title AS spec_title, s.issuing_body,
+                                       v.designation AS variant_designation, v.class AS variant_class, v.status AS variant_status
+                                FROM sku_specifications ss
+                                JOIN specifications s ON s.id = ss.spec_id
+                                LEFT JOIN spec_variants v ON v.id = ss.variant_id
+                                WHERE ss.sku_id = $1
+                                ORDER BY ss.is_primary DESC, s.spec_no ASC;
+                                """,
+                                actual_sku_uuid
+                            )
+                            linked_specs = [dict(r) for r in spec_rows]
+                        except Exception as s_exc:
+                            logger.warning(f"Could not fetch linked specifications: {s_exc}")
+
+                        # Fetch spec PDF uploads
+                        try:
+                            upload_rows = await conn.fetch(
+                                """
+                                SELECT u.*, p.full_name AS uploader_name
+                                FROM spec_pdf_uploads u
+                                LEFT JOIN profiles p ON p.id = u.uploaded_by
+                                WHERE u.sku_id = $1
+                                ORDER BY u.uploaded_at DESC;
+                                """,
+                                actual_sku_uuid
+                            )
+                            pdf_uploads = [dict(r) for r in upload_rows]
+                        except Exception as u_exc:
+                            logger.warning(f"Could not fetch spec uploads: {u_exc}")
         except Exception as exc:
             logger.warning(f"Could not fetch SKU detail: {exc}")
 
@@ -410,5 +447,7 @@ async def sku_detail_view(
             "sku": sku_data,
             "draft": sku_data.get("post_draft"),
             "is_defence": is_defence,
+            "linked_specs": linked_specs,
+            "pdf_uploads": pdf_uploads,
         }
     )

@@ -1,5 +1,5 @@
 """
-Textiles Costing Calculation Engine — SNM Works
+Textiles Costing Calculation Engine -- SNM Works
 =============================================================================
 Pure calculation functions for unit manufacturing costs, yarn consumption,
 process conversion, and factory overheads.

@@ -1,5 +1,5 @@
 """
-Despatch Router — SNM Works
+Despatch Router -- SNM Works
 =============================================================================
 Manages packaging, GST invoice reference, E-Way Bill documentation,
 transport consignment tracking, QC hold gating, and QA release sign-off.
@@ -22,6 +22,7 @@ Database QC Hold Gate:
 import asyncio
 import datetime
 import re
+import logging
 import uuid
 from typing import Any, Dict, List, Optional
 import asyncpg
@@ -40,6 +41,9 @@ from starlette.status import (
 
 from auth.dependencies import current_user, require
 from database import get_db
+from services.tally_gateway import sync_sales_voucher_for_despatch
+
+logger = logging.getLogger("snm.despatch")
 
 router = APIRouter(prefix="/despatch", tags=["Despatch & Logistics"])
 templates = Jinja2Templates(directory="templates")
@@ -84,7 +88,7 @@ async def list_despatches(
     user: Dict[str, Any] = Depends(require("despatch", "read")),
 ):
     """
-    GET /despatch — Register of shipments, dispatch notes, and transport tracking.
+    GET /despatch -- Register of shipments, dispatch notes, and transport tracking.
     """
     query = """
         SELECT 
@@ -187,7 +191,7 @@ async def new_despatch_form(
     user: Dict[str, Any] = Depends(require("despatch", "create")),
 ):
     """
-    GET /despatch/new — Create a new dispatch consignment note.
+    GET /despatch/new -- Create a new dispatch consignment note.
     """
     next_despatch_no = await get_next_despatch_no(conn)
 
@@ -256,7 +260,7 @@ async def create_despatch(
     user: Dict[str, Any] = Depends(require("despatch", "create")),
 ):
     """
-    POST /despatch — Creates a new dispatch consignment with database-level QC hold gate.
+    POST /despatch -- Creates a new dispatch consignment with database-level QC hold gate.
     """
     creator_id = user.get("id")
     if not creator_id:
@@ -327,6 +331,10 @@ async def create_despatch(
                     uuid.UUID(creator_id),
                 )
                 created_id = row["id"]
+                try:
+                    await sync_sales_voucher_for_despatch(conn, uuid.UUID(created_id), uuid.UUID(creator_id))
+                except Exception as sync_err:
+                    logger.warning(f"Tally sales sync hook error: {sync_err}")
                 break
         except UniqueViolationError:
             if attempt == max_retries - 1:
@@ -356,7 +364,7 @@ async def view_despatch_detail(
     user: Dict[str, Any] = Depends(require("despatch", "read")),
 ):
     """
-    GET /despatch/{despatch_id} — View single dispatch consignment sheet.
+    GET /despatch/{despatch_id} -- View single dispatch consignment sheet.
     """
     row = await conn.fetchrow(
         """
@@ -433,7 +441,7 @@ async def edit_despatch_form(
     user: Dict[str, Any] = Depends(require("despatch", "update")),
 ):
     """
-    GET /despatch/{despatch_id}/edit — Form to edit consignment and logistics parameters.
+    GET /despatch/{despatch_id}/edit -- Form to edit consignment and logistics parameters.
     """
     row = await conn.fetchrow(
         "SELECT * FROM despatch WHERE id = $1::uuid;",
@@ -509,7 +517,7 @@ async def update_despatch(
     user: Dict[str, Any] = Depends(require("despatch", "update")),
 ):
     """
-    POST /despatch/{despatch_id}/update — Updates dispatch details.
+    POST /despatch/{despatch_id}/update -- Updates dispatch details.
     """
     if status == "Dispatched":
         can_approve = await conn.fetchval("SELECT auth_can('despatch', 'approve')")
@@ -581,7 +589,7 @@ async def approve_despatch(
     user: Dict[str, Any] = Depends(require("despatch", "approve")),
 ):
     """
-    POST /despatch/{despatch_id}/approve — Quality Assurance Release sign-off.
+    POST /despatch/{despatch_id}/approve -- Quality Assurance Release sign-off.
     Guarded by:
       1. Role holding despatch.approve (chief_quality)
       2. Segregation of duties: Creator cannot approve their own dispatch note.

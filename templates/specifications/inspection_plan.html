@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Inspection Plan — {{ variant.variant_code }} — Swadeshi Niwar Mills{% endblock %}
+{% block title %}Inspection Plan — {{ variant.designation }} — Swadeshi Niwar Mills{% endblock %}
 
 {% block content %}
 <div class="page-container" style="max-width: 1100px; margin: 0 auto; padding: 1.5rem;">
@@ -16,7 +16,7 @@
       <span>/</span>
       <a href="/specifications/{{ variant.spec_id }}" style="color: var(--snm-olive); text-decoration: none;">{{ variant.spec_no }}</a>
       <span>/</span>
-      <span style="color: var(--snm-machine-black); font-weight: 600;">{{ variant.variant_code }} Plan</span>
+      <span style="color: var(--snm-machine-black); font-weight: 600;">{{ variant.designation }}{% if variant.class %} [Class {{ variant.class }}]{% endif %} Plan</span>
     {% endif %}
   </div>
 
@@ -47,7 +47,7 @@
           {% endif %}
         </div>
         <h1 style="font-size: 1.85rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); line-height: 1.1;">
-          {{ variant.name or variant.variant_code }}
+          {{ variant.designation }}{% if variant.class %} [Class {{ variant.class }}]{% endif %}
         </h1>
         <p style="margin: 0.35rem 0 0; color: #555; font-size: 0.95rem;">
           Generated dynamically via PostgreSQL <code class="mono" style="background: var(--snm-paper); padding: 2px 6px; border: 1px solid var(--snm-line);">spec_check_plan()</code>.
@@ -181,7 +181,7 @@
               class="btn btn-sm btn-olive"
               style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;"
             >
-              Record Check →
+              Record Check ->
             </a>
           </td>
           {% endif %}

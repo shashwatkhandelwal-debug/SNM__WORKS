@@ -88,7 +88,7 @@ async def test_specifications_detail_view_metadata_and_empty_variants_honesty(te
 async def test_specifications_detail_requirements_and_5_limit_types(tech_client):
     """
     Test 6: Verifies requirements table renders all 5 limit types correctly:
-    - range: 5.0 – 8.5
+    - range: 5.0 - 8.5
     - maximum: ≤ 0.25
     - minimum: ≥ 2.5
     - text: textual requirement value without numeric fabrication
@@ -131,7 +131,7 @@ async def test_specifications_sampling_plan_null_handling(tech_client):
     """
     Test 8: Verifies ANSI/ASQC Z1.4 sampling plan table:
     - lot_to NULL is rendered as 'and above'
-    - accept_number NULL is rendered as '—' (not 0)
+    - accept_number NULL is rendered as '--' (not 0)
     """
     resp = await tech_client.get("/specifications/MIL-W-4088")
     assert resp.status_code == HTTP_200_OK

@@ -119,7 +119,7 @@ def test_post_generator_strips_commercial_and_sensitive_fields():
 def test_strength_to_weight_ratio_calculation_and_fallback():
     """
     Strength to weight ratio must be breaking strength / weight in g/m,
-    or fallback to 'Contact us for datasheet' — never null or empty.
+    or fallback to 'Contact us for datasheet' -- never null or empty.
     """
     # 1. With linked construction
     construction = {
@@ -270,7 +270,7 @@ def test_campaign_generation_and_caption_formatting():
     camp = {
         "occasion": "Independence Day 2026",
         "headline": "Proud to manufacture in Kanpur, India",
-        "body": "On this Independence Day, Swadeshi Niwar Mills celebrates 77 years of Indian independence. We manufacture technical textiles in Kanpur — narrow wovens, fabrics and cordage — supplying defence, industrial and export markets. Jai Hind.",
+        "body": "On this Independence Day, Swadeshi Niwar Mills celebrates 77 years of Indian independence. We manufacture technical textiles in Kanpur -- narrow wovens, fabrics and cordage -- supplying defence, industrial and export markets. Jai Hind.",
         "platforms": ["linkedin", "instagram", "facebook", "indiamart", "tradeindia"],
     }
 
@@ -288,7 +288,7 @@ def test_campaign_generation_and_caption_formatting():
 @pytest.mark.asyncio
 async def test_campaign_featuring_mil_spec_sku_is_rejected_with_defence_message(dev_client):
     """
-    Test 8: Bug #6 Check — Creating a promotional campaign featuring a real MIL-spec SKU
+    Test 8: Bug #6 Check -- Creating a promotional campaign featuring a real MIL-spec SKU
     is strictly rejected with HTTP 400 and the defence security message.
     """
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
@@ -328,7 +328,7 @@ async def test_campaign_featuring_mil_spec_sku_is_rejected_with_defence_message(
 @pytest.mark.asyncio
 async def test_state_machine_guard_on_approve_and_reject(dev_client):
     """
-    Test 9: State Machine Guard — Only items in 'queued' status can be approved or rejected.
+    Test 9: State Machine Guard -- Only items in 'queued' status can be approved or rejected.
     Attempting to re-approve an already published item or re-reject a rejected item returns HTTP 400.
     """
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
@@ -379,7 +379,7 @@ async def test_state_machine_guard_on_approve_and_reject(dev_client):
 @pytest.mark.asyncio
 async def test_campaign_rejection_htmx_card_id_matches(dev_client):
     """
-    Test 10: Bug #2 Check — Rejecting a campaign via HTMX returns camp-card-{id}, NOT sku-card-{id}.
+    Test 10: Bug #2 Check -- Rejecting a campaign via HTMX returns camp-card-{id}, NOT sku-card-{id}.
     """
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
     camp_id = uuid.uuid4()

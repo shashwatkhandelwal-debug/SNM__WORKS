@@ -1,5 +1,5 @@
 """
-tests/test_textiles.py — Comprehensive Pytest Suite for Pure Textiles Library
+tests/test_textiles.py -- Comprehensive Pytest Suite for Pure Textiles Library
 Tests against known standard textile reference values, MIL-W-4088K specifications,
 jamming limits, and boundary conditions.
 """

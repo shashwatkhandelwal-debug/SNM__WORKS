@@ -285,59 +285,186 @@
       {% endif %}
     </div>
 
-    <!-- Materials Issued & Traceability (Yarn Lot -> Job) -->
-    <div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin: 0; color: var(--snm-machine-black);">
-          MATERIALS & YARN LOT TRACEABILITY ({{ issued_materials|length }})
-        </h3>
+    <!-- Full Chain Traceability (Yarn Lot -> GRN -> Job -> Despatch -> Certificate) -->
+    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--snm-line);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.05rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin: 0; color: var(--snm-machine-black);">
+            FULL CHAIN TRACEABILITY (Yarn Lot → GRN → Job → Despatch → Certificate)
+          </h3>
+          <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin: 0.15rem 0 0;">
+            Resolved dynamically via PostgreSQL <code class="mono" style="background: var(--snm-paper); padding: 1px 5px; border: 1px solid var(--snm-line);">job_traceability()</code>.
+          </p>
+        </div>
         <a href="/materials/issue/new?job_id={{ job.id }}" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
           + Issue Yarn Lot
         </a>
       </div>
 
-      {% if not issued_materials %}
-        <div style="background: var(--snm-paper); border: 1px dashed var(--snm-line); padding: 1.25rem; text-align: center; border-radius: 2px; color: #666; font-size: 0.9rem;">
-          No yarn lots issued against this job yet. Click "+ Issue Yarn Lot" to bind raw material stock.
+      <!-- Traceability Pipeline Flow Visual Indicator -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+        <!-- Step 1: Raw Material -->
+        <div style="background: var(--snm-paper); border: 1px solid {% if traceability.is_material_linked %}var(--snm-pass){% else %}var(--snm-line){% endif %}; padding: 0.75rem; border-radius: 2px;">
+          <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #777; text-transform: uppercase;">Step 1 • Raw Material</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.2rem; color: {% if traceability.is_material_linked %}var(--snm-pass){% else %}#888{% endif %};">
+            {% if traceability.is_material_linked %}
+              ✓ {{ traceability.yarn_lots|length }} Lot(s) Linked
+            {% else %}
+              ⏳ No Material Issued
+            {% endif %}
+          </div>
         </div>
-      {% else %}
-        <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 2px;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-            <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); text-transform: uppercase;">
-              <tr>
-                <th style="padding: 0.5rem 0.75rem;">Issue No</th>
-                <th style="padding: 0.5rem 0.75rem;">Date</th>
-                <th style="padding: 0.5rem 0.75rem;">Yarn Lot</th>
-                <th style="padding: 0.5rem 0.75rem;">Material & Denier</th>
-                <th style="padding: 0.5rem 0.75rem;">Supplier / Batch</th>
-                <th style="padding: 0.5rem 0.75rem; text-align: right;">Qty Issued</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for iss in issued_materials %}
-              <tr style="border-bottom: 1px solid var(--snm-line);">
-                <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ iss.issue_no }}</strong></td>
-                <td style="padding: 0.5rem 0.75rem;" class="mono">{{ iss.issued_date }}</td>
-                <td style="padding: 0.5rem 0.75rem;">
-                  <a href="/materials/yarn-lots/{{ iss.lot_id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: none;">
-                    {{ iss.lot_no }}
+
+        <!-- Step 2: Job Execution -->
+        <div style="background: var(--snm-paper); border: 1px solid var(--snm-pass); padding: 0.75rem; border-radius: 2px;">
+          <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #777; text-transform: uppercase;">Step 2 • Job Execution</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.2rem; color: var(--snm-pass);">
+            ✓ {{ job.job_no }} ({{ job.status }})
+          </div>
+        </div>
+
+        <!-- Step 3: Despatch -->
+        <div style="background: var(--snm-paper); border: 1px solid {% if traceability.is_despatch_linked %}var(--snm-pass){% else %}var(--snm-line){% endif %}; padding: 0.75rem; border-radius: 2px;">
+          <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #777; text-transform: uppercase;">Step 3 • Despatch</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.2rem; color: {% if traceability.is_despatch_linked %}var(--snm-pass){% else %}#888{% endif %};">
+            {% if traceability.is_despatch_linked %}
+              ✓ {{ traceability.despatches[0].despatch_no }}
+            {% else %}
+              ⏳ Despatch Not Created
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Step 4: Test Certificate -->
+        <div style="background: var(--snm-paper); border: 1px solid {% if traceability.is_certificate_linked %}var(--snm-pass){% else %}var(--snm-line){% endif %}; padding: 0.75rem; border-radius: 2px;">
+          <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #777; text-transform: uppercase;">Step 4 • Test Certificate</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-top: 0.2rem; color: {% if traceability.is_certificate_linked %}var(--snm-pass){% else %}#888{% endif %};">
+            {% if traceability.is_certificate_linked %}
+              ✓ {{ traceability.certificates[0].cert_no }}
+            {% else %}
+              ⏳ Certificate Not Issued
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Contributing Yarn Lots Table -->
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-family: var(--font-heading); font-size: 0.9rem; color: var(--snm-machine-black); margin-bottom: 0.4rem; text-transform: uppercase;">
+          Contributing Yarn Lots & Incoming Test Verification
+        </div>
+
+        {% if not traceability.yarn_lots %}
+          <div style="background: var(--snm-paper); border: 1px dashed var(--snm-line); padding: 1.25rem; text-align: center; border-radius: 2px; color: #666; font-size: 0.9rem;">
+            No raw material issued yet. To start weaving, issue approved yarn lots from <a href="/materials/issue/new?job_id={{ job.id }}" style="color: var(--snm-olive); font-weight: 600;">Materials &gt; Issue Material</a>.
+          </div>
+        {% else %}
+          <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 2px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+              <thead style="background: var(--snm-machine-black); color: var(--snm-paper); font-family: var(--font-heading); text-transform: uppercase;">
+                <tr>
+                  <th style="padding: 0.5rem 0.75rem;">Issue No</th>
+                  <th style="padding: 0.5rem 0.75rem;">Yarn Lot</th>
+                  <th style="padding: 0.5rem 0.75rem;">GRN & Supplier</th>
+                  <th style="padding: 0.5rem 0.75rem;">Material & Denier</th>
+                  <th style="padding: 0.5rem 0.75rem;">Incoming QC Test</th>
+                  <th style="padding: 0.5rem 0.75rem; text-align: right;">Qty Issued</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for yl in traceability.yarn_lots %}
+                <tr style="border-bottom: 1px solid var(--snm-line);">
+                  <td style="padding: 0.5rem 0.75rem;" class="mono"><strong>{{ yl.issue_no }}</strong></td>
+                  <td style="padding: 0.5rem 0.75rem;">
+                    {% if yl.lot_id %}
+                      <a href="/materials/yarn-lots/{{ yl.lot_id }}" class="mono" style="font-weight: 700; color: var(--snm-olive); text-decoration: none;">
+                        {{ yl.lot_no }}
+                      </a>
+                    {% else %}
+                      <span class="mono">{{ yl.lot_no }}</span>
+                    {% endif %}
+                    {% if yl.supplier_lot_no %}
+                      <div class="mono" style="font-size: 0.75rem; color: #666;">Batch: {{ yl.supplier_lot_no }}</div>
+                    {% endif %}
+                  </td>
+                  <td style="padding: 0.5rem 0.75rem;">
+                    <div>{{ yl.supplier_name }}</div>
+                    {% if yl.grn_no %}
+                      <div class="mono" style="font-size: 0.75rem; color: #666;">GRN: {{ yl.grn_no }}</div>
+                    {% endif %}
+                  </td>
+                  <td style="padding: 0.5rem 0.75rem;">
+                    <strong>{{ yl.yarn_type }}</strong> <span class="mono">{{ yl.denier|int if yl.denier else '—' }}D</span>
+                  </td>
+                  <td style="padding: 0.5rem 0.75rem;">
+                    {% if yl.incoming_test_no %}
+                      <span class="badge badge-pass" style="font-size: 0.75rem;">
+                        {{ yl.incoming_test_no }} ({{ yl.incoming_test_verdict }})
+                      </span>
+                    {% else %}
+                      <span class="badge badge-gray" style="font-size: 0.75rem;">Pending Test</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding: 0.5rem 0.75rem; text-align: right;" class="mono">
+                    <strong>{{ "{:,.1f}".format(yl.qty_issued) }} {{ yl.unit }}</strong>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 2. Downstream Despatch & Test Certificate Table -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <!-- Despatch Info -->
+        <div style="border: 1px solid var(--snm-line); background: var(--snm-paper); padding: 1rem; border-radius: 2px;">
+          <div style="font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black); margin-bottom: 0.35rem; text-transform: uppercase;">
+            Downstream Despatch
+          </div>
+          {% if not traceability.despatches %}
+            <div style="font-size: 0.85rem; color: #666;">
+              ⏳ Despatch note not yet created for this job.
+            </div>
+          {% else %}
+            {% for d in traceability.despatches %}
+              <div style="font-size: 0.85rem;">
+                <div>Despatch No: <strong class="mono">{{ d.despatch_no }}</strong></div>
+                <div class="mono" style="color: #666; font-size: 0.8rem;">Date: {{ d.date }} • Qty: {{ d.qty }} {{ d.unit }}</div>
+                {% if d.invoice_no %}
+                  <div class="mono" style="color: #666; font-size: 0.8rem;">Invoice: {{ d.invoice_no }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Certificate Info -->
+        <div style="border: 1px solid var(--snm-line); background: var(--snm-paper); padding: 1rem; border-radius: 2px;">
+          <div style="font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black); margin-bottom: 0.35rem; text-transform: uppercase;">
+            Digital Test Certificate
+          </div>
+          {% if not traceability.certificates %}
+            <div style="font-size: 0.85rem; color: #666;">
+              ⏳ Test certificate not yet issued. 
+              <a href="/certificates/preview/{{ job.id }}" style="color: var(--snm-olive); font-weight: 600; display: inline-block; margin-top: 0.25rem;">Preview Draft Certificate →</a>
+            </div>
+          {% else %}
+            {% for c in traceability.certificates %}
+              <div style="font-size: 0.85rem;">
+                <div>Certificate: <strong class="mono" style="color: var(--snm-pass);">{{ c.cert_no }}</strong> ({{ c.status }})</div>
+                <div class="mono" style="color: #666; font-size: 0.8rem;">Issued: {{ c.issued_at }}</div>
+                <div style="margin-top: 0.4rem;">
+                  <a href="/certificates/{{ c.id }}/pdf" class="btn btn-olive btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">
+                    ⬇ Download Signed PDF
                   </a>
-                </td>
-                <td style="padding: 0.5rem 0.75rem;">
-                  <strong>{{ iss.yarn_type }}</strong> <span class="mono">{{ iss.denier|int }}D</span>
-                </td>
-                <td style="padding: 0.5rem 0.75rem;">
-                  {{ iss.supplier_name }}{% if iss.supplier_lot_no %} <span class="mono" style="color: #666;">({{ iss.supplier_lot_no }})</span>{% endif %}
-                </td>
-                <td style="padding: 0.5rem 0.75rem; text-align: right;" class="mono">
-                  <strong>{{ "{:,.1f}".format(iss.qty_issued) }} {{ iss.unit }}</strong>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
         </div>
-      {% endif %}
+      </div>
     </div>
 
   </div>

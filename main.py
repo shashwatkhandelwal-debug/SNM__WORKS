@@ -23,6 +23,8 @@ from routers.certificates import router as certificates_router
 from routers.settings import router as settings_router
 from routers.specifications import router as specifications_router
 from routers.materials import router as materials_router
+from routers.sku_specs import router as sku_specs_router
+from routers.tally import router as tally_router
 
 
 @asynccontextmanager
@@ -53,6 +55,7 @@ app.include_router(dashboard_router)
 app.include_router(commercial_router)
 app.include_router(marketing_router)
 app.include_router(catalogue_router)
+app.include_router(sku_specs_router)
 app.include_router(skus_router)
 app.include_router(jobs_router)
 app.include_router(qc_router)
@@ -68,6 +71,7 @@ app.include_router(certificates_router)
 app.include_router(settings_router)
 app.include_router(specifications_router)
 app.include_router(materials_router)
+app.include_router(tally_router)
 
 
 @app.get("/health")

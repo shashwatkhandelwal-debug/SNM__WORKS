@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Tally Synchronization Logs — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+      <a href="/tally" style="font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-olive); text-decoration: none;">← TALLY DASHBOARD</a>
+      <span style="color: #999;">/</span>
+      <span class="badge badge-gray" style="font-family: var(--font-mono);">AUDIT LOGS</span>
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      TALLY SYNCHRONIZATION LOGS
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Historical record of generated XML vouchers, payload inspection, and retry dispatch.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/tally/mappings" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      ⚙ Master Mappings
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+  <form method="GET" action="/tally/logs" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <!-- Voucher Type Filter -->
+    <div style="flex: 1; min-width: 160px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Voucher Type
+      </label>
+      <select name="voucher_type" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="" {% if not voucher_type %}selected{% endif %}>All Types</option>
+        <option value="Sales" {% if voucher_type == 'Sales' %}selected{% endif %}>Sales Vouchers</option>
+        <option value="Purchase" {% if voucher_type == 'Purchase' %}selected{% endif %}>Purchase Vouchers</option>
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div style="flex: 1; min-width: 160px;">
+      <label style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; display: block; margin-bottom: 0.25rem;">
+        Sync Status
+      </label>
+      <select name="status_filter" onchange="this.form.submit()" style="width: 100%; padding: 0.4rem 0.6rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+        <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+        <option value="Stubbed" {% if status_filter == 'Stubbed' %}selected{% endif %}>Stubbed (Simulated)</option>
+        <option value="Success" {% if status_filter == 'Success' %}selected{% endif %}>Success</option>
+        <option value="Failed" {% if status_filter == 'Failed' %}selected{% endif %}>Failed</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="font-family: var(--font-heading);">Filter</button>
+      {% if voucher_type or status_filter %}
+      <a href="/tally/logs" class="btn" style="font-family: var(--font-heading); color: #666; text-decoration: underline;">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Timestamp</th>
+        <th style="padding: 0.75rem 1rem;">Type</th>
+        <th style="padding: 0.75rem 1rem;">Voucher No</th>
+        <th style="padding: 0.75rem 1rem;">Party Ledger</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Amount</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+        <th style="padding: 0.75rem 1rem;">User / Creator</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if logs %}
+        {% for log in logs %}
+        <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='#FAF9F6'" onmouseout="this.style.background='white'">
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+            {{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '—' }}
+          </td>
+          <td style="padding: 0.75rem 1rem;">
+            {% if log.voucher_type == 'Sales' %}
+              <span class="badge badge-olive">Sales</span>
+            {% else %}
+              <span class="badge badge-gray">Purchase</span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+            {{ log.voucher_number or '—' }}
+          </td>
+          <td style="padding: 0.75rem 1rem;">
+            {{ log.party_ledger_name or '—' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); text-align: right; font-weight: bold;">
+            ₹{{ "{:,.2f}".format(log.total_amount) if log.total_amount is not none else '0.00' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;" id="status-cell-{{ log.id }}">
+            {% if log.status == 'Stubbed' %}
+              <span class="badge badge-gray">Stubbed</span>
+            {% elif log.status == 'Success' %}
+              <span class="badge badge-pass">Success</span>
+            {% else %}
+              <span class="badge badge-fail" title="{{ log.error_message or '' }}">Failed</span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem 1rem; color: #555;">
+            {{ log.created_by_name or 'System Automated' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+              <a href="/tally/logs/{{ log.id }}" class="btn btn-xs btn-outline" style="font-family: var(--font-mono);" title="Inspect Payload">
+                View
+              </a>
+              <a href="/tally/logs/{{ log.id }}/xml" class="btn btn-xs btn-outline" style="font-family: var(--font-mono);" title="Download XML">
+                XML ↓
+              </a>
+              <button 
+                hx-post="/tally/logs/{{ log.id }}/retry" 
+                hx-target="#status-cell-{{ log.id }}" 
+                hx-swap="innerHTML"
+                class="btn btn-xs btn-secondary" 
+                style="font-family: var(--font-mono);" 
+                title="Re-generate and Sync">
+                ↻ Retry
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" style="padding: 2rem; text-align: center; color: #888;">
+            No synchronization logs match the selected filter criteria.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

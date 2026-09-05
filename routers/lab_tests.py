@@ -100,7 +100,7 @@ async def list_lab_tests(
     user: Dict[str, Any] = Depends(require("tests", "read")),
 ):
     """
-    GET /lab-tests — list all lab tests with status filters.
+    GET /lab-tests -- list all lab tests with status filters.
     """
     user_info = {
         "id": user.get("id"),
@@ -196,7 +196,7 @@ async def new_lab_test_form(
     user: Dict[str, Any] = Depends(require("tests", "create")),
 ):
     """
-    GET /lab-tests/new — create form.
+    GET /lab-tests/new -- create form.
     """
     user_info = {
         "id": user.get("id"),
@@ -266,7 +266,7 @@ async def create_lab_test(
     user: Dict[str, Any] = Depends(require("tests", "create")),
 ):
     """
-    POST /lab-tests — create lab test record.
+    POST /lab-tests -- create lab test record.
     - created_by resolved strictly from authenticated user.
     - test_id sequence retried on UniqueViolationError.
     - verdict evaluated strictly by PostgreSQL generated column.
@@ -386,7 +386,7 @@ async def lab_test_detail(
     user: Dict[str, Any] = Depends(require("tests", "read")),
 ):
     """
-    GET /lab-tests/{test_id} — detail view with specimens breakdown and verdict.
+    GET /lab-tests/{test_id} -- detail view with specimens breakdown and verdict.
     """
     user_info = {
         "id": user.get("id"),
@@ -478,7 +478,7 @@ async def edit_lab_test_form(
     user: Dict[str, Any] = Depends(require("tests", "update")),
 ):
     """
-    GET /lab-tests/{test_id}/edit — edit form.
+    GET /lab-tests/{test_id}/edit -- edit form.
     """
     user_info = {
         "id": user.get("id"),
@@ -551,7 +551,7 @@ async def update_lab_test(
     user: Dict[str, Any] = Depends(require("tests", "update")),
 ):
     """
-    POST /lab-tests/{test_id}/update — update specimen readings. Verdict is re-evaluated by Postgres.
+    POST /lab-tests/{test_id}/update -- update specimen readings. Verdict is re-evaluated by Postgres.
     """
     parsed_date = date.today()
     if tested_on and tested_on.strip():
@@ -642,7 +642,7 @@ async def approve_lab_test(
     user: Dict[str, Any] = Depends(require("tests", "approve")),
 ):
     """
-    POST /lab-tests/{test_id}/approve — approve a test record.
+    POST /lab-tests/{test_id}/approve -- approve a test record.
     Enforces check constraint lab_tests_no_self_approval at the database level.
     """
     approver_id = uuid.UUID(str(user["id"]))

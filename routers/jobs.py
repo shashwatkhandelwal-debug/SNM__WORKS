@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import date, datetime
 import logging
 from typing import Any, Dict, List, Optional
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/jobs", tags=["Jobs"])
 templates = Jinja2Templates(directory="templates")
 
 # Forward-only status state machine
-# Planned → In progress → Complete → Despatched (Cancelled is always allowed)
+# Planned -> In progress -> Complete -> Despatched (Cancelled is always allowed)
 STATUS_STAGES = ["Planned", "In progress", "Complete", "Despatched"]
 STATUS_ORDER = {stage: i for i, stage in enumerate(STATUS_STAGES)}
 
@@ -41,7 +42,7 @@ MEM_CUSTOMERS: List[Dict[str, Any]] = [
 def validate_status_transition(current_status: str, new_status: str) -> tuple[bool, str]:
     """
     Validates status transition:
-    - Status can only move forward: Planned → In progress → Complete → Despatched.
+    - Status can only move forward: Planned -> In progress -> Complete -> Despatched.
     - Cancelled is always allowed from any state.
     - Cannot move away from Cancelled once cancelled.
     """
@@ -64,7 +65,7 @@ def validate_status_transition(current_status: str, new_status: str) -> tuple[bo
         return False, f"Invalid status: {clean_new}"
 
     if new_rank < curr_rank:
-        return False, f"Status cannot move backward from '{clean_curr}' to '{clean_new}'. Status progression is Planned → In progress → Complete → Despatched."
+        return False, f"Status cannot move backward from '{clean_curr}' to '{clean_new}'. Status progression is Planned -> In progress -> Complete -> Despatched."
 
     return True, ""
 
@@ -168,7 +169,7 @@ async def list_jobs(
     user: Dict[str, Any] = Depends(require("jobs", "read")),
 ):
     """
-    GET /jobs — List all jobs from the jobs table ordered by raised_on descending.
+    GET /jobs -- List all jobs from the jobs table ordered by raised_on descending.
     """
     user_info = {
         "id": user.get("id"),
@@ -309,7 +310,7 @@ async def list_jobs(
 @router.get("/new", response_class=HTMLResponse)
 async def new_job_form(request: Request):
     """
-    GET /jobs/new — render the create form with auto-generated preview job number.
+    GET /jobs/new -- render the create form with auto-generated preview job number.
     """
     try:
         claims = await get_user_claims(request)
@@ -368,6 +369,11 @@ async def create_job(
     customer_id: Optional[str] = Form(None),
     customer_name: Optional[str] = Form(None),
     po_ref: Optional[str] = Form(None),
+    po_reference: Optional[str] = Form(None),
+    po_date: Optional[str] = Form(None),
+    agreed_rate: Optional[float] = Form(None),
+    agreed_qty: Optional[float] = Form(None),
+    agreed_unit: Optional[str] = Form(None),
     product: str = Form(...),
     spec: Optional[str] = Form(None),
     width_mm: Optional[float] = Form(None),
@@ -381,7 +387,7 @@ async def create_job(
     remarks: Optional[str] = Form(None),
 ):
     """
-    POST /jobs — insert a new job. Auto-generate job_no as SNM/26-27/ followed by 4-digit sequence number.
+    POST /jobs -- insert a new job. Auto-generate job_no as SNM/26-27/ followed by 4-digit sequence number.
     Redirect to /jobs/{id} on success.
     """
     try:
@@ -394,10 +400,14 @@ async def create_job(
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Quantity ordered must be greater than 0.")
 
     clean_product = product.strip()
-    clean_po_ref = po_ref.strip() if po_ref else None
+    clean_po_ref = (po_reference or po_ref or "").strip() or None
+    clean_po_reference = (po_reference or po_ref or "").strip() or None
     clean_spec = spec.strip() if spec else None
     clean_colour = colour.strip() if colour else None
     clean_unit = unit.strip() or "m"
+    clean_agreed_unit = agreed_unit.strip() if agreed_unit and agreed_unit.strip() else clean_unit
+    clean_agreed_rate = agreed_rate if (agreed_rate is not None and agreed_rate >= 0) else None
+    clean_agreed_qty = agreed_qty if (agreed_qty is not None and agreed_qty > 0) else qty_ordered
     clean_machine = machine.strip() if machine else None
     clean_status = status.strip() if status else "Planned"
     clean_remarks = remarks.strip() if remarks else None
@@ -407,6 +417,13 @@ async def create_job(
             parsed_due_date = datetime.strptime(delivery_due.strip(), "%Y-%m-%d").date()
         except ValueError:
             parsed_due_date = None
+
+    parsed_po_date = None
+    if po_date and po_date.strip():
+        try:
+            parsed_po_date = datetime.strptime(po_date.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            parsed_po_date = None
 
     new_job_id = str(uuid.uuid4())
     generated_job_no = ""
@@ -451,19 +468,26 @@ async def create_job(
                     await conn.execute(
                         """
                         INSERT INTO jobs (
-                            id, job_no, customer_id, po_ref, product, spec, width_mm,
+                            id, job_no, customer_id, po_ref, po_reference, po_date,
+                            agreed_rate, agreed_qty, agreed_unit, product, spec, width_mm,
                             colour, qty_ordered, unit, qty_produced, machine,
                             delivery_due, status, remarks, created_by
                         ) VALUES (
-                            $1::uuid, $2, $3, $4, $5, $6, $7,
-                            $8, $9, $10, $11, $12,
-                            $13, $14, $15, $16::uuid
+                            $1::uuid, $2, $3, $4, $5, $6,
+                            $7, $8, $9, $10, $11, $12,
+                            $13, $14, $15, $16, $17,
+                            $18, $19, $20, $21::uuid
                         )
                         """,
                         new_job_id,
                         generated_job_no,
                         resolved_customer_id,
                         clean_po_ref,
+                        clean_po_reference,
+                        parsed_po_date,
+                        clean_agreed_rate,
+                        clean_agreed_qty,
+                        clean_agreed_unit,
                         clean_product,
                         clean_spec,
                         width_mm,
@@ -520,7 +544,7 @@ async def create_job(
 @router.get("/{job_id}", response_class=HTMLResponse)
 async def job_detail_view(request: Request, job_id: str):
     """
-    GET /jobs/{job_id} — detail page showing all fields plus a QC summary section
+    GET /jobs/{job_id} -- detail page showing all fields plus a QC summary section
     showing count of PASS and FAIL checks linked to this job from qc_checks table.
     Shows a red HOLD badge if any linked qc_checks has verdict = 'FAIL' or any linked lab_tests has verdict = 'FAIL'.
     """
@@ -539,6 +563,14 @@ async def job_detail_view(request: Request, job_id: str):
     lab_tests: List[Dict[str, Any]] = []
     qc_summary = {"pass_count": 0, "fail_count": 0, "total": 0}
     lab_summary = {"pass_count": 0, "fail_count": 0, "pending_count": 0, "total": 0}
+    traceability_data: Dict[str, Any] = {
+        "yarn_lots": [],
+        "despatches": [],
+        "certificates": [],
+        "is_material_linked": False,
+        "is_despatch_linked": False,
+        "is_certificate_linked": False,
+    }
     has_hold = False
     today = date.today()
 
@@ -558,6 +590,11 @@ async def job_detail_view(request: Request, job_id: str):
                             c.name as customer_name,
                             c.contact as customer_contact,
                             j.po_ref,
+                            j.po_reference,
+                            j.po_date,
+                            j.agreed_rate,
+                            j.agreed_qty,
+                            j.agreed_unit,
                             j.product,
                             j.spec,
                             j.width_mm,
@@ -614,30 +651,60 @@ async def job_detail_view(request: Request, job_id: str):
                         )
                         lab_tests = [dict(r) for r in lab_rows]
 
-                        iss_rows = await conn.fetch(
-                            """
-                            SELECT 
-                                i.id::text as id,
-                                i.issue_no,
-                                i.issued_date,
-                                i.qty_issued,
-                                i.unit,
-                                i.remarks,
-                                y.id::text as lot_id,
-                                y.lot_no,
-                                y.supplier_name,
-                                y.yarn_type,
-                                y.denier,
-                                y.filament_count,
-                                y.supplier_lot_no
-                            FROM job_material_issues i
-                            JOIN yarn_lots y ON y.id = i.yarn_lot_id
-                            WHERE i.job_id::text = $1
-                            ORDER BY i.issued_date ASC, i.created_at ASC;
-                            """,
-                            actual_uuid,
-                        )
-                        issued_materials = [dict(r) for r in iss_rows]
+                        # Traceability resolution via PostgreSQL job_traceability()
+                        trace_rows = await conn.fetch("SELECT * FROM job_traceability($1::uuid);", actual_uuid)
+                        seen_issues = set()
+                        seen_despatches = set()
+                        seen_certs = set()
+                        for tr in trace_rows:
+                            if tr["issue_id"] and tr["issue_id"] not in seen_issues:
+                                seen_issues.add(tr["issue_id"])
+                                traceability_data["yarn_lots"].append({
+                                    "issue_id": str(tr["issue_id"]),
+                                    "issue_no": tr["issue_no"],
+                                    "issue_date": tr["issue_date"],
+                                    "qty_issued": float(tr["issue_qty"]) if tr["issue_qty"] is not None else 0,
+                                    "unit": tr["issue_unit"] or "kg",
+                                    "lot_id": str(tr["yarn_lot_id"]) if tr["yarn_lot_id"] else "",
+                                    "lot_no": tr["lot_no"],
+                                    "supplier_lot_no": tr["supplier_lot_no"],
+                                    "yarn_type": tr["yarn_type"],
+                                    "denier": float(tr["denier"]) if tr["denier"] is not None else None,
+                                    "filament_count": tr["filament_count"],
+                                    "lustre": tr["lustre"],
+                                    "colour": tr["colour"],
+                                    "lot_qc_status": tr["lot_qc_status"],
+                                    "supplier_name": tr["supplier_name"],
+                                    "supplier_code": tr["supplier_code"],
+                                    "grn_no": tr["grn_no"],
+                                    "grn_date": tr["grn_date"],
+                                    "po_ref": tr["po_ref"],
+                                    "incoming_test_no": tr["incoming_test_no"],
+                                    "incoming_test_date": tr["incoming_test_date"],
+                                    "incoming_test_verdict": tr["incoming_test_verdict"],
+                                })
+                            if tr["despatch_id"] and tr["despatch_id"] not in seen_despatches:
+                                seen_despatches.add(tr["despatch_id"])
+                                traceability_data["despatches"].append({
+                                    "id": str(tr["despatch_id"]),
+                                    "despatch_no": tr["despatch_no"],
+                                    "date": tr["despatch_date"],
+                                    "qty": float(tr["despatch_qty"]) if tr["despatch_qty"] is not None else 0,
+                                    "unit": tr["despatch_unit"] or "m",
+                                    "invoice_no": tr["despatch_invoice_no"],
+                                })
+                            if tr["certificate_id"] and tr["certificate_id"] not in seen_certs:
+                                seen_certs.add(tr["certificate_id"])
+                                traceability_data["certificates"].append({
+                                    "id": str(tr["certificate_id"]),
+                                    "cert_no": tr["certificate_no"],
+                                    "issued_at": tr["certificate_issued_at"],
+                                    "status": tr["certificate_status"],
+                                    "hash": tr["certificate_hash"],
+                                })
+                        traceability_data["is_material_linked"] = len(traceability_data["yarn_lots"]) > 0
+                        traceability_data["is_despatch_linked"] = len(traceability_data["despatches"]) > 0
+                        traceability_data["is_certificate_linked"] = len(traceability_data["certificates"]) > 0
         except Exception as exc:
             logger.warning(f"Error fetching job details from DB: {exc}")
 
@@ -698,6 +765,7 @@ async def job_detail_view(request: Request, job_id: str):
             "qc_checks": qc_checks,
             "lab_tests": lab_tests,
             "issued_materials": issued_materials if 'issued_materials' in locals() else [],
+            "traceability": traceability_data,
             "qc_summary": qc_summary,
             "lab_summary": lab_summary,
             "status_stages": STATUS_STAGES,
@@ -714,7 +782,7 @@ async def get_job_inspection_plan(
     variant_id: Optional[str] = None,
 ):
     """
-    GET /jobs/{job_id}/inspection-plan — generates dynamic inspection plan
+    GET /jobs/{job_id}/inspection-plan -- generates dynamic inspection plan
     via PostgreSQL spec_check_plan(variant_id) for the job.
     Requires explicit variant confirmation to prevent fuzzy matching errors.
     """
@@ -772,10 +840,13 @@ async def get_job_inspection_plan(
                         """
                         SELECT 
                             v.id::text as id,
-                            v.variant_code,
-                            v.name,
+                            v.designation,
+                            v.designation as variant_code,
+                            v.designation as name,
                             v.class,
                             v.description,
+                            v.sort_order,
+                            v.status,
                             s.spec_no,
                             s.revision,
                             s.title as spec_title,
@@ -783,7 +854,7 @@ async def get_job_inspection_plan(
                             s.active as spec_active
                         FROM spec_variants v
                         JOIN specifications s ON s.id = v.spec_id
-                        ORDER BY s.spec_no ASC, v.variant_code ASC;
+                        ORDER BY s.spec_no ASC, v.sort_order ASC, v.designation ASC;
                         """
                     )
                     available_variants = [dict(r) for r in v_rows]
@@ -796,10 +867,13 @@ async def get_job_inspection_plan(
                                 """
                                 SELECT 
                                     v.id::text as id,
-                                    v.variant_code,
-                                    v.name,
+                                    v.designation,
+                                    v.designation as variant_code,
+                                    v.designation as name,
                                     v.class,
                                     v.description,
+                                    v.sort_order,
+                                    v.status,
                                     s.spec_no,
                                     s.revision,
                                     s.title as spec_title,
@@ -845,7 +919,7 @@ async def get_job_inspection_plan(
 @router.get("/{job_id}/edit", response_class=HTMLResponse)
 async def edit_job_form(request: Request, job_id: str):
     """
-    GET /jobs/{job_id}/edit — render edit form populated with current job values.
+    GET /jobs/{job_id}/edit -- render edit form populated with current job values.
     """
     try:
         claims = await get_user_claims(request)
@@ -869,8 +943,8 @@ async def edit_job_form(request: Request, job_id: str):
                         """
                         SELECT 
                             j.id::text as id, j.job_no, j.raised_on, j.customer_id::text as customer_id,
-                            c.name as customer_name, j.po_ref, j.product, j.spec, j.width_mm,
-                            j.colour, j.qty_ordered, j.unit, j.qty_produced, j.machine,
+                            c.name as customer_name, j.po_ref, j.po_reference, j.po_date, j.agreed_rate, j.agreed_qty, j.agreed_unit,
+                            j.product, j.spec, j.width_mm, j.colour, j.qty_ordered, j.unit, j.qty_produced, j.machine,
                             j.delivery_due, j.status, j.remarks
                         FROM jobs j
                         LEFT JOIN customers c ON c.id = j.customer_id
@@ -920,6 +994,11 @@ async def update_job(
     customer_id: Optional[str] = Form(None),
     customer_name: Optional[str] = Form(None),
     po_ref: Optional[str] = Form(None),
+    po_reference: Optional[str] = Form(None),
+    po_date: Optional[str] = Form(None),
+    agreed_rate: Optional[float] = Form(None),
+    agreed_qty: Optional[float] = Form(None),
+    agreed_unit: Optional[str] = Form(None),
     product: str = Form(...),
     spec: Optional[str] = Form(None),
     width_mm: Optional[float] = Form(None),
@@ -933,8 +1012,8 @@ async def update_job(
     remarks: Optional[str] = Form(None),
 ):
     """
-    POST /jobs/{job_id}/update — update job fields.
-    Status can only move forward: Planned → In progress → Complete → Despatched.
+    POST /jobs/{job_id}/update -- update job fields.
+    Status can only move forward: Planned -> In progress -> Complete -> Despatched.
     Cancelled is always allowed. Never delete.
     """
     try:
@@ -946,10 +1025,14 @@ async def update_job(
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Quantity ordered must be greater than 0.")
 
     clean_product = product.strip()
-    clean_po_ref = po_ref.strip() if po_ref else None
+    clean_po_ref = (po_reference or po_ref or "").strip() or None
+    clean_po_reference = (po_reference or po_ref or "").strip() or None
     clean_spec = spec.strip() if spec else None
     clean_colour = colour.strip() if colour else None
     clean_unit = unit.strip() or "m"
+    clean_agreed_unit = agreed_unit.strip() if agreed_unit and agreed_unit.strip() else clean_unit
+    clean_agreed_rate = agreed_rate if (agreed_rate is not None and agreed_rate >= 0) else None
+    clean_agreed_qty = agreed_qty if (agreed_qty is not None and agreed_qty > 0) else qty_ordered
     clean_machine = machine.strip() if machine else None
     new_status = status.strip() if status else "Planned"
     clean_remarks = remarks.strip() if remarks else None
@@ -959,6 +1042,13 @@ async def update_job(
             parsed_due_date = datetime.strptime(delivery_due.strip(), "%Y-%m-%d").date()
         except ValueError:
             parsed_due_date = None
+
+    parsed_po_date = None
+    if po_date and po_date.strip():
+        try:
+            parsed_po_date = datetime.strptime(po_date.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            parsed_po_date = None
 
     current_status = "Planned"
     actual_uuid = job_id
@@ -1002,22 +1092,32 @@ async def update_job(
                         UPDATE jobs
                         SET customer_id = $1,
                             po_ref = $2,
-                            product = $3,
-                            spec = $4,
-                            width_mm = $5,
-                            colour = $6,
-                            qty_ordered = $7,
-                            unit = $8,
-                            qty_produced = $9,
-                            machine = $10,
-                            delivery_due = $11,
-                            status = $12,
-                            remarks = $13,
+                            po_reference = $3,
+                            po_date = $4,
+                            agreed_rate = $5,
+                            agreed_qty = $6,
+                            agreed_unit = $7,
+                            product = $8,
+                            spec = $9,
+                            width_mm = $10,
+                            colour = $11,
+                            qty_ordered = $12,
+                            unit = $13,
+                            qty_produced = $14,
+                            machine = $15,
+                            delivery_due = $16,
+                            status = $17,
+                            remarks = $18,
                             updated_at = now()
-                        WHERE id::text = $14
+                        WHERE id::text = $19
                         """,
                         resolved_customer_id,
                         clean_po_ref,
+                        clean_po_reference,
+                        parsed_po_date,
+                        clean_agreed_rate,
+                        clean_agreed_qty,
+                        clean_agreed_unit,
                         clean_product,
                         clean_spec,
                         width_mm,

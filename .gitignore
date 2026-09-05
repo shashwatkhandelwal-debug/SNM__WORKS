@@ -59,3 +59,7 @@ static/uploads/
 *.webp
 !static/fonts/*
 !static/css/*
+
+# Spec Ingestion & Watcher
+incoming_specs/
+logs/

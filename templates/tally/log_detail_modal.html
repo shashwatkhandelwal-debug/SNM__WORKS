@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Tally Log {{ log.voucher_number }} — SNM Works{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  <div style="margin-bottom: 1rem;">
+    <a href="/tally/logs" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+      ← Return to Logs
+    </a>
+  </div>
+
+  <div class="card" style="border-top: 5px solid var(--snm-olive); background: white; border-radius: 4px; padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span class="badge badge-olive">{{ log.voucher_type }} VOUCHER</span>
+          {% if log.status == 'Stubbed' %}
+            <span class="badge badge-gray">STUBBED</span>
+          {% elif log.status == 'Success' %}
+            <span class="badge badge-pass">SUCCESS</span>
+          {% else %}
+            <span class="badge badge-fail">FAILED</span>
+          {% endif %}
+        </div>
+        <h1 style="font-size: 1.6rem; margin: 0.2rem 0; font-family: var(--font-heading);">
+          Voucher No: {{ log.voucher_number or 'Unassigned' }}
+        </h1>
+        <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+          Source: {{ log.source_type|upper }} (ID: {{ log.source_id }}) | Created: {{ log.created_at }}
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="/tally/logs/{{ log.id }}/xml" class="btn btn-outline" style="font-family: var(--font-mono);">
+          Download XML Payload ↓
+        </a>
+        <form method="POST" action="/tally/logs/{{ log.id }}/retry" style="margin: 0;">
+          <button type="submit" class="btn btn-primary" style="font-family: var(--font-mono);">
+            ↻ Re-evaluate & Post
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Summary Details Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; background: var(--snm-paper); padding: 1rem; border: 1px solid var(--snm-line); border-radius: 4px; margin-bottom: 1.5rem;">
+      <div>
+        <span style="font-size: 0.75rem; text-transform: uppercase; color: #666; font-family: var(--font-heading); display: block;">Party Ledger</span>
+        <strong style="font-size: 0.95rem;">{{ log.party_ledger_name or '—' }}</strong>
+      </div>
+      <div>
+        <span style="font-size: 0.75rem; text-transform: uppercase; color: #666; font-family: var(--font-heading); display: block;">Total Amount</span>
+        <strong style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--snm-machine-black);">
+          ₹{{ "{:,.2f}".format(log.total_amount) if log.total_amount is not none else '0.00' }}
+        </strong>
+      </div>
+      <div>
+        <span style="font-size: 0.75rem; text-transform: uppercase; color: #666; font-family: var(--font-heading); display: block;">Created By</span>
+        <span>{{ log.created_by_name or 'Automated Dispatch Trigger' }}</span>
+      </div>
+    </div>
+
+    {% if log.error_message %}
+    <div style="background: #FEF2F2; border: 1px solid #F87171; border-left: 4px solid var(--snm-fail); padding: 0.85rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #991B1B;">
+      <strong>Error Trace:</strong> {{ log.error_message }}
+    </div>
+    {% endif %}
+
+    <!-- XML Payload Viewer -->
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.5rem; color: var(--snm-machine-black);">
+        Generated Tally XML Envelope
+      </h3>
+      <pre style="background: #1B2017; color: #E9E5DA; padding: 1.25rem; border-radius: 4px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.4; border: 1px solid var(--snm-line);">{{ log.xml_payload or 'No XML payload generated' }}</pre>
+    </div>
+
+    <!-- Response Payload Viewer -->
+    {% if log.response_payload %}
+    <div>
+      <h3 style="font-size: 0.95rem; font-family: var(--font-heading); letter-spacing: 0.04em; margin-bottom: 0.5rem; color: var(--snm-machine-black);">
+        Gateway Response
+      </h3>
+      <pre style="background: #F6F4EE; color: #1B2017; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.4; border: 1px solid var(--snm-line);">{{ log.response_payload }}</pre>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

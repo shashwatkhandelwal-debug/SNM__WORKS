@@ -1,5 +1,5 @@
 """
-Organisation & Roles Router — SNM Works
+Organisation & Roles Router -- SNM Works
 =============================================================================
 Functions, Roles, User Role Grants, Permission Matrix, Segregation of Duties
 Conflict Checking, and Role-Assigned Task Inboxes.
@@ -53,7 +53,7 @@ async def organisation_dashboard(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /organisation — Overview of the 11 Functions and 29 Roles with staff allocation.
+    GET /organisation -- Overview of the 11 Functions and 29 Roles with staff allocation.
     """
     funcs = await conn.fetch(
         "SELECT code, name, mandate, sort_order FROM functions ORDER BY sort_order ASC;"
@@ -145,7 +145,7 @@ async def permission_matrix(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /organisation/matrix — Read-only matrix of 336 role permission grants.
+    GET /organisation/matrix -- Read-only matrix of 336 role permission grants.
     """
     query = """
         SELECT 
@@ -217,7 +217,7 @@ async def list_conflicts(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /organisation/conflicts — Segregation of duties rules and active conflict report.
+    GET /organisation/conflicts -- Segregation of duties rules and active conflict report.
     """
     conflict_rules = await conn.fetch(
         """
@@ -286,7 +286,7 @@ async def list_users(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /organisation/users — Staff members and active role assignments.
+    GET /organisation/users -- Staff members and active role assignments.
     """
     users_raw = await conn.fetch(
         """
@@ -349,7 +349,7 @@ async def user_detail(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /organisation/users/{target_user_id} — Detailed view of user roles and warnings.
+    GET /organisation/users/{target_user_id} -- Detailed view of user roles and warnings.
     """
     p_row = await conn.fetchrow(
         """
@@ -444,7 +444,7 @@ async def grant_role(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    POST /organisation/users/{target_user_id}/grant — Grants a role to a user.
+    POST /organisation/users/{target_user_id}/grant -- Grants a role to a user.
     Guarded by:
       1. Role check: requires people.approve (chief_people) OR systems.approve (chief_information)
       2. Non-negotiable self-grant prevention: Admin cannot grant roles to themselves.
@@ -505,7 +505,7 @@ async def revoke_role(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    POST /organisation/users/{target_user_id}/revoke — Revokes an active role from a user.
+    POST /organisation/users/{target_user_id}/revoke -- Revokes an active role from a user.
     """
     granter_id = user.get("id")
     can_revoke = await conn.fetchval(
@@ -542,7 +542,7 @@ async def toggle_user_active(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    POST /organisation/users/{target_user_id}/toggle-active — Immediately deactivates or reactivates a user profile.
+    POST /organisation/users/{target_user_id}/toggle-active -- Immediately deactivates or reactivates a user profile.
     Blocks self-deactivation to prevent administrator lockout.
     """
     admin_id = user.get("id")
@@ -586,7 +586,7 @@ async def my_tasks_inbox(
     user: Dict[str, Any] = Depends(require("tasks", "read")),
 ):
     """
-    GET /tasks — My Tasks inbox, dynamically routed based on all roles held by caller.
+    GET /tasks -- My Tasks inbox, dynamically routed based on all roles held by caller.
     """
     task_rows = await conn.fetch("SELECT * FROM my_tasks();")
 
@@ -622,7 +622,7 @@ async def update_task_status(
     user: Dict[str, Any] = Depends(require("tasks", "update")),
 ):
     """
-    POST /tasks/{task_id}/status — Transition task status (open, in progress, done, cancelled).
+    POST /tasks/{task_id}/status -- Transition task status (open, in progress, done, cancelled).
     """
     if status not in ("open", "in progress", "blocked", "done", "cancelled"):
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Invalid task status.")

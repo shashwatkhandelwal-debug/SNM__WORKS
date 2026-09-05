@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Tally Prime Automation — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+      <span class="badge badge-olive">FINANCIAL INTEGRATION</span>
+      <span class="badge badge-gray" style="font-family: var(--font-mono);">STUB GATEWAY ACTIVE</span>
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      TALLY PRIME AUTOMATION
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Decoupled XML voucher generation, master mapping registry, and simulated local sync logs.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/tally/mappings" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      ⚙ Master Mappings
+    </a>
+    <a href="/tally/reconciliation" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      📊 Reconciliation
+    </a>
+    <a href="/tally/logs" class="btn btn-primary" style="font-family: var(--font-heading); text-transform: uppercase;">
+      📜 View Sync Logs
+    </a>
+  </div>
+</div>
+
+<!-- Honest Simulation Banner -->
+<div style="background: #FFFBEB; border: 1px solid #F59E0B; border-left: 4px solid #D97706; padding: 0.85rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #92400E;">
+  <strong>Notice — Development & Testing Environment:</strong> The Tally integration is running with <code>StubTallyGatewayClient</code>. All generated XML payloads are stored and validated with status <span class="badge badge-gray">Stubbed</span>. No live financial entries are posted to remote Tally Prime servers.
+</div>
+
+<!-- Summary Metrics Ribbon -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Sync Events</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ stats.total_logs or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Stubbed (Simulated)</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ stats.total_stubbed or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Sales Vouchers</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ stats.sales_vouchers or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Purchase Vouchers</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ stats.purchase_vouchers or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Failed Syncs</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: {% if stats.total_failed and stats.total_failed > 0 %}var(--snm-fail){% else %}#666{% endif %};">{{ stats.total_failed or 0 }}</div>
+  </div>
+</div>
+
+<!-- Master Mapping Attention Alert -->
+{% if unmapped_customers > 0 or unmapped_skus > 0 %}
+<div style="background: white; border: 1px solid var(--snm-line); border-left: 4px solid var(--snm-hold); border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+  <div>
+    <strong style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--snm-machine-black);">
+      ⚠️ MASTER MAPPING REQUIRED
+    </strong>
+    <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: #555;">
+      {% if unmapped_customers > 0 %}<strong>{{ unmapped_customers }}</strong> active customer(s) missing Tally ledger / GST state. {% endif %}
+      {% if unmapped_skus > 0 %}<strong>{{ unmapped_skus }}</strong> SKU(s) missing Tally stock item name.{% endif %}
+    </p>
+  </div>
+  <a href="/tally/mappings" class="btn btn-sm btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+    Resolve Mappings →
+  </a>
+</div>
+{% endif %}
+
+<!-- Recent Sync Activity Card -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; margin-bottom: 1.5rem;">
+  <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase; letter-spacing: 0.04em;">
+      Recent Tally Synchronization Logs
+    </h2>
+    <a href="/tally/logs" style="font-size: 0.85rem; color: var(--snm-olive); text-decoration: underline;">
+      View all {{ stats.total_logs or 0 }} logs →
+    </a>
+  </div>
+  <div style="overflow-x: auto;">
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">Timestamp</th>
+          <th style="padding: 0.75rem 1rem;">Voucher Type</th>
+          <th style="padding: 0.75rem 1rem;">Voucher No</th>
+          <th style="padding: 0.75rem 1rem;">Party Ledger</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Total Amount</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if recent_logs %}
+          {% for log in recent_logs %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+              {{ log.created_at.strftime('%Y-%m-%d %H:%M') if log.created_at else '—' }}
+            </td>
+            <td style="padding: 0.75rem 1rem;">
+              {% if log.voucher_type == 'Sales' %}
+                <span class="badge badge-olive">Sales</span>
+              {% else %}
+                <span class="badge badge-gray">Purchase</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+              {{ log.voucher_number or '—' }}
+            </td>
+            <td style="padding: 0.75rem 1rem;">
+              {{ log.party_ledger_name or '—' }}
+            </td>
+            <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); text-align: right; font-weight: bold;">
+              ₹{{ "{:,.2f}".format(log.total_amount) if log.total_amount is not none else '0.00' }}
+            </td>
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              {% if log.status == 'Stubbed' %}
+                <span class="badge badge-gray">Stubbed</span>
+              {% elif log.status == 'Success' %}
+                <span class="badge badge-pass">Success</span>
+              {% else %}
+                <span class="badge badge-fail">Failed</span>
+              {% endif %}
+            </td>
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+              <a href="/tally/logs/{{ log.id }}" class="btn btn-xs btn-outline" style="font-family: var(--font-mono);">
+                Inspect XML
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">
+              No Tally sync records logged yet. Despatches and GRNs will generate entries here.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

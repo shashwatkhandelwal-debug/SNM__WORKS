@@ -77,7 +77,7 @@ async def list_qc_checks(
     user: Dict[str, Any] = Depends(require("qc", "read")),
 ):
     """
-    GET /qc — list all checks, filterable by job_no and verdict.
+    GET /qc -- list all checks, filterable by job_no and verdict.
     Enforces auth_can('qc', 'read') and RLS.
     Verdict is retrieved strictly from the database generated column.
     """
@@ -165,7 +165,7 @@ async def new_qc_check_form(
     user: Dict[str, Any] = Depends(require("qc", "create")),
 ):
     """
-    GET /qc/new — create form, accepts optional ?job_id= to pre-fill job.
+    GET /qc/new -- create form, accepts optional ?job_id= to pre-fill job.
     Enforces auth_can('qc', 'create').
     """
     user_info = {
@@ -226,7 +226,7 @@ async def create_qc_check(
     user: Dict[str, Any] = Depends(require("qc", "create")),
 ):
     """
-    POST /qc — insert new inspection record.
+    POST /qc -- insert new inspection record.
     - Requires authenticated user holding 'qc.create' permission.
     - inspector_id is strictly resolved from user["id"] (UUID).
     - check_no handles concurrency by catching unique constraint collisions and retrying.
@@ -325,7 +325,7 @@ async def qc_check_detail(
     user: Dict[str, Any] = Depends(require("qc", "read")),
 ):
     """
-    GET /qc/{check_id} — detail page displaying inspection specification,
+    GET /qc/{check_id} -- detail page displaying inspection specification,
     actual reading, and PostgreSQL computed verdict badge.
     """
     user_info = {
@@ -394,7 +394,7 @@ async def edit_qc_check_form(
     user: Dict[str, Any] = Depends(require("qc", "update")),
 ):
     """
-    GET /qc/{check_id}/edit — render edit form populated with current readings.
+    GET /qc/{check_id}/edit -- render edit form populated with current readings.
     Requires 'qc.update' permission. Never allows editing of verdict directly.
     """
     user_info = {
@@ -463,7 +463,7 @@ async def update_qc_check(
     user: Dict[str, Any] = Depends(require("qc", "update")),
 ):
     """
-    POST /qc/{check_id}/update — update reading and parameters only, NEVER verdict.
+    POST /qc/{check_id}/update -- update reading and parameters only, NEVER verdict.
     PostgreSQL automatically re-evaluates the stored generated verdict column.
     """
     parsed_date = date.today()

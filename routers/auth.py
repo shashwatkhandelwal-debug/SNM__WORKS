@@ -163,8 +163,8 @@ async def linkedin_oauth_redirect(request: Request):
     redirect_uri = settings.linkedin_redirect_uri
     state = secrets.token_urlsafe(16)
 
-    # Scopes for OpenID Connect + Company Page Community Management API
-    scopes = "openid profile email w_organization_social r_organization_social"
+    # Scopes for Personal Profile publishing (Share on LinkedIn product)
+    scopes = "w_member_social"
 
     params = {
         "response_type": "code",
@@ -186,7 +186,7 @@ async def linkedin_oauth_callback(
 ):
     """
     Receives OAuth authorization code, exchanges it for an access token,
-    queries the company page organization URN, encrypts the token,
+    resolves member person URN, encrypts the token,
     and stores it in the database against the owner profile.
     """
     token = request.cookies.get("access_token")
@@ -215,8 +215,8 @@ async def linkedin_oauth_callback(
 
     access_token = None
     expires_in = 3600 * 24 * 60  # Default 60 days
-    company_page_id = settings.linkedin_company_page_id
-    account_name = "Swadeshi Niwar Mills"
+    author_urn = None
+    account_name = "Yash Khandelwal (Personal LinkedIn)"
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -226,23 +226,7 @@ async def linkedin_oauth_callback(
                 access_token = data.get("access_token")
                 expires_in = data.get("expires_in", expires_in)
 
-                # Fetch organization entity ACLs to resolve company page automatically
-                try:
-                    acl_resp = await client.get(
-                        "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee",
-                        headers={"Authorization": f"Bearer {access_token}"}
-                    )
-                    if acl_resp.status_code == 200:
-                        acl_data = acl_resp.json()
-                        elements = acl_data.get("elements", [])
-                        if elements:
-                            org_urn = elements[0].get("organizationalTarget")
-                            if org_urn:
-                                company_page_id = org_urn
-                except Exception as exc:
-                    logger.warning(f"Could not auto-fetch organizational ACLs: {exc}")
-
-                # Fetch member profile info via modern OpenID Connect userinfo or legacy /v2/me
+                # Attempt to query userinfo endpoint if available
                 try:
                     userinfo_resp = await client.get(
                         "https://api.linkedin.com/v2/userinfo",
@@ -250,20 +234,12 @@ async def linkedin_oauth_callback(
                     )
                     if userinfo_resp.status_code == 200:
                         ui_data = userinfo_resp.json()
+                        sub = ui_data.get("sub")
+                        if sub:
+                            author_urn = f"urn:li:person:{sub}"
                         name = ui_data.get("name") or f"{ui_data.get('given_name', '')} {ui_data.get('family_name', '')}".strip()
                         if name:
-                            account_name = f"{name} (SNM Administrator)"
-                    else:
-                        me_resp = await client.get(
-                            "https://api.linkedin.com/v2/me",
-                            headers={"Authorization": f"Bearer {access_token}"}
-                        )
-                        if me_resp.status_code == 200:
-                            me_data = me_resp.json()
-                            fn = me_data.get("localizedFirstName", "")
-                            ln = me_data.get("localizedLastName", "")
-                            if fn or ln:
-                                account_name = f"{fn} {ln} (SNM Administrator)"
+                            account_name = f"{name} (LinkedIn Personal)"
                 except Exception:
                     pass
             else:
@@ -271,10 +247,19 @@ async def linkedin_oauth_callback(
     except Exception as exc:
         logger.error(f"Error during LinkedIn token exchange: {exc}")
 
+    # Fallback to configured ID or default personal URN if userinfo is restricted under w_member_social
+    if not author_urn:
+        cfg_id = settings.linkedin_company_page_id
+        if cfg_id and cfg_id.startswith("urn:li:"):
+            author_urn = cfg_id
+        elif cfg_id:
+            author_urn = f"urn:li:person:{cfg_id}"
+        else:
+            author_urn = "urn:li:person:self"
+
     # For development fallback if testing locally without live LinkedIn API app
     if not access_token:
         access_token = f"li_token_mock_{secrets.token_hex(16)}"
-        company_page_id = company_page_id or "urn:li:organization:10523091"
 
     # Encrypt token
     encrypted_token = encrypt_token(access_token)
@@ -284,10 +269,10 @@ async def linkedin_oauth_callback(
         "platform": "linkedin",
         "user_id": user_id,
         "account_name": account_name,
-        "account_id": company_page_id or "urn:li:organization:10523091",
+        "account_id": author_urn,
         "access_token_encrypted": encrypted_token,
         "token_expires_at": expires_at.isoformat(),
-        "scopes": ["w_organization_social", "r_organization_social", "r_liteprofile"],
+        "scopes": ["w_member_social"],
         "is_active": True,
         "updated_at": datetime.now().isoformat(),
     }

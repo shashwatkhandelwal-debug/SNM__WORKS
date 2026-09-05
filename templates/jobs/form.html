@@ -84,14 +84,26 @@
 
           <!-- PO Reference -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="po_ref">Customer PO Reference</label>
+            <label class="form-label" for="po_reference">Customer PO Reference</label>
             <input 
               type="text" 
-              id="po_ref" 
-              name="po_ref" 
+              id="po_reference" 
+              name="po_reference" 
               class="form-input mono" 
-              value="{{ job.po_ref or '' }}" 
+              value="{{ job.po_reference or job.po_ref or '' }}" 
               placeholder="e.g. OFK/PO/2026/089"
+            >
+          </div>
+
+          <!-- PO Date -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="po_date">PO Date</label>
+            <input 
+              type="date" 
+              id="po_date" 
+              name="po_date" 
+              class="form-input mono" 
+              value="{{ job.po_date or '' }}"
             >
           </div>
 
@@ -207,6 +219,47 @@
               <option value="kg" {% if job.unit == 'kg' %}selected{% endif %}>kg (Kilograms)</option>
               <option value="pcs" {% if job.unit == 'pcs' %}selected{% endif %}>pcs (Pieces)</option>
               <option value="rolls" {% if job.unit == 'rolls' %}selected{% endif %}>rolls (Rolls)</option>
+            </select>
+          </div>
+
+          <!-- Agreed Commercial Rate -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="agreed_rate">Agreed Rate (₹ / unit)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              min="0" 
+              id="agreed_rate" 
+              name="agreed_rate" 
+              class="form-input mono" 
+              value="{{ job.agreed_rate or '' }}" 
+              placeholder="e.g. 45.50"
+            >
+          </div>
+
+          <!-- Agreed Billing Quantity -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="agreed_qty">Agreed Billing Qty</label>
+            <input 
+              type="number" 
+              step="any" 
+              min="0" 
+              id="agreed_qty" 
+              name="agreed_qty" 
+              class="form-input mono" 
+              value="{{ job.agreed_qty or job.qty_ordered or '' }}" 
+              placeholder="Defaults to ordered qty"
+            >
+          </div>
+
+          <!-- Agreed Billing Unit -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="agreed_unit">Agreed Billing Unit</label>
+            <select id="agreed_unit" name="agreed_unit" class="form-input">
+              <option value="m" {% if (job.agreed_unit or job.unit) == 'm' %}selected{% endif %}>m (Metres)</option>
+              <option value="kg" {% if (job.agreed_unit or job.unit) == 'kg' %}selected{% endif %}>kg (Kilograms)</option>
+              <option value="pcs" {% if (job.agreed_unit or job.unit) == 'pcs' %}selected{% endif %}>pcs (Pieces)</option>
+              <option value="rolls" {% if (job.agreed_unit or job.unit) == 'rolls' %}selected{% endif %}>rolls (Rolls)</option>
             </select>
           </div>
 

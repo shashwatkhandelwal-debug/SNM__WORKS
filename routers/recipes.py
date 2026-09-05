@@ -1,5 +1,5 @@
 """
-Dye Recipes Router — SNM Works
+Dye Recipes Router -- SNM Works
 =============================================================================
 Manages formulation, process parameters, batch liquor calculations,
 controlled shade matching, and technical approval workflows for dye recipes.
@@ -136,7 +136,7 @@ async def list_recipes(
     user: Dict[str, Any] = Depends(require("recipes", "read")),
 ):
     """
-    GET /recipes — Register of dye recipes with status and substrate filters.
+    GET /recipes -- Register of dye recipes with status and substrate filters.
     """
     query = """
         SELECT 
@@ -234,7 +234,7 @@ async def new_recipe_form(
     user: Dict[str, Any] = Depends(require("recipes", "create")),
 ):
     """
-    GET /recipes/new — Create a new dye formulation recipe.
+    GET /recipes/new -- Create a new dye formulation recipe.
     """
     next_recipe_no = await get_next_recipe_no(conn)
 
@@ -303,7 +303,7 @@ async def create_recipe(
     user: Dict[str, Any] = Depends(require("recipes", "create")),
 ):
     """
-    POST /recipes — Creates a new dye recipe with race-safe sequence numbering.
+    POST /recipes -- Creates a new dye recipe with race-safe sequence numbering.
     """
     creator_id = user.get("id")
     if not creator_id:
@@ -404,7 +404,7 @@ async def view_recipe_detail(
     user: Dict[str, Any] = Depends(require("recipes", "read")),
 ):
     """
-    GET /recipes/{recipe_id} — Detailed technical recipe view with formula math.
+    GET /recipes/{recipe_id} -- Detailed technical recipe view with formula math.
     """
     row = await conn.fetchrow(
         """
@@ -480,7 +480,7 @@ async def edit_recipe_form(
     user: Dict[str, Any] = Depends(require("recipes", "update")),
 ):
     """
-    GET /recipes/{recipe_id}/edit — Form to edit formulation parameters.
+    GET /recipes/{recipe_id}/edit -- Form to edit formulation parameters.
     """
     row = await conn.fetchrow(
         """
@@ -558,7 +558,7 @@ async def update_recipe(
     user: Dict[str, Any] = Depends(require("recipes", "update")),
 ):
     """
-    POST /recipes/{recipe_id}/update — Updates dye recipe parameters.
+    POST /recipes/{recipe_id}/update -- Updates dye recipe parameters.
     Blocks transitions to Approved status unless user holds recipes.approve.
     """
     if status == "Approved":
@@ -632,7 +632,7 @@ async def approve_recipe(
     user: Dict[str, Any] = Depends(require("recipes", "approve")),
 ):
     """
-    POST /recipes/{recipe_id}/approve — Technical release & sign-off.
+    POST /recipes/{recipe_id}/approve -- Technical release & sign-off.
     Gated on:
       1. Role holding recipes.approve (chief_technical)
       2. Shade result must be 'Matched to Master' or 'Close - Acceptable'

@@ -1,5 +1,5 @@
 """
-Test Certificate PDF Generator — SNM Works
+Test Certificate PDF Generator -- SNM Works
 =============================================================================
 Generates formal Conformance Test Certificates / Certificates of Analysis (CoA)
 for technical textile products supplied to Ordnance Factory Kanpur and defence
@@ -49,7 +49,7 @@ class NumberedCanvas(canvas.Canvas):
         self.line(36, 36, 559, 36)
 
         # Footer text
-        footer_left = "Swadeshi Niwar Mills • Technical Textiles Division, Kanpur • Conformance Test Certificate"
+        footer_left = "Swadeshi Niwar Mills * Technical Textiles Division, Kanpur * Conformance Test Certificate"
         footer_right = f"Page {self._pageNumber} of {total_pages}"
         self.drawString(36, 26, footer_left)
         self.drawRightString(559, 26, footer_right)
@@ -173,8 +173,8 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     # 1. Header Block
     story.append(Paragraph("SWADESHI NIWAR MILLS", style_mill_name))
     story.append(Spacer(1, 2))
-    story.append(Paragraph("Technical Textiles Division • Kanpur, Uttar Pradesh, India", style_mill_sub))
-    story.append(Paragraph("Narrow Wovens • Technical Fabrics • Defence & Industrial Cordage", style_mill_sub))
+    story.append(Paragraph("Technical Textiles Division * Kanpur, Uttar Pradesh, India", style_mill_sub))
+    story.append(Paragraph("Narrow Wovens * Technical Fabrics * Defence & Industrial Cordage", style_mill_sub))
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#474B2F"), spaceBefore=0, spaceAfter=8))
     
@@ -183,17 +183,17 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
 
     # 2. Metadata & Consignment Matrix
     cert_no = cert_data.get("cert_no", "DRAFT-PREVIEW")
-    issue_date = cert_data.get("issued_at", "—")
-    job_no = cert_data.get("job_no", "—")
-    product = cert_data.get("product", "—")
-    spec = cert_data.get("spec", "—")
+    issue_date = cert_data.get("issued_at", "--")
+    job_no = cert_data.get("job_no", "--")
+    product = cert_data.get("product", "--")
+    spec = cert_data.get("spec", "--")
     customer = cert_data.get("customer_name", "Ordnance Factory Kanpur / Internal")
-    po_ref = cert_data.get("po_ref", "—")
-    qty_str = f"{cert_data.get('qty', '—')} {cert_data.get('unit', 'm')}"
-    despatch_no = cert_data.get("despatch_no") or "—"
-    invoice_no = cert_data.get("invoice_no") or "—"
-    rolls_str = str(cert_data.get("rolls", "—"))
-    gross_wt_str = f"{cert_data.get('gross_wt')} kg" if cert_data.get("gross_wt") else "—"
+    po_ref = cert_data.get("po_ref", "--")
+    qty_str = f"{cert_data.get('qty', '--')} {cert_data.get('unit', 'm')}"
+    despatch_no = cert_data.get("despatch_no") or "--"
+    invoice_no = cert_data.get("invoice_no") or "--"
+    rolls_str = str(cert_data.get("rolls", "--"))
+    gross_wt_str = f"{cert_data.get('gross_wt')} kg" if cert_data.get("gross_wt") else "--"
 
     meta_table_data = [
         [
@@ -250,28 +250,80 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     story.append(meta_table)
     story.append(Spacer(1, 10))
 
-    # 3. Construction Specification Matrix (if available)
+    # 3. Raw Material & Yarn Lot Traceability Matrix (Multi-lot support)
+    sec_idx = 1
+    yarn_lots: List[Dict[str, Any]] = cert_data.get("yarn_lots", [])
+    if yarn_lots:
+        story.append(Paragraph(f"{sec_idx}. RAW MATERIAL & YARN LOT TRACEABILITY ({len(yarn_lots)} Contributing Lots)", style_sec_hdr))
+        story.append(Spacer(1, 3))
+        
+        lot_table_data = [[
+            Paragraph("Lot Ref", style_th),
+            Paragraph("Supplier / Source", style_th),
+            Paragraph("Supplier Batch / Merge", style_th),
+            Paragraph("Yarn Specification", style_th),
+            Paragraph("Qty Issued", style_th),
+            Paragraph("Incoming Test", style_th),
+        ]]
+        for yl in yarn_lots:
+            denier_val = yl.get("denier")
+            den_str = f"{int(denier_val) if denier_val and float(denier_val).is_integer() else denier_val}D" if denier_val else "--"
+            if yl.get("filament_count"):
+                den_str += f"/{yl.get('filament_count')}F"
+            yarn_desc = f"{yl.get('yarn_type', 'Yarn')} ({den_str})"
+            if yl.get("lustre"):
+                yarn_desc += f" {yl.get('lustre')}"
+            
+            qty_val = yl.get("qty_issued")
+            qty_str = f"{qty_val} {yl.get('unit', 'kg')}" if qty_val is not None else "--"
+            test_rec = f"{yl.get('incoming_test_no')} ({yl.get('incoming_test_verdict', 'PASS')})" if yl.get("incoming_test_no") else "PASS"
+
+            lot_table_data.append([
+                Paragraph(yl.get("lot_no", "--"), style_val_mono),
+                Paragraph(yl.get("supplier_name", "--"), style_td),
+                Paragraph(yl.get("supplier_lot_no") or "--", style_td),
+                Paragraph(yarn_desc, style_td),
+                Paragraph(qty_str, style_td),
+                Paragraph(test_rec, style_td_pass if "PASS" in test_rec else style_td),
+            ])
+
+        lot_table = Table(lot_table_data, colWidths=[75, 115, 95, 120, 55, 63])
+        lot_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E9E5DA")),
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CFC8B6")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E9E5DA")),
+            ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(lot_table)
+        story.append(Spacer(1, 10))
+        sec_idx += 1
+
+    # 4. Construction Specification Matrix (if available)
     const = cert_data.get("construction")
     if const:
-        story.append(Paragraph("1. PRODUCT CONSTRUCTION PARAMETERS", style_sec_hdr))
+        story.append(Paragraph(f"{sec_idx}. PRODUCT CONSTRUCTION PARAMETERS", style_sec_hdr))
         story.append(Spacer(1, 3))
+        sec_idx += 1
         
         const_data = [
             [
                 Paragraph("Spec No:", style_label),
-                Paragraph(str(const.get("spec_no", "—")), style_val_mono),
+                Paragraph(str(const.get("spec_no", "--")), style_val_mono),
                 Paragraph("Weave Structure:", style_label),
-                Paragraph(str(const.get("weave", "—")), style_val),
+                Paragraph(str(const.get("weave", "--")), style_val),
                 Paragraph("Width (mm):", style_label),
-                Paragraph(str(const.get("width_mm", "—")), style_val),
+                Paragraph(str(const.get("width_mm", "--")), style_val),
             ],
             [
                 Paragraph("Warp Yarn:", style_label),
-                Paragraph(f"{const.get('warp_denier', '—')} Denier", style_val),
+                Paragraph(f"{const.get('warp_denier', '--')} Denier", style_val),
                 Paragraph("Weft Yarn:", style_label),
-                Paragraph(f"{const.get('weft_denier', '—')} Denier", style_val),
+                Paragraph(f"{const.get('weft_denier', '--')} Denier", style_val),
                 Paragraph("Warp Ends / Picks:", style_label),
-                Paragraph(f"{const.get('warp_ends', '—')} ends / {const.get('picks_per_cm', '—')} ppc", style_val),
+                Paragraph(f"{const.get('warp_ends', '--')} ends / {const.get('picks_per_cm', '--')} ppc", style_val),
             ]
         ]
         const_table = Table(const_data, colWidths=[65, 105, 80, 110, 85, 78])
@@ -287,10 +339,11 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         story.append(const_table)
         story.append(Spacer(1, 10))
 
-    # 4. Dimensional & Physical QC Checks Table
+    # 5. Dimensional & Physical QC Checks Table
     qc_checks: List[Dict[str, Any]] = cert_data.get("qc_checks", [])
-    story.append(Paragraph(f"2. DIMENSIONAL & PROCESS QC INSPECTION ({len(qc_checks)} Checks)", style_sec_hdr))
+    story.append(Paragraph(f"{sec_idx}. DIMENSIONAL & PROCESS QC INSPECTION ({len(qc_checks)} Checks)", style_sec_hdr))
     story.append(Spacer(1, 3))
+    sec_idx += 1
 
     qc_table_data = [[
         Paragraph("Check Ref", style_th),
@@ -306,11 +359,11 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         unit_str = f" {q.get('unit')}" if q.get("unit") else ""
         spec_req = f"{q.get('limit_type', '').capitalize()}: {q.get('spec_value')}{tol_str}{unit_str}"
         if q.get("upper_limit"):
-            spec_req = f"Range: {q.get('spec_value')} – {q.get('upper_limit')}{unit_str}"
+            spec_req = f"Range: {q.get('spec_value')} - {q.get('upper_limit')}{unit_str}"
 
         qc_table_data.append([
-            Paragraph(q.get("check_no", "—"), style_td),
-            Paragraph(q.get("parameter", "—"), style_td),
+            Paragraph(q.get("check_no", "--"), style_td),
+            Paragraph(q.get("parameter", "--"), style_td),
             Paragraph(q.get("method") or "Standard Inspection", style_td),
             Paragraph(spec_req, style_td),
             Paragraph(f"{q.get('actual')}{unit_str}", style_td),
@@ -330,10 +383,11 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     story.append(qc_table)
     story.append(Spacer(1, 10))
 
-    # 5. Mechanical & Laboratory Test Results Table
+    # 6. Mechanical & Laboratory Test Results Table
     lab_tests: List[Dict[str, Any]] = cert_data.get("lab_tests", [])
-    story.append(Paragraph(f"3. LABORATORY & MECHANICAL TESTING ({len(lab_tests)} Tests)", style_sec_hdr))
+    story.append(Paragraph(f"{sec_idx}. LABORATORY & MECHANICAL TESTING ({len(lab_tests)} Tests)", style_sec_hdr))
     story.append(Spacer(1, 3))
+    sec_idx += 1
 
     lab_table_data = [[
         Paragraph("Test Ref", style_th),
@@ -352,15 +406,15 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
             spec_req += " [CRITICAL]"
 
         specs_list = lt.get("specimens") or []
-        specs_str = ", ".join(str(s) for s in specs_list) if specs_list else (lt.get("result") or "—")
+        specs_str = ", ".join(str(s) for s in specs_list) if specs_list else (lt.get("result") or "--")
 
         lab_table_data.append([
-            Paragraph(lt.get("test_id", "—"), style_td),
-            Paragraph(lt.get("parameter", "—"), style_td),
+            Paragraph(lt.get("test_id", "--"), style_td),
+            Paragraph(lt.get("parameter", "--"), style_td),
             Paragraph(lt.get("standard") or lt.get("lab") or "MIL-STD-191", style_td),
             Paragraph(spec_req, style_td),
             Paragraph(specs_str, style_td),
-            Paragraph(lt.get("result") or "—", style_td),
+            Paragraph(lt.get("result") or "--", style_td),
             Paragraph(lt.get("verdict", "PASS"), style_td_pass),
         ])
 

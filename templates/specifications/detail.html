@@ -155,7 +155,7 @@
             <select name="variant_id" class="form-control" style="font-size: 0.85rem;">
               <option value="">(All Variants / Spec-Wide)</option>
               {% for v in variants %}
-                <option value="{{ v.id }}">{{ v.variant_code }} — {{ v.name }}</option>
+                <option value="{{ v.id }}">{{ v.designation }}{% if v.class %} [{{ v.class }}]{% endif %}</option>
               {% endfor %}
             </select>
           </div>
@@ -248,9 +248,9 @@
                 {{ r.notes }}
               </div>
               {% endif %}
-              {% if r.variant_code %}
+              {% if r.variant_designation %}
               <div style="font-size: 0.75rem; color: var(--snm-olive); font-family: var(--font-mono); margin-top: 0.2rem;">
-                Variant: {{ r.variant_code }}
+                Variant: {{ r.variant_designation }}{% if r.variant_class %} [{{ r.variant_class }}]{% endif %}
               </div>
               {% endif %}
             </td>
@@ -346,16 +346,16 @@
       <form method="POST" action="/specifications/{{ spec.id }}/variants">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
           <div>
-            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">VARIANT CODE *:</label>
-            <input type="text" name="variant_code" class="form-control" placeholder="e.g. Type VIII Class 1" required>
-          </div>
-          <div>
-            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">VARIANT FULL NAME *:</label>
-            <input type="text" name="name" class="form-control" placeholder="e.g. MIL-W-4088K Type VIII Class 1" required>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">DESIGNATION *:</label>
+            <input type="text" name="designation" class="form-control" placeholder="e.g. Type VIII" required>
           </div>
           <div>
             <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">CLASS:</label>
-            <input type="text" name="class" class="form-control" placeholder="e.g. 1, 1a, 2">
+            <input type="text" name="class" class="form-control" placeholder="e.g. Class 1, Class 1A">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">SORT ORDER:</label>
+            <input type="number" name="sort_order" class="form-control" value="0" placeholder="0">
           </div>
         </div>
         <div style="margin-bottom: 0.75rem;">
@@ -374,8 +374,7 @@
       <table class="table" style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
-            <th style="padding: 0.75rem 1rem;">VARIANT CODE</th>
-            <th style="padding: 0.75rem 1rem;">NAME / DESIGNATION</th>
+            <th style="padding: 0.75rem 1rem;">DESIGNATION</th>
             <th style="padding: 0.75rem 0.75rem; text-align: center;">CLASS</th>
             <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
             <th style="padding: 0.75rem 1rem;">DESCRIPTION & USE</th>
@@ -386,10 +385,7 @@
           {% for v in variants %}
           <tr style="border-bottom: 1px solid var(--snm-line);">
             <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700;">
-              {{ v.variant_code }}
-            </td>
-            <td style="padding: 0.85rem 1rem; font-weight: 600;">
-              {{ v.name }}
+              {{ v.designation }}
             </td>
             <td style="padding: 0.85rem 0.75rem; text-align: center; font-family: var(--font-mono);">
               {{ v.class or '—' }}

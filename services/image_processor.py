@@ -111,7 +111,7 @@ def brand_product_image(
         f"STRENGTH: {clean_brk}",
         f"FAMILY: {clean_fam}",
     ]
-    specs_str = "   •   ".join(specs_parts)
+    specs_str = "   *   ".join(specs_parts)
 
     origin_text = "Made in Kanpur, India"
 
@@ -134,7 +134,7 @@ def brand_product_image(
     specs_w = specs_bbox[2] - specs_bbox[0]
     if specs_w > max_specs_w:
         short_parts = [clean_std, clean_mat, clean_brk, clean_fam]
-        specs_str = "  •  ".join(short_parts)
+        specs_str = "  *  ".join(short_parts)
 
     draw.text((30, specs_y), specs_str, font=font_specs, fill=COLOR_WHITE)
 

@@ -96,6 +96,200 @@
 
   </div>
 
+  <!-- Governing Specifications & PDF Ingestion Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);" x-data="{ showUploadModal: false, specFileName: '', relationship: 'primary' }">
+    <div class="card-header">
+      <div>
+        <h2 style="font-size: 1.3rem; margin-bottom: 0.2rem;">Governing Specifications & PDF Ingestion</h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Military and technical specifications linked to this SKU. Upload new specification PDFs for deterministic extraction and cryptographic audit logging.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <a href="/skus/ingestion-errors" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black);">
+          Watcher Queue / Errors ↗
+        </a>
+        <button type="button" class="btn btn-olive btn-sm" @click="showUploadModal = true">
+          + Upload Spec PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div x-show="showUploadModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem;" x-cloak>
+      <div class="card" style="max-width: 540px; width: 100%; background: #fff; border-top: 4px solid var(--snm-olive); box-shadow: 0 10px 25px rgba(0,0,0,0.2);" @click.away="showUploadModal = false">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem;">
+          <h3 style="font-size: 1.2rem; margin: 0; font-family: var(--font-heading);">Upload Specification PDF</h3>
+          <button type="button" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #666;" @click="showUploadModal = false">×</button>
+        </div>
+
+        <form method="POST" action="/skus/{{ sku.id }}/spec-upload" enctype="multipart/form-data">
+          <div style="margin-bottom: 1rem;">
+            <label class="mono" style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Relationship to SKU</label>
+            <select name="relationship" class="input" style="width: 100%; background: #fff;">
+              <option value="primary">Primary Webbing / Fabric Specification</option>
+              <option value="color_standard">Color / Dye Standard</option>
+              <option value="finish_standard">Finish / Treatment Standard</option>
+              <option value="packaging">Packaging Specification</option>
+              <option value="secondary">Secondary / Reference Standard</option>
+            </select>
+          </div>
+
+          <div style="border: 2px dashed var(--snm-line); border-radius: 4px; padding: 1.5rem; text-align: center; background: #fafafa; margin-bottom: 1rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem;">
+              Select PDF file (e.g. <code>PIA-W-4088.pdf</code>, Max 25MB). Deterministic extraction will parse physical requirements, defect codes, and sampling plans.
+            </p>
+            <input 
+              type="file" 
+              id="spec_pdf_file" 
+              name="pdf_file" 
+              accept="application/pdf"
+              style="display: none;"
+              @change="specFileName = $event.target.files[0] ? $event.target.files[0].name : ''"
+              required
+            >
+            <label for="spec_pdf_file" class="btn btn-outline btn-sm" style="cursor: pointer; background: #fff;">
+              📁 Browse PDF Document
+            </label>
+            <div x-show="specFileName" style="margin-top: 0.75rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--snm-olive-dark);">
+              Selected: <strong x-text="specFileName"></strong>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline btn-sm" @click="showUploadModal = false">Cancel</button>
+            <button type="submit" class="btn btn-olive btn-sm" :disabled="!specFileName">
+              Upload & Begin Review →
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 1. Linked Specifications List -->
+    <div style="margin-top: 1rem;">
+      <h3 style="font-size: 1rem; font-family: var(--font-heading); letter-spacing: 0.04em; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+        ACTIVE LINKED SPECIFICATIONS ({{ linked_specs|length }})
+      </h3>
+
+      {% if linked_specs %}
+        <table class="table" style="width: 100%; font-size: 0.85rem;">
+          <thead>
+            <tr style="background: var(--snm-paper);">
+              <th style="width: 25%;">Spec Number & Revision</th>
+              <th style="width: 35%;">Title</th>
+              <th style="width: 15%;">Relationship</th>
+              <th style="width: 15%;">Variant Link</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ls in linked_specs %}
+              <tr>
+                <td>
+                  <a href="/specifications/{{ ls.spec_id }}" class="mono" style="font-weight: 700; color: var(--snm-olive);">
+                    {{ ls.spec_no }} {{ ls.revision }}
+                  </a>
+                  {% if ls.is_primary %}
+                    <span class="badge badge-olive" style="font-size: 0.7rem; margin-left: 0.25rem;">PRIMARY</span>
+                  {% endif %}
+                </td>
+                <td>{{ ls.spec_title }}</td>
+                <td><span class="badge badge-gray" style="font-size: 0.75rem;">{{ ls.relationship }}</span></td>
+                <td>
+                  {% if ls.variant_designation %}
+                    <span class="mono">{{ ls.variant_designation }}{% if ls.variant_class %} Cl. {{ ls.variant_class }}{% endif %}</span>
+                  {% else %}
+                    <span class="mono" style="color: #888;">All Variants</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right;">
+                  <a href="/specifications/{{ ls.spec_id }}" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
+                    View Master Spec →
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div style="padding: 1.25rem; text-align: center; color: #777; background: var(--snm-paper); border: 1px dashed var(--snm-line); border-radius: 4px; font-size: 0.85rem;">
+          No specifications linked to this SKU yet. Click <strong>+ Upload Spec PDF</strong> above to ingest a specification document.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 2. Ingestion & Cryptographic Integrity History -->
+    {% if pdf_uploads %}
+    <div style="margin-top: 1.5rem; border-top: 1px solid var(--snm-line); padding-top: 1rem;">
+      <h3 style="font-size: 1rem; font-family: var(--font-heading); letter-spacing: 0.04em; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+        PDF INGESTION & CRYPTOGRAPHIC INTEGRITY AUDIT ({{ pdf_uploads|length }})
+      </h3>
+
+      <table class="table" style="width: 100%; font-size: 0.85rem;">
+        <thead>
+          <tr style="background: var(--snm-paper);">
+            <th>Filename</th>
+            <th>Uploaded</th>
+            <th>Source / Uploader</th>
+            <th>Status</th>
+            <th>Cryptographic Integrity</th>
+            <th style="text-align: right;">Review / Inspect</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in pdf_uploads %}
+            <tr>
+              <td>
+                <span class="mono" style="font-weight: 600;">{{ u.original_filename }}</span>
+                <span class="mono" style="font-size: 0.75rem; color: #888; display: block;">
+                  {{ (u.file_size_bytes / 1024)|round(1) }} KB | SHA: {{ u.pdf_sha256[:10] }}...
+                </span>
+              </td>
+              <td class="mono">{{ u.uploaded_at.strftime('%Y-%m-%d %H:%M') if u.uploaded_at else '—' }}</td>
+              <td>
+                <span style="font-size: 0.8rem;">{{ u.uploader_name or 'System Watcher' }}</span>
+                <span class="badge badge-gray" style="font-size: 0.7rem; margin-left: 2px;">{{ u.source }}</span>
+              </td>
+              <td>
+                <span class="badge {% if u.status == 'Loaded' %}badge-pass{% elif u.status == 'Parsed' %}badge-hold{% elif u.status == 'Reviewed' %}badge-olive{% else %}badge-fail{% endif %}" style="font-size: 0.75rem;">
+                  {{ u.status|upper }}
+                </span>
+              </td>
+              <td>
+                <div id="integrity-badge-{{ u.id }}">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline btn-sm" 
+                    style="font-size: 0.75rem; padding: 2px 6px;"
+                    hx-post="/skus/{{ sku.id }}/spec-verify/{{ u.id }}"
+                    hx-target="#integrity-badge-{{ u.id }}"
+                    hx-swap="outerHTML"
+                  >
+                    🔒 Verify Integrity
+                  </button>
+                </div>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                  <a href="/skus/{{ sku.id }}/spec-review/{{ u.id }}" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">
+                    {% if u.status == 'Loaded' %}View Review{% else %}Review & Load →{% endif %}
+                  </a>
+                  <a href="/skus/{{ sku.id }}/spec-uploads/{{ u.id }}/pdf" target="_blank" class="btn btn-outline btn-sm" style="font-size: 0.75rem;" title="View raw PDF">
+                    PDF ↗
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+  </div>
+
   <!-- Product Photograph & Visual Branding Section -->
   <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid var(--snm-olive);">
     <div class="card-header">

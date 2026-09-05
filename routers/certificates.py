@@ -1,5 +1,5 @@
 """
-Test Certificates Router — SNM Works
+Test Certificates Router -- SNM Works
 =============================================================================
 Conformance Test Certificates & Quality Analysis (CoA) PDF Generator.
 
@@ -159,12 +159,41 @@ async def fetch_certificate_dataset(
             "picks_per_cm": float(job["const_picks_per_cm"] or 0),
         }
 
+    # 5. Contributing Raw Material Yarn Lots (via PostgreSQL job_traceability)
+    yarn_lots = []
+    seen_issues = set()
+    try:
+        trace_rows = await conn.fetch("SELECT * FROM job_traceability($1::uuid);", job_id)
+        for r in trace_rows:
+            if r["issue_id"] and r["issue_id"] not in seen_issues:
+                seen_issues.add(r["issue_id"])
+                yarn_lots.append({
+                    "issue_no": r["issue_no"],
+                    "issue_date": str(r["issue_date"]) if r["issue_date"] else None,
+                    "qty_issued": float(r["issue_qty"]) if r["issue_qty"] is not None else None,
+                    "unit": r["issue_unit"] or "kg",
+                    "yarn_lot_id": str(r["yarn_lot_id"]) if r["yarn_lot_id"] else None,
+                    "lot_no": r["lot_no"],
+                    "supplier_lot_no": r["supplier_lot_no"],
+                    "yarn_type": r["yarn_type"],
+                    "denier": float(r["denier"]) if r["denier"] is not None else None,
+                    "filament_count": r["filament_count"],
+                    "lustre": r["lustre"],
+                    "colour": r["colour"],
+                    "supplier_name": r["supplier_name"],
+                    "grn_no": r["grn_no"],
+                    "incoming_test_no": r["incoming_test_no"],
+                    "incoming_test_verdict": r["incoming_test_verdict"],
+                })
+    except Exception:
+        pass
+
     dataset = {
         "job_id": str(job_id),
         "job_no": job["job_no"],
         "product": job["product"],
         "spec": job["spec"] or "MIL-W-4088K",
-        "po_ref": job["po_ref"] or "—",
+        "po_ref": job["po_ref"] or "--",
         "qty": float(job["qty_ordered"] or 0) if not despatch_data else float(despatch_data["qty"] or 0),
         "unit": job["unit"] if not despatch_data else despatch_data["unit"],
         "customer_name": job["customer_name"] or "Ordnance Factory Kanpur / Internal",
@@ -178,6 +207,7 @@ async def fetch_certificate_dataset(
         "rolls": despatch_data["rolls"] if despatch_data else None,
         "gross_wt": float(despatch_data["gross_wt"]) if despatch_data and despatch_data["gross_wt"] else None,
         "construction": construction_dict,
+        "yarn_lots": yarn_lots,
         "qc_checks": [dict(q) for q in qc_rows],
         "lab_tests": [dict(l) for l in lab_rows],
     }
@@ -196,7 +226,7 @@ async def list_certificates(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    GET /certificates — Register of issued test certificates and issuance readiness.
+    GET /certificates -- Register of issued test certificates and issuance readiness.
     Accessible to Quality, Despatch, Commercial, and Operations staff.
     """
     can_read = await conn.fetchval(
@@ -299,7 +329,7 @@ async def preview_certificate(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    GET /certificates/preview/{job_id} — Pre-issuance compliance and quality verification.
+    GET /certificates/preview/{job_id} -- Pre-issuance compliance and quality verification.
     """
     can_read = await conn.fetchval(
         "SELECT auth_can('tests', 'read') OR auth_can('despatch', 'read') OR auth_can('jobs', 'read');"
@@ -381,7 +411,7 @@ async def issue_certificate(
     user: Dict[str, Any] = Depends(require("tests", "release")),
 ):
     """
-    POST /certificates/issue — Issues a formal Conformance Certificate.
+    POST /certificates/issue -- Issues a formal Conformance Certificate.
     Strictly gated on 100% PASS rate and QC hold release.
     """
     issuer_id = user.get("id")
@@ -493,7 +523,7 @@ async def certificate_detail(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    GET /certificates/{cert_id} — View issued certificate metadata and download link.
+    GET /certificates/{cert_id} -- View issued certificate metadata and download link.
     """
     can_read = await conn.fetchval(
         "SELECT auth_can('tests', 'read') OR auth_can('despatch', 'read') OR auth_can('jobs', 'read');"
@@ -566,7 +596,7 @@ async def download_certificate_pdf(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    GET /certificates/{cert_id}/download — Streams the binary PDF test certificate.
+    GET /certificates/{cert_id}/download -- Streams the binary PDF test certificate.
     """
     can_read = await conn.fetchval(
         "SELECT auth_can('tests', 'read') OR auth_can('despatch', 'read') OR auth_can('jobs', 'read');"
@@ -622,7 +652,7 @@ async def revoke_certificate(
     user: Dict[str, Any] = Depends(require("tests", "release")),
 ):
     """
-    POST /certificates/{cert_id}/revoke — Revokes an issued certificate.
+    POST /certificates/{cert_id}/revoke -- Revokes an issued certificate.
     """
     if len(reason.strip()) < 10:
         raise HTTPException(

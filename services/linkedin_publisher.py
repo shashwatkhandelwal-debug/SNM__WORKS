@@ -136,7 +136,7 @@ async def publish_to_linkedin(
         return {
             "status": "error",
             "platform": "linkedin",
-            "error": "LinkedIn not connected — go to Settings to connect your account",
+            "error": "LinkedIn not connected -- go to Settings to connect your account",
         }
 
     access_token = connection["access_token"]

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Spec PDF Ingestion Errors — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+
+  <!-- Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <a href="/skus" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+          ← Back to SKU Master
+        </a>
+        <h1 style="font-size: 1.6rem; margin: 0;">Specification PDF Ingestion Queue & Errors</h1>
+      </div>
+      <p style="font-family: var(--font-mono); font-size: 0.85rem; color: #666; margin: 0;">
+        Monitors background watcher agent exceptions and incoming PDFs with unmatched SKU codes.
+      </p>
+    </div>
+  </div>
+
+  <!-- Unmatched Watcher Files Card -->
+  <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--snm-hold);">
+    <div class="card-header">
+      <div>
+        <h2 style="font-size: 1.2rem; color: var(--snm-machine-black); margin-bottom: 0.2rem;">
+          Unmatched PDFs in Monitored Directory (<code>incoming_specs/_unmatched/</code>)
+        </h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Files dropped into <code>incoming_specs/</code> whose subfolder or filename could not be matched to an active SKU in the database.
+        </p>
+      </div>
+      <span class="badge {% if unmatched_files %}badge-hold{% else %}badge-pass{% endif %}">
+        {{ unmatched_files|length }} UNMATCHED FILES
+      </span>
+    </div>
+
+    {% if unmatched_files %}
+      <table class="table" style="width: 100%; font-size: 0.85rem; margin-top: 0.75rem;">
+        <thead>
+          <tr style="background: var(--snm-paper);">
+            <th>Filename</th>
+            <th>File Size</th>
+            <th>Detected At</th>
+            <th style="text-align: right;">Suggested Resolution</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for uf in unmatched_files %}
+            <tr>
+              <td>
+                <span class="mono" style="font-weight: 600;">{{ uf.filename }}</span>
+              </td>
+              <td class="mono">{{ (uf.file_size / 1024)|round(1) }} KB</td>
+              <td class="mono">{{ uf.modified_at[:19] }}</td>
+              <td style="text-align: right;">
+                <span style="font-size: 0.8rem; color: #666;">Create or rename SKU code to match folder name, then move back to <code>incoming_specs/&lt;SKU_CODE&gt;/</code></span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div style="padding: 1.5rem; text-align: center; color: #666; background: var(--snm-paper); border: 1px dashed var(--snm-line); border-radius: 4px; margin-top: 0.75rem;">
+        ✓ No unmatched files in the watcher directory.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Database Ingestion Errors Card -->
+  <div class="card" style="border-left: 4px solid var(--snm-fail);">
+    <div class="card-header">
+      <div>
+        <h2 style="font-size: 1.2rem; color: var(--snm-fail); margin-bottom: 0.2rem;">
+          Database Ingestion Exceptions
+        </h2>
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: #666;">
+          Upload records flagged with <code>status = 'Error'</code> due to parsing or transaction failures.
+        </p>
+      </div>
+      <span class="badge {% if db_errors %}badge-fail{% else %}badge-pass{% endif %}">
+        {{ db_errors|length }} FAILED UPLOADS
+      </span>
+    </div>
+
+    {% if db_errors %}
+      <table class="table" style="width: 100%; font-size: 0.85rem; margin-top: 0.75rem;">
+        <thead>
+          <tr style="background: var(--snm-paper);">
+            <th>Target SKU</th>
+            <th>Filename</th>
+            <th>Source</th>
+            <th>Uploaded At</th>
+            <th>Uploaded By</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for err in db_errors %}
+            <tr>
+              <td>
+                {% if err.sku_code %}
+                  <a href="/skus/{{ err.sku_id }}" class="mono" style="font-weight: 600;">{{ err.sku_code }}</a>
+                {% else %}
+                  <span class="mono" style="color: #999;">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>{{ err.original_filename }}</td>
+              <td><span class="badge badge-gray" style="font-size: 0.75rem;">{{ err.source }}</span></td>
+              <td class="mono">{{ err.uploaded_at.strftime('%Y-%m-%d %H:%M') if err.uploaded_at else '—' }}</td>
+              <td>{{ err.uploader_name or 'System' }}</td>
+              <td style="text-align: right;">
+                {% if err.sku_id %}
+                  <a href="/skus/{{ err.sku_id }}/spec-review/{{ err.id }}" class="btn btn-outline btn-sm">
+                    Review Ingestion →
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div style="padding: 1.5rem; text-align: center; color: #666; background: var(--snm-paper); border: 1px dashed var(--snm-line); border-radius: 4px; margin-top: 0.75rem;">
+        ✓ Zero failed ingestion attempts logged in the database.
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

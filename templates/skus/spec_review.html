@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block title %}Review Spec PDF — {{ sku.sku_code }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;" x-data="specReviewApp()">
+
+  <!-- Top Navigation & Summary Banner -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <a href="/skus/{{ sku.id }}" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+        ← Back to {{ sku.sku_code }}
+      </a>
+      <span class="badge badge-olive" style="font-size: 0.85rem;">SKU: {{ sku.sku_code }}</span>
+      <span class="badge badge-gray" style="font-size: 0.85rem;">Source: {{ upload.source }}</span>
+      <span class="badge {% if upload.status == 'Loaded' %}badge-pass{% else %}badge-hold{% endif %}" style="font-size: 0.85rem;">
+        Status: {{ upload.status|upper }}
+      </span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <button type="button" class="btn btn-sm" :class="activeView === 'form' ? 'btn-olive' : 'btn-outline'" @click="activeView = 'form'">
+        Structured Form View
+      </button>
+      <button type="button" class="btn btn-sm" :class="activeView === 'json' ? 'btn-olive' : 'btn-outline'" @click="syncToJson(); activeView = 'json'">
+        Raw JSON Editor
+      </button>
+      <button type="button" class="btn btn-pass btn-sm" @click="submitSpec()" style="font-weight: 600;">
+        ✓ Confirm & Load Spec to Database
+      </button>
+    </div>
+  </div>
+
+  <!-- Document Header Bar -->
+  <div class="card" style="margin-bottom: 1rem; padding: 0.75rem 1rem; border-left: 4px solid var(--snm-olive); background: var(--snm-paper);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="mono" style="font-size: 0.8rem; color: #666;">PDF DOCUMENT:</span>
+        <strong style="margin-left: 0.25rem;">{{ upload.original_filename }}</strong>
+        <span class="mono" style="font-size: 0.75rem; color: #888; margin-left: 0.5rem;">({{ (upload.file_size_bytes / 1024)|round(1) }} KB)</span>
+      </div>
+      <div style="font-size: 0.8rem; color: #666;">
+        <span class="mono">PDF SHA-256:</span>
+        <code style="font-size: 0.75rem; background: #fff; padding: 2px 6px; border: 1px solid var(--snm-line); border-radius: 2px;">
+          {{ upload.pdf_sha256[:16] }}...{{ upload.pdf_sha256[-8:] }}
+        </code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Split Screen Grid -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; min-height: 82vh;">
+
+    <!-- Left Pane: PDF Viewer Stream -->
+    <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--snm-line);">
+      <div style="background: var(--snm-machine-black); color: #fff; padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+        <span style="font-family: var(--font-heading); letter-spacing: 0.05em;">ORIGINAL SPECIFICATION PDF</span>
+        <a href="/skus/{{ sku.id }}/spec-uploads/{{ upload.id }}/pdf" target="_blank" style="color: var(--snm-greige); text-decoration: none; font-size: 0.8rem;">
+          Open in New Tab ↗
+        </a>
+      </div>
+      <iframe 
+        src="/skus/{{ sku.id }}/spec-uploads/{{ upload.id }}/pdf" 
+        style="width: 100%; height: 100%; min-height: 75vh; border: none; flex: 1;"
+        title="Spec PDF Viewer"
+      ></iframe>
+    </div>
+
+    <!-- Right Pane: Interactive Review & Correction Workspace -->
+    <div class="card" style="padding: 1rem; overflow-y: auto; max-height: 82vh; border: 1px solid var(--snm-line); background: #fff;">
+      
+      <!-- View 1: Structured Form -->
+      <div x-show="activeView === 'form'">
+        
+        <!-- Header Metadata Section -->
+        <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; font-family: var(--font-heading);">
+            1. SPECIFICATION METADATA
+          </h3>
+
+          <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Spec Number *</label>
+              <input type="text" class="input" x-model="doc.specification.spec_no" :class="{ 'input-amber': !doc.specification.spec_no }" style="width: 100%; font-weight: 700;">
+            </div>
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Revision</label>
+              <input type="text" class="input" x-model="doc.specification.revision" style="width: 100%;">
+            </div>
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Issued Date</label>
+              <input type="date" class="input" x-model="doc.specification.issued_on" style="width: 100%;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Title *</label>
+              <input type="text" class="input" x-model="doc.specification.title" :class="{ 'input-amber': !doc.specification.title }" style="width: 100%;">
+            </div>
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Issuing Body</label>
+              <input type="text" class="input" x-model="doc.specification.issuing_body" style="width: 100%;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Relationship to SKU {{ sku.sku_code }}</label>
+              <select class="input" x-model="relationship" style="width: 100%; background: #fff;">
+                <option value="primary">Primary Webbing Spec</option>
+                <option value="color_standard">Color Standard</option>
+                <option value="finish_standard">Finish / Treatment Standard</option>
+                <option value="packaging">Packaging Specification</option>
+                <option value="secondary">Secondary / Reference</option>
+              </select>
+            </div>
+            <div>
+              <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Supersedes</label>
+              <input type="text" class="input" x-model="doc.specification.supersedes" placeholder="e.g. MIL-W-4088F" style="width: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Variants Section -->
+        <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 1.1rem; margin: 0; font-family: var(--font-heading);">
+              2. TYPES & VARIANTS (<span x-text="doc.variants.length"></span>)
+            </h3>
+            <button type="button" class="btn btn-outline btn-sm" @click="addVariant()">+ Add Variant</button>
+          </div>
+
+          <table class="table" style="width: 100%; font-size: 0.85rem; margin-top: 0.5rem;">
+            <thead>
+              <tr style="background: var(--snm-paper);">
+                <th style="width: 25%;">Designation *</th>
+                <th style="width: 15%;">Class</th>
+                <th>Description</th>
+                <th style="width: 40px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(v, idx) in doc.variants" :key="idx">
+                <tr>
+                  <td>
+                    <input type="text" class="input" x-model="v.designation" placeholder="e.g. Type VIII" style="width: 100%; font-weight: 600;" :class="{ 'input-amber': !v.designation }">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="v.class" placeholder="1 or 2" style="width: 100%;">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="v.description" placeholder="Variant description" style="width: 100%;">
+                  </td>
+                  <td style="text-align: center;">
+                    <button type="button" style="color: var(--snm-fail); border: none; background: none; cursor: pointer; font-size: 1.1rem;" @click="doc.variants.splice(idx, 1)">×</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Physical Requirements Section -->
+        <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="font-size: 1.1rem; margin: 0; font-family: var(--font-heading);">
+              3. PHYSICAL REQUIREMENTS (<span x-text="doc.requirements.length"></span>)
+            </h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" class="btn btn-outline btn-sm" @click="addRequirement()">+ Add Requirement</button>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; font-size: 0.8rem; margin-top: 0.5rem;">
+              <thead>
+                <tr style="background: var(--snm-paper);">
+                  <th style="min-width: 140px;">Parameter *</th>
+                  <th style="width: 80px;">Variant</th>
+                  <th style="width: 60px;">Unit</th>
+                  <th style="width: 90px;">Limit Type</th>
+                  <th style="width: 80px;">Spec Val</th>
+                  <th style="width: 60px;">Tol</th>
+                  <th style="width: 90px;">Test Method</th>
+                  <th style="width: 50px;">Crit?</th>
+                  <th style="width: 30px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(r, idx) in doc.requirements" :key="idx">
+                  <tr>
+                    <td>
+                      <input type="text" class="input" x-model="r.parameter" style="width: 100%; font-weight: 600;" :class="{ 'input-amber': !r.parameter }">
+                    </td>
+                    <td>
+                      <input type="text" class="input" :value="Array.isArray(r.variant_keys) ? r.variant_keys.join(',') : r.variant_keys" @input="r.variant_keys = $event.target.value.split(',').map(s => s.trim())" placeholder="ALL" style="width: 100%;">
+                    </td>
+                    <td>
+                      <input type="text" class="input" x-model="r.unit" placeholder="lb, in" style="width: 100%;">
+                    </td>
+                    <td>
+                      <select class="input" x-model="r.limit_type" style="width: 100%; padding: 2px;">
+                        <option value="minimum">minimum</option>
+                        <option value="maximum">maximum</option>
+                        <option value="nominal">nominal</option>
+                        <option value="range">range</option>
+                        <option value="text">text</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="number" step="any" class="input mono" x-model="r.spec_value" style="width: 100%;" :class="{ 'input-amber': r.spec_value === null && r.limit_type !== 'text' }">
+                    </td>
+                    <td>
+                      <input type="number" step="any" class="input mono" x-model="r.tolerance" style="width: 100%;">
+                    </td>
+                    <td>
+                      <input type="text" class="input" x-model="r.test_method" placeholder="ASTM D3774" style="width: 100%;">
+                    </td>
+                    <td style="text-align: center;">
+                      <input type="checkbox" x-model="r.is_critical" title="Check if critical (floor on individual specimens)">
+                    </td>
+                    <td style="text-align: center;">
+                      <button type="button" style="color: var(--snm-fail); border: none; background: none; cursor: pointer;" @click="doc.requirements.splice(idx, 1)">×</button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Visual Defects Table -->
+        <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 1.1rem; margin: 0; font-family: var(--font-heading);">
+              4. DEFECT CLASSIFICATION (<span x-text="doc.defects ? doc.defects.length : 0"></span>)
+            </h3>
+            <button type="button" class="btn btn-outline btn-sm" @click="addDefect()">+ Add Defect</button>
+          </div>
+
+          <table class="table" style="width: 100%; font-size: 0.85rem; margin-top: 0.5rem;">
+            <thead>
+              <tr style="background: var(--snm-paper);">
+                <th style="width: 25%;">Examine</th>
+                <th>Defect Description *</th>
+                <th style="width: 20%;">Classification</th>
+                <th style="width: 30px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(d, idx) in doc.defects" :key="idx">
+                <tr>
+                  <td>
+                    <input type="text" class="input" x-model="d.examine" placeholder="Visual examination" style="width: 100%;">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="d.defect" placeholder="Cut, hole, tear" style="width: 100%;" :class="{ 'input-amber': !d.defect }">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="d.classification" placeholder="Major-101" style="width: 100%;">
+                  </td>
+                  <td style="text-align: center;">
+                    <button type="button" style="color: var(--snm-fail); border: none; background: none; cursor: pointer;" @click="doc.defects.splice(idx, 1)">×</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Sampling Plan Table -->
+        <div style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="font-size: 1.1rem; margin: 0; font-family: var(--font-heading);">
+              5. SAMPLING PLANS (<span x-text="doc.sampling ? doc.sampling.length : 0"></span>)
+            </h3>
+            <button type="button" class="btn btn-outline btn-sm" @click="addSampling()">+ Add Sampling Row</button>
+          </div>
+
+          <table class="table" style="width: 100%; font-size: 0.85rem; margin-top: 0.5rem;">
+            <thead>
+              <tr style="background: var(--snm-paper);">
+                <th>Basis</th>
+                <th>Purpose</th>
+                <th>Lot Range</th>
+                <th>Sample Size</th>
+                <th>Accept No</th>
+                <th style="width: 30px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(s, idx) in doc.sampling" :key="idx">
+                <tr>
+                  <td>
+                    <input type="text" class="input" x-model="s.basis" placeholder="yards / rolls" style="width: 100%;">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="s.purpose" placeholder="Inspection" style="width: 100%;">
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                      <input type="number" class="input mono" x-model="s.lot_from" placeholder="0" style="width: 50%;">
+                      <span>-</span>
+                      <input type="number" class="input mono" x-model="s.lot_to" placeholder="1200" style="width: 50%;">
+                    </div>
+                  </td>
+                  <td>
+                    <input type="number" class="input mono" x-model="s.sample_size" placeholder="32" style="width: 100%;">
+                  </td>
+                  <td>
+                    <input type="number" class="input mono" x-model="s.accept_number" placeholder="0" style="width: 100%;">
+                  </td>
+                  <td style="text-align: center;">
+                    <button type="button" style="color: var(--snm-fail); border: none; background: none; cursor: pointer;" @click="doc.sampling.splice(idx, 1)">×</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- View 2: Raw JSON Editor -->
+      <div x-show="activeView === 'json'" style="height: 100%;">
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">
+          Edit the JSON representation directly. Any changes will immediately update the database loader payload.
+        </p>
+        <textarea 
+          class="input mono" 
+          x-model="rawJson" 
+          @input="syncFromJson()"
+          style="width: 100%; height: 68vh; font-size: 0.8rem; line-height: 1.4; background: #fafafa; white-space: pre;"
+        ></textarea>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Hidden Form for Final Submission -->
+  <form id="specSubmitForm" method="POST" action="/skus/{{ sku.id }}/spec-review/{{ upload.id }}">
+    <input type="hidden" name="relationship" :value="relationship">
+    <input type="hidden" name="spec_json" :value="JSON.stringify(doc)">
+  </form>
+
+</div>
+
+<style>
+  .input-amber {
+    background-color: #FFF8E1 !important;
+    border: 1px solid #FFD54F !important;
+  }
+</style>
+
+<script>
+function specReviewApp() {
+  const initialData = {{ spec_data|tojson }};
+  if (!initialData.specification) {
+    initialData.specification = {
+      spec_no: "{{ sku.sku_code }}-SPEC",
+      revision: "A",
+      title: "Specification for {{ sku.sku_code }}"
+    };
+  }
+  if (!initialData.variants) initialData.variants = [];
+  if (!initialData.requirements) initialData.requirements = [];
+  if (!initialData.defects) initialData.defects = [];
+  if (!initialData.sampling) initialData.sampling = [];
+
+  return {
+    activeView: 'form',
+    relationship: '{{ relationship }}' || 'primary',
+    doc: initialData,
+    rawJson: JSON.stringify(initialData, null, 2),
+
+    syncToJson() {
+      this.rawJson = JSON.stringify(this.doc, null, 2);
+    },
+
+    syncFromJson() {
+      try {
+        this.doc = JSON.parse(this.rawJson);
+      } catch (e) {
+        // Wait for valid JSON
+      }
+    },
+
+    addVariant() {
+      this.doc.variants.push({
+        key: 'T' + (this.doc.variants.length + 1),
+        designation: 'Type ' + (this.doc.variants.length + 1),
+        class: '1',
+        description: '',
+        sort_order: this.doc.variants.length + 1
+      });
+      this.syncToJson();
+    },
+
+    addRequirement() {
+      this.doc.requirements.push({
+        parameter: 'Breaking strength',
+        unit: 'lb',
+        limit_type: 'minimum',
+        spec_value: 1000,
+        tolerance: null,
+        variant_keys: ['ALL'],
+        test_method: 'ASTM D3774',
+        is_critical: false,
+        sort_order: this.doc.requirements.length + 1
+      });
+      this.syncToJson();
+    },
+
+    addDefect() {
+      this.doc.defects.push({
+        examine: 'Visual examination',
+        defect: 'Cut, hole, tear',
+        classification: 'Major-101',
+        clause_ref: 'TABLE VI'
+      });
+      this.syncToJson();
+    },
+
+    addSampling() {
+      this.doc.sampling.push({
+        basis: 'yards',
+        purpose: 'Inspection',
+        lot_from: 0,
+        lot_to: 1200,
+        sample_size: 32,
+        accept_number: 0
+      });
+      this.syncToJson();
+    },
+
+    submitSpec() {
+      if (!this.doc.specification.spec_no || !this.doc.specification.title) {
+        alert('Please provide a Specification Number and Title.');
+        return;
+      }
+      this.syncToJson();
+      document.getElementById('specSubmitForm').submit();
+    }
+  };
+}
+</script>
+{% endblock %}

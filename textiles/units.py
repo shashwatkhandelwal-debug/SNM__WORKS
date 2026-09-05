@@ -1,5 +1,5 @@
 """
-textiles/units.py — Textile Unit Conversions
+textiles/units.py -- Textile Unit Conversions
 Pure calculation library with exact scientific conversion constants.
 
 Standard Reference Constants:

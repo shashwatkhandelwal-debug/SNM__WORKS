@@ -1,5 +1,5 @@
 """
-Tests for Test Certificate PDF & Conformance Module — SNM Works
+Tests for Test Certificate PDF & Conformance Module -- SNM Works
 =============================================================================
 1. End-to-end certificate generation and ReportLab PDF streaming.
 2. Hard Quality Gating:

@@ -1,5 +1,5 @@
 """
-textiles/fabric.py — Broad Technical Fabrics Calculations
+textiles/fabric.py -- Broad Technical Fabrics Calculations
 Pure calculation library for broad woven fabrics.
 
 Formulas:

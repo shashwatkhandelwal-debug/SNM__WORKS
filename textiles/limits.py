@@ -1,5 +1,5 @@
 """
-textiles/limits.py — Verdict Logic for the Four Limit Kinds
+textiles/limits.py -- Verdict Logic for the Four Limit Kinds
 Pure verdict evaluation against engineering and standard specifications.
 
 The Four Limit Kinds:

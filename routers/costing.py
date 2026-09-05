@@ -1,5 +1,5 @@
 """
-Costing Router — SNM Works
+Costing Router -- SNM Works
 =============================================================================
 Product Costing, Raw Material Conversion, Process Overheads, and Executive Sign-off.
 
@@ -55,7 +55,7 @@ async def list_costing(
     user: Dict[str, Any] = Depends(require("costing", "read")),
 ):
     """
-    GET /costing — Executive register of job cost sheets.
+    GET /costing -- Executive register of job cost sheets.
     """
     query = """
         SELECT 
@@ -176,7 +176,7 @@ async def new_costing_form(
     user: Dict[str, Any] = Depends(require("costing", "create")),
 ):
     """
-    GET /costing/new — Cost sheet preparation form with auto-populating job details.
+    GET /costing/new -- Cost sheet preparation form with auto-populating job details.
     """
     # Find active jobs without existing cost sheets
     available_jobs = await conn.fetch(
@@ -246,7 +246,7 @@ async def create_costing(
     user: Dict[str, Any] = Depends(require("costing", "create")),
 ):
     """
-    POST /costing — Creates a new draft cost sheet for a job.
+    POST /costing -- Creates a new draft cost sheet for a job.
     """
     creator_id = user.get("id")
     if not creator_id:
@@ -306,7 +306,7 @@ async def costing_detail(
     user: Dict[str, Any] = Depends(require("costing", "read")),
 ):
     """
-    GET /costing/{job_id} — Financial cost sheet breakdown and review.
+    GET /costing/{job_id} -- Financial cost sheet breakdown and review.
     """
     row = await conn.fetchrow(
         """
@@ -425,7 +425,7 @@ async def edit_costing_form(
     user: Dict[str, Any] = Depends(require("costing", "update")),
 ):
     """
-    GET /costing/{job_id}/edit — Edit parameters of a draft cost sheet.
+    GET /costing/{job_id}/edit -- Edit parameters of a draft cost sheet.
     """
     row = await conn.fetchrow(
         """
@@ -506,7 +506,7 @@ async def update_costing(
     user: Dict[str, Any] = Depends(require("costing", "update")),
 ):
     """
-    POST /costing/{job_id} — Updates a draft cost sheet.
+    POST /costing/{job_id} -- Updates a draft cost sheet.
     """
     row = await conn.fetchrow("SELECT status FROM costing WHERE job_id = $1::uuid;", uuid.UUID(job_id))
     if not row:
@@ -572,7 +572,7 @@ async def approve_costing(
     user: Dict[str, Any] = Depends(require("costing", "approve")),
 ):
     """
-    POST /costing/{job_id}/approve — Financial sign-off and permanent freeze.
+    POST /costing/{job_id}/approve -- Financial sign-off and permanent freeze.
     Guarded by:
       1. Role check: requires costing.approve (chief_financial / chief_executive)
       2. Non-negotiable Rule 6 self-approval constraint (approved_by <> created_by)

@@ -59,7 +59,7 @@ def generate_campaign_graphic(
     font_sub_brand = _load_font(IBM_MONO_PATH, 16)
     
     draw.text((margin + 28, margin + 24), "SWADESHI NIWAR MILLS", font=font_brand, fill=COLOR_WHITE)
-    draw.text((margin + 30, margin + 68), "TECHNICAL TEXTILES • EST. KANPUR", font=font_sub_brand, fill=COLOR_GREIGE)
+    draw.text((margin + 30, margin + 68), "TECHNICAL TEXTILES * EST. KANPUR", font=font_sub_brand, fill=COLOR_GREIGE)
 
     # 3. Bottom Right: Origin and National Pride
     font_origin = _load_font(BARLOW_BOLD_PATH, 24)
@@ -70,7 +70,7 @@ def generate_campaign_graphic(
     origin_w = origin_bbox[2] - origin_bbox[0]
     draw.text((width - margin - 28 - origin_w, height - margin - 52), origin_text, font=font_origin, fill=COLOR_WHITE)
 
-    tag_text = "DEFENCE • INDUSTRIAL • EXPORT"
+    tag_text = "DEFENCE * INDUSTRIAL * EXPORT"
     tag_bbox = draw.textbbox((0, 0), tag_text, font=font_mono_tag)
     tag_w = tag_bbox[2] - tag_bbox[0]
     draw.text((width - margin - 28 - tag_w, height - margin - 76), tag_text, font=font_mono_tag, fill=COLOR_GREIGE)

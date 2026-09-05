@@ -115,7 +115,7 @@ async def get_specification_detail(
 
     # 2. Fetch Type Variants (spec_variants)
     variant_rows = await conn.fetch(
-        "SELECT * FROM spec_variants WHERE spec_id = $1 ORDER BY variant_code ASC;",
+        "SELECT * FROM spec_variants WHERE spec_id = $1 ORDER BY sort_order ASC, designation ASC;",
         actual_spec_id,
     )
     variants = [dict(r) for r in variant_rows]
@@ -125,8 +125,8 @@ async def get_specification_detail(
         """
         SELECT 
             r.*,
-            v.variant_code AS variant_code,
-            v.name AS variant_name
+            v.designation AS variant_designation,
+            v.class AS variant_class
         FROM spec_requirements r
         LEFT JOIN spec_variants v ON v.id = r.variant_id
         WHERE r.spec_id = $1
@@ -194,10 +194,10 @@ async def get_specification_detail(
 async def create_specification_variant(
     request: Request,
     spec_id: str,
-    variant_code: str = Form(...),
-    name: str = Form(...),
+    designation: str = Form(...),
     class_val: Optional[str] = Form(None, alias="class"),
     description: Optional[str] = Form(None),
+    sort_order: int = Form(0),
     conn=Depends(get_db),
     user=Depends(require("specifications", "create")),
 ):
@@ -217,16 +217,14 @@ async def create_specification_variant(
 
     await conn.execute(
         """
-        INSERT INTO spec_variants (spec_id, variant_code, name, class, description, status, created_by)
-        VALUES ($1, $2, $3, $4, $5, 'Draft', $6)
-        ON CONFLICT (spec_id, variant_code) 
-        DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description;
+        INSERT INTO spec_variants (spec_id, designation, class, description, sort_order, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6);
         """,
         spec_uuid,
-        variant_code.strip(),
-        name.strip(),
+        designation.strip(),
         class_val.strip() if class_val else None,
         description.strip() if description else None,
+        sort_order,
         user_uuid,
     )
 

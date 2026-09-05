@@ -1,5 +1,5 @@
 """
-textiles — Pure Textile Calculation and Units Library for Swadeshi Niwar Mills
+textiles -- Pure Textile Calculation and Units Library for Swadeshi Niwar Mills
 No framework or database imports. All mathematical calculations are pure functions.
 """
 

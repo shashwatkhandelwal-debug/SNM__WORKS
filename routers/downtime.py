@@ -1,5 +1,5 @@
 """
-Downtime Router — SNM Works
+Downtime Router -- SNM Works
 =============================================================================
 Operational telemetry and shop-floor machine stoppage logging.
 
@@ -113,7 +113,7 @@ async def list_downtime(
     user: Dict[str, Any] = Depends(require("downtime", "read")),
 ):
     """
-    GET /downtime — Register of shop-floor machine stoppages and telemetry metrics.
+    GET /downtime -- Register of shop-floor machine stoppages and telemetry metrics.
     """
     query = """
         SELECT 
@@ -186,8 +186,8 @@ async def list_downtime(
     machine_rows = await conn.fetch("SELECT value FROM masters WHERE list_name = 'machines' ORDER BY sort_order;")
     machines = [m["value"] for m in machine_rows]
 
-    top_reason = max(reason_counts, key=reason_counts.get) if reason_counts else "—"
-    top_machine = max(machine_counts, key=machine_counts.get) if machine_counts else "—"
+    top_reason = max(reason_counts, key=reason_counts.get) if reason_counts else "--"
+    top_machine = max(machine_counts, key=machine_counts.get) if machine_counts else "--"
 
     user_info = {
         "id": user.get("id"),
@@ -232,7 +232,7 @@ async def new_downtime_form(
     user: Dict[str, Any] = Depends(require("downtime", "create")),
 ):
     """
-    GET /downtime/new — Shop-floor downtime log entry form.
+    GET /downtime/new -- Shop-floor downtime log entry form.
     """
     next_log_no = await get_next_log_no(conn)
 
@@ -293,7 +293,7 @@ async def create_downtime(
     user: Dict[str, Any] = Depends(require("downtime", "create")),
 ):
     """
-    POST /downtime — Creates a new downtime stoppage log with race-safe sequence numbering.
+    POST /downtime -- Creates a new downtime stoppage log with race-safe sequence numbering.
     """
     operator_id = user.get("id")
     if not operator_id:
@@ -370,7 +370,7 @@ async def view_downtime_detail(
     user: Dict[str, Any] = Depends(require("downtime", "read")),
 ):
     """
-    GET /downtime/{downtime_id} — View single stoppage telemetry record.
+    GET /downtime/{downtime_id} -- View single stoppage telemetry record.
     """
     row = await conn.fetchrow(
         """
@@ -437,7 +437,7 @@ async def edit_downtime_form(
     user: Dict[str, Any] = Depends(require("downtime", "update")),
 ):
     """
-    GET /downtime/{downtime_id}/edit — Form to edit a recorded downtime log.
+    GET /downtime/{downtime_id}/edit -- Form to edit a recorded downtime log.
     Guarded by downtime.update (production_manager, maintenance_officer, chief_operating).
     """
     row = await conn.fetchrow(
@@ -506,7 +506,7 @@ async def update_downtime(
     user: Dict[str, Any] = Depends(require("downtime", "update")),
 ):
     """
-    POST /downtime/{downtime_id}/update — Updates downtime record.
+    POST /downtime/{downtime_id}/update -- Updates downtime record.
     """
     if minutes < 0:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Downtime minutes cannot be negative.")

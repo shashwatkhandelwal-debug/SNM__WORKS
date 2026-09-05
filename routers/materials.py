@@ -11,6 +11,7 @@ from auth.dependencies import current_user, require
 from auth.jwt import decode_access_token
 from auth.middleware import set_rls_claims
 import database
+from services.tally_gateway import sync_purchase_voucher_for_grn
 
 logger = logging.getLogger("snm.materials")
 
@@ -48,7 +49,7 @@ async def materials_dashboard(
     tab: str = Query("lots"),
 ):
     """
-    GET /materials — Materials & Inventory Dashboard.
+    GET /materials -- Materials & Inventory Dashboard.
     Shows inventory metrics, yarn lots register, recent GRNs, and material issues.
     """
     try:
@@ -211,7 +212,7 @@ async def materials_dashboard(
 @router.get("/materials/grn/new", response_class=HTMLResponse)
 async def new_grn_form(request: Request):
     """
-    GET /materials/grn/new — Render multi-item Goods Receipt Note entry form.
+    GET /materials/grn/new -- Render multi-item Goods Receipt Note entry form.
     """
     try:
         claims = await get_user_claims(request)
@@ -272,7 +273,7 @@ async def create_grn(
     user=Depends(require("stock", "create")),
 ):
     """
-    POST /materials/grn — Atomically creates 1 GRN receiving header and N linked yarn_lots.
+    POST /materials/grn -- Atomically creates 1 GRN receiving header and N linked yarn_lots.
     Restricted to stock.create (store_keeper, chief_supply_chain) or purchase.create.
     """
     uid = user.get("id") or user.get("sub") if isinstance(user, dict) else getattr(user, "id", None)
@@ -357,13 +358,19 @@ async def create_grn(
             user_uuid,
         )
 
+    # 4. Trigger automated Tally Purchase Voucher generation & sync logging
+    try:
+        await sync_purchase_voucher_for_grn(conn, grn_id, user_uuid)
+    except Exception as sync_err:
+        logger.warning(f"Tally purchase sync hook error: {sync_err}")
+
     return RedirectResponse(url="/materials", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/materials/yarn-lots/{lot_id}", response_class=HTMLResponse)
 async def get_yarn_lot_detail(request: Request, lot_id: str):
     """
-    GET /materials/yarn-lots/{lot_id} — Yarn lot detail, incoming tests, QA release, and issue history.
+    GET /materials/yarn-lots/{lot_id} -- Yarn lot detail, incoming tests, QA release, and issue history.
     """
     try:
         claims = await get_user_claims(request)
@@ -521,7 +528,7 @@ async def release_yarn_lot(
     user=Depends(require("tests", "approve")),
 ):
     """
-    POST /materials/yarn-lots/{lot_id}/release — QA Release of yarn lot (Quarantine -> Approved / Rejected).
+    POST /materials/yarn-lots/{lot_id}/release -- QA Release of yarn lot (Quarantine -> Approved / Rejected).
     Enforces Segregation of Duties and Quality Gate:
     - tested_by MUST be present before releasing to 'Approved'.
     - At least one linked lab_test with verdict = 'PASS' is strictly required.
@@ -604,7 +611,7 @@ async def new_material_issue_form(
     lot_id: Optional[str] = Query(None),
 ):
     """
-    GET /materials/issue/new — Form to issue yarn lot stock against a production Job Card.
+    GET /materials/issue/new -- Form to issue yarn lot stock against a production Job Card.
     """
     try:
         claims = await get_user_claims(request)
@@ -684,7 +691,7 @@ async def create_material_issue(
     user=Depends(require("stock", "create")),
 ):
     """
-    POST /materials/issue — Issues material from an Approved yarn lot to a Job Card.
+    POST /materials/issue -- Issues material from an Approved yarn lot to a Job Card.
     Enforces atomic serialization and quantity checks via process_job_material_issue() trigger.
     """
     try:
@@ -737,7 +744,7 @@ async def create_material_issue(
 @router.get("/suppliers", response_class=HTMLResponse)
 async def list_suppliers(request: Request):
     """
-    GET /suppliers — Master suppliers directory.
+    GET /suppliers -- Master suppliers directory.
     """
     try:
         claims = await get_user_claims(request)
@@ -785,7 +792,7 @@ async def create_supplier(
     user=Depends(require("purchase", "create")),
 ):
     """
-    POST /suppliers — Adds a new supplier. Restricted to purchase.create.
+    POST /suppliers -- Adds a new supplier. Restricted to purchase.create.
     """
     await conn.execute(
         """

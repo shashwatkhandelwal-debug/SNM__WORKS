@@ -223,7 +223,7 @@ async def list_constructions(
     user: Dict[str, Any] = Depends(require("constructions", "read")),
 ):
     """
-    GET /constructions — Browse engineering construction specifications.
+    GET /constructions -- Browse engineering construction specifications.
     """
     query = """
         SELECT 
@@ -341,7 +341,7 @@ async def calculate_live_metrics(
     user: Dict[str, Any] = Depends(current_user),
 ):
     """
-    POST /constructions/calculate — HTMX endpoint for live engineering recalculations.
+    POST /constructions/calculate -- HTMX endpoint for live engineering recalculations.
     """
     form_data = {
         "family": family,
@@ -382,7 +382,7 @@ async def new_construction_form(
     user: Dict[str, Any] = Depends(require("constructions", "create")),
 ):
     """
-    GET /constructions/new — Create a new construction specification.
+    GET /constructions/new -- Create a new construction specification.
     """
     next_spec_no = await get_next_spec_no(conn)
     customer_rows = await conn.fetch("SELECT id::text, name FROM customers WHERE active = true ORDER BY name ASC")
@@ -471,7 +471,7 @@ async def create_construction(
     user: Dict[str, Any] = Depends(require("constructions", "create")),
 ):
     """
-    POST /constructions — Insert new construction record with collision retry.
+    POST /constructions -- Insert new construction record with collision retry.
     """
     creator_id = user.get("id")
     if not creator_id:
@@ -592,7 +592,7 @@ async def get_construction_detail(
     user: Dict[str, Any] = Depends(require("constructions", "read")),
 ):
     """
-    GET /constructions/{id} — Detailed technical specification card with live metrics.
+    GET /constructions/{id} -- Detailed technical specification card with live metrics.
     """
     try:
         const_uuid = uuid.UUID(id)
@@ -690,7 +690,7 @@ async def edit_construction_form(
     user: Dict[str, Any] = Depends(require("constructions", "update")),
 ):
     """
-    GET /constructions/{id}/edit — Form to edit parameters of a draft specification.
+    GET /constructions/{id}/edit -- Form to edit parameters of a draft specification.
     """
     try:
         const_uuid = uuid.UUID(id)
@@ -785,7 +785,7 @@ async def update_construction(
     user: Dict[str, Any] = Depends(require("constructions", "update")),
 ):
     """
-    POST /constructions/{id}/update — Update construction parameters.
+    POST /constructions/{id}/update -- Update construction parameters.
     Approval state transitions are blocked here unless user holds constructions.approve.
     """
     try:
@@ -898,7 +898,7 @@ async def approve_construction(
     user: Dict[str, Any] = Depends(require("constructions", "approve")),
 ):
     """
-    POST /constructions/{id}/approve — Formally approve an engineering construction.
+    POST /constructions/{id}/approve -- Formally approve an engineering construction.
     Guarded by constructions.approve (chief_technical).
     Enforces Segregation of Duties: Creator cannot approve their own construction.
     Enforces Physics Validation: Cover factor cannot exceed jamming limit of 28.0.

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Tally Prime Reconciliation — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+      <a href="/tally" style="font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-olive); text-decoration: none;">← TALLY DASHBOARD</a>
+      <span style="color: #999;">/</span>
+      <span class="badge badge-gray" style="font-family: var(--font-mono);">RECONCILIATION</span>
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      OPERATIONAL & FINANCIAL RECONCILIATION
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Cross-verify shop-floor Despatches and GRNs against generated Tally accounting vouchers.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/tally/logs" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      📜 Sync Logs
+    </a>
+  </div>
+</div>
+
+<!-- Honest Simulation Banner -->
+<div style="background: #FFFBEB; border: 1px solid #F59E0B; border-left: 4px solid #D97706; padding: 0.85rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #92400E;">
+  <strong>Honest System Posture:</strong> All synchronizations shown below reflect payloads logged to <code>tally_sync_log</code> via <code>StubTallyGatewayClient</code>. No live accounting ledger balances in Tally Prime are affected in this environment.
+</div>
+
+<!-- Section 1: Despatches vs Sales Vouchers -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; margin-bottom: 2rem; overflow-x: auto;">
+  <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+    <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+      1. Despatch Shipments → Sales Vouchers
+    </h2>
+  </div>
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">Despatch No</th>
+        <th style="padding: 0.75rem 1rem;">Date</th>
+        <th style="padding: 0.75rem 1rem;">Job Card & Customer</th>
+        <th style="padding: 0.75rem 1rem; text-align: right;">Quantity</th>
+        <th style="padding: 0.75rem 1rem;">Invoice Ref</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Tally Sync Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Voucher / Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if despatches %}
+        {% for d in despatches %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+            <a href="/despatch/{{ d.id }}" style="color: var(--snm-olive); text-decoration: underline;">
+              {{ d.despatch_no }}
+            </a>
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+            {{ d.despatched_on }}
+          </td>
+          <td style="padding: 0.75rem 1rem;">
+            <div>{{ d.customer_name or '—' }}</div>
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #777;">Job: {{ d.job_no }}</div>
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); text-align: right;">
+            {{ d.qty }} {{ d.unit }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono);">
+            {{ d.invoice_no or '—' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            {% if d.tally_status == 'Stubbed' %}
+              <span class="badge badge-gray">Stubbed</span>
+            {% elif d.tally_status == 'Success' %}
+              <span class="badge badge-pass">Synced</span>
+            {% elif d.tally_status == 'Failed' %}
+              <span class="badge badge-fail">Failed</span>
+            {% else %}
+              <span class="badge badge-gray" style="opacity: 0.7;">Pending</span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            {% if d.tally_log_id %}
+              <a href="/tally/logs/{{ d.tally_log_id }}" class="btn btn-xs btn-outline" style="font-family: var(--font-mono);">
+                View XML
+              </a>
+            {% else %}
+              <span style="color: #999; font-size: 0.8rem;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">
+            No despatch records found.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Section 2: GRNs vs Purchase Vouchers -->
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; overflow-x: auto;">
+  <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+    <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+      2. Material Receiving (GRN) → Purchase Vouchers
+    </h2>
+  </div>
+  <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+        <th style="padding: 0.75rem 1rem;">GRN No</th>
+        <th style="padding: 0.75rem 1rem;">Received Date</th>
+        <th style="padding: 0.75rem 1rem;">Supplier Name</th>
+        <th style="padding: 0.75rem 1rem;">Vendor Invoice</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Tally Sync Status</th>
+        <th style="padding: 0.75rem 1rem; text-align: center;">Voucher / Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if grns %}
+        {% for g in grns %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-weight: bold;">
+            {{ g.grn_no }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+            {{ g.received_date }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-weight: bold;">
+            {{ g.supplier_name }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono);">
+            {{ g.invoice_no or '—' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            {% if g.tally_status == 'Stubbed' %}
+              <span class="badge badge-gray">Stubbed</span>
+            {% elif g.tally_status == 'Success' %}
+              <span class="badge badge-pass">Synced</span>
+            {% elif g.tally_status == 'Failed' %}
+              <span class="badge badge-fail">Failed</span>
+            {% else %}
+              <span class="badge badge-gray" style="opacity: 0.7;">Pending</span>
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            {% if g.tally_log_id %}
+              <a href="/tally/logs/{{ g.tally_log_id }}" class="btn btn-xs btn-outline" style="font-family: var(--font-mono);">
+                View XML
+              </a>
+            {% else %}
+              <span style="color: #999; font-size: 0.8rem;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" style="padding: 2rem; text-align: center; color: #888;">
+            No Goods Receipt Notes found.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

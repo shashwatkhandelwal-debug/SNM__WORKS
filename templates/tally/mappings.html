@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Tally Master Data Mappings — SNM Works{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+      <a href="/tally" style="font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-olive); text-decoration: none;">← TALLY DASHBOARD</a>
+      <span style="color: #999;">/</span>
+      <span class="badge badge-gray" style="font-family: var(--font-mono);">MASTER MAPPING</span>
+    </div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; color: var(--snm-machine-black); margin: 0;">
+      TALLY MASTER DATA MAPPINGS
+    </h1>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">
+      Map customers, stock items, and suppliers to their exact Tally Prime ledger and tax names.
+    </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/tally/logs" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      📜 Sync Logs
+    </a>
+  </div>
+</div>
+
+<div x-data="{ tab: 'customers' }">
+  <!-- Tab Navigation -->
+  <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--snm-line); margin-bottom: 1.5rem;">
+    <button 
+      type="button"
+      @click="tab = 'customers'" 
+      :class="{ 'btn-primary': tab === 'customers', 'btn-outline': tab !== 'customers' }" 
+      class="btn btn-sm" 
+      style="font-family: var(--font-heading); text-transform: uppercase; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+      Customers (Ledgers)
+    </button>
+    <button 
+      type="button"
+      @click="tab = 'skus'" 
+      :class="{ 'btn-primary': tab === 'skus', 'btn-outline': tab !== 'skus' }" 
+      class="btn btn-sm" 
+      style="font-family: var(--font-heading); text-transform: uppercase; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+      SKUs (Stock Items & HSN)
+    </button>
+    <button 
+      type="button"
+      @click="tab = 'suppliers'" 
+      :class="{ 'btn-primary': tab === 'suppliers', 'btn-outline': tab !== 'suppliers' }" 
+      class="btn btn-sm" 
+      style="font-family: var(--font-heading); text-transform: uppercase; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+      Suppliers (Purchase Ledgers)
+    </button>
+  </div>
+
+  <!-- TAB 1: CUSTOMERS -->
+  <div x-show="tab === 'customers'" class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; overflow-x: auto;">
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+        Customer Ledger & GST Mappings
+      </h2>
+      <p style="font-size: 0.8rem; color: #666; margin: 0.2rem 0 0;">
+        Tally Ledger Name must match your Sundry Debtors ledger in Tally Prime. State decides IGST (interstate) vs CGST+SGST (intrastate UP).
+      </p>
+    </div>
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">Customer Name</th>
+          <th style="padding: 0.75rem 1rem;">Tally Ledger Name</th>
+          <th style="padding: 0.75rem 1rem;">GST State</th>
+          <th style="padding: 0.75rem 1rem;">GSTIN</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem; font-weight: bold;">
+            {{ c.name }}
+            {% if not c.tally_ledger_name or not c.gst_state %}
+              <span class="badge badge-fail" style="font-size: 0.7rem; margin-left: 0.35rem;">Unmapped</span>
+            {% endif %}
+          </td>
+          <form method="POST" action="/tally/mappings/customer/{{ c.id }}">
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="tally_ledger_name" 
+                value="{{ c.tally_ledger_name or '' }}" 
+                placeholder="e.g. {{ c.name }}" 
+                style="width: 100%; min-width: 180px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="gst_state" 
+                value="{{ c.gst_state or '' }}" 
+                placeholder="e.g. Uttar Pradesh, Delhi..." 
+                style="width: 100%; min-width: 140px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="gstin" 
+                value="{{ c.gstin or '' }}" 
+                placeholder="09AAAAA0000A1Z5" 
+                style="width: 100%; min-width: 150px; padding: 0.35rem 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem; text-align: center;">
+              <button type="submit" class="btn btn-xs btn-primary" style="font-family: var(--font-heading);">
+                Save
+              </button>
+            </td>
+          </form>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TAB 2: SKUS -->
+  <div x-show="tab === 'skus'" class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; overflow-x: auto; display: none;">
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+        SKU Stock Item & HSN Mappings
+      </h2>
+      <p style="font-size: 0.8rem; color: #666; margin: 0.2rem 0 0;">
+        Maps catalog SKUs to Tally Stock Item masters and HSN codes (e.g. 5806 for narrow fabrics / webbing).
+      </p>
+    </div>
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">SKU Code & Product</th>
+          <th style="padding: 0.75rem 1rem;">Tally Stock Item Name</th>
+          <th style="padding: 0.75rem 1rem;">HSN Code</th>
+          <th style="padding: 0.75rem 1rem;">Tally Unit</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in skus %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem;">
+            <div style="font-family: var(--font-mono); font-weight: bold;">{{ s.sku_code }}</div>
+            <div style="font-size: 0.8rem; color: #666;">{{ s.name or '' }}</div>
+          </td>
+          <form method="POST" action="/tally/mappings/sku/{{ s.id }}">
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="tally_stock_item_name" 
+                value="{{ s.tally_stock_item_name or '' }}" 
+                placeholder="e.g. {{ s.name or s.sku_code }}" 
+                style="width: 100%; min-width: 180px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="hsn_code" 
+                value="{{ s.hsn_code or '58063200' }}" 
+                placeholder="58063200" 
+                style="width: 100%; min-width: 120px; padding: 0.35rem 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="tally_unit" 
+                value="{{ s.tally_unit or 'MTR' }}" 
+                placeholder="MTR" 
+                style="width: 100%; min-width: 80px; padding: 0.35rem 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem; text-align: center;">
+              <button type="submit" class="btn btn-xs btn-primary" style="font-family: var(--font-heading);">
+                Save
+              </button>
+            </td>
+          </form>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TAB 3: SUPPLIERS -->
+  <div x-show="tab === 'suppliers'" class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; overflow-x: auto; display: none;">
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+        Supplier Ledger & GST Mappings
+      </h2>
+      <p style="font-size: 0.8rem; color: #666; margin: 0.2rem 0 0;">
+        Maps yarn and chemical vendors to Tally Sundry Creditor ledger accounts.
+      </p>
+    </div>
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">Supplier Name</th>
+          <th style="padding: 0.75rem 1rem;">Tally Ledger Name</th>
+          <th style="padding: 0.75rem 1rem;">GST State</th>
+          <th style="padding: 0.75rem 1rem;">GSTIN</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sp in suppliers %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem; font-weight: bold;">
+            {{ sp.name }}
+          </td>
+          <form method="POST" action="/tally/mappings/supplier/{{ sp.id }}">
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="tally_ledger_name" 
+                value="{{ sp.tally_ledger_name or '' }}" 
+                placeholder="e.g. {{ sp.name }}" 
+                style="width: 100%; min-width: 180px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="gst_state" 
+                value="{{ sp.gst_state or '' }}" 
+                placeholder="e.g. Gujarat, Maharashtra..." 
+                style="width: 100%; min-width: 140px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+              <input 
+                type="text" 
+                name="gstin" 
+                value="{{ sp.gstin or '' }}" 
+                placeholder="24AAAAA0000A1Z5" 
+                style="width: 100%; min-width: 150px; padding: 0.35rem 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+            </td>
+            <td style="padding: 0.5rem 1rem; text-align: center;">
+              <button type="submit" class="btn btn-xs btn-primary" style="font-family: var(--font-heading);">
+                Save
+              </button>
+            </td>
+          </form>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

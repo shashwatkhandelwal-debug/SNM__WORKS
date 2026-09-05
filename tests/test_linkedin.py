@@ -23,7 +23,7 @@ def test_token_encryption_and_decryption():
 async def test_disconnected_linkedin_publisher_returns_error_message():
     """
     Test 2: When no LinkedIn token is stored, publisher returns clear error:
-    'LinkedIn not connected — go to Settings to connect your account'
+    'LinkedIn not connected -- go to Settings to connect your account'
     """
     # Ensure memory store has no LinkedIn token
     MEM_PLATFORM_CONNECTIONS.pop("linkedin", None)
@@ -40,7 +40,7 @@ async def test_disconnected_linkedin_publisher_returns_error_message():
     result = await publish_to_linkedin(sample_post, conn=None)
     assert result["status"] == "error"
     assert result["platform"] == "linkedin"
-    assert "LinkedIn not connected — go to Settings to connect your account" in result["error"]
+    assert "LinkedIn not connected -- go to Settings to connect your account" in result["error"]
 
 
 @pytest.mark.asyncio
@@ -110,11 +110,10 @@ async def test_settings_page_and_api_key_saving(dev_client):
 @pytest.mark.asyncio
 async def test_linkedin_oauth_redirect_scopes(dev_client):
     """
-    Test 5: GET /auth/linkedin redirects with organization scopes.
+    Test 5: GET /auth/linkedin redirects with personal member publishing scopes.
     """
     res = await dev_client.get("/auth/linkedin", follow_redirects=False)
     assert res.status_code == 303
     location = res.headers["location"]
     assert "https://www.linkedin.com/oauth/v2/authorization" in location
-    assert "w_organization_social" in location
-    assert "r_organization_social" in location
+    assert "w_member_social" in location

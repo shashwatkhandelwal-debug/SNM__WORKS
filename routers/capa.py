@@ -73,7 +73,7 @@ async def list_capas(
     user: Dict[str, Any] = Depends(require("capa", "read")),
 ):
     """
-    GET /capa — List all CAPA records ordered by raised_on DESC, capa_no DESC.
+    GET /capa -- List all CAPA records ordered by raised_on DESC, capa_no DESC.
     """
     user_info = {
         "id": user.get("id"),
@@ -175,7 +175,7 @@ async def new_capa_form(
     user: Dict[str, Any] = Depends(require("capa", "create")),
 ):
     """
-    GET /capa/new — Renders CAPA creation form.
+    GET /capa/new -- Renders CAPA creation form.
     """
     user_info = {
         "id": user.get("id"),
@@ -248,7 +248,7 @@ async def create_capa(
     user: Dict[str, Any] = Depends(require("capa", "create")),
 ):
     """
-    POST /capa — Create a new CAPA record with sequence retry on collisions.
+    POST /capa -- Create a new CAPA record with sequence retry on collisions.
     """
     user_id = user.get("id")
     if not user_id:
@@ -367,7 +367,7 @@ async def get_capa_detail(
     user: Dict[str, Any] = Depends(require("capa", "read")),
 ):
     """
-    GET /capa/{id} — View single CAPA record with all audit/link details.
+    GET /capa/{id} -- View single CAPA record with all audit/link details.
     """
     try:
         capa_uuid = uuid.UUID(id)
@@ -458,7 +458,7 @@ async def edit_capa_form(
     user: Dict[str, Any] = Depends(require("capa", "update")),
 ):
     """
-    GET /capa/{id}/edit — Form to edit problem, root cause, actions, due date, status.
+    GET /capa/{id}/edit -- Form to edit problem, root cause, actions, due date, status.
     """
     try:
         capa_uuid = uuid.UUID(id)
@@ -547,7 +547,7 @@ async def update_capa(
     user: Dict[str, Any] = Depends(require("capa", "update")),
 ):
     """
-    POST /capa/{id}/update — Update CAPA details and lifecycle status.
+    POST /capa/{id}/update -- Update CAPA details and lifecycle status.
     """
     try:
         capa_uuid = uuid.UUID(id)
@@ -631,7 +631,7 @@ async def verify_and_close_capa(
     user: Dict[str, Any] = Depends(require("capa", "approve")),
 ):
     """
-    POST /capa/{id}/verify — Formally verify effectiveness and close CAPA.
+    POST /capa/{id}/verify -- Formally verify effectiveness and close CAPA.
     Enforces segregation of duties: verifier cannot be the person who raised the CAPA.
     """
     try:

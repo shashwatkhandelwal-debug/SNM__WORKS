@@ -539,7 +539,7 @@ async def generate_sku_ai_image(
         return HTMLResponse(
             f"""
             <div class="alert alert-pass" style="margin-bottom: 0.5rem;">
-                ✓ AI Hero Image Generated & Saved Successfully
+                [x] AI Hero Image Generated & Saved Successfully
             </div>
             <img src="/storage/sku-images/{photo_key}" alt="AI Branded Webbing" style="width: 100%; border-radius: 4px; border: 1px solid var(--snm-line); margin-bottom: 0.5rem;" />
             """
