@@ -385,16 +385,14 @@ async def create_job(
     delivery_due: Optional[str] = Form(None),
     status: str = Form("Planned"),
     remarks: Optional[str] = Form(None),
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("jobs", "create")),
 ):
     """
     POST /jobs -- insert a new job. Auto-generate job_no as SNM/26-27/ followed by 4-digit sequence number.
     Redirect to /jobs/{id} on success.
     """
-    try:
-        claims = await get_user_claims(request)
-        user_id = claims.get("sub")
-    except HTTPException:
-        return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
+    user_id = user.get("id")
 
     if qty_ordered <= 0:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Quantity ordered must be greater than 0.")
@@ -430,77 +428,80 @@ async def create_job(
     resolved_customer_id = None
     resolved_customer_name = customer_name or ""
 
-    if database.pool is not None:
+    if conn is not None:
         try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, claims)
+            # 1. Generate sequence using exact query
+            generated_job_no = await get_next_job_no(conn)
 
-                    # 1. Generate sequence using exact query
-                    generated_job_no = await get_next_job_no(conn)
+            # 2. Resolve customer
+            if customer_id and customer_id.strip():
+                try:
+                    resolved_customer_id = uuid.UUID(customer_id.strip())
+                except Exception:
+                    pass
+                try:
+                    cust_row = await conn.fetchrow("SELECT id, name FROM customers WHERE id::text = $1", customer_id.strip())
+                    if cust_row:
+                        resolved_customer_name = cust_row["name"]
+                except Exception:
+                    pass
 
-                    # 2. Resolve customer
-                    if customer_id and customer_id.strip():
-                        try:
-                            cust_row = await conn.fetchrow("SELECT id, name FROM customers WHERE id::text = $1", customer_id.strip())
-                            if cust_row:
-                                resolved_customer_id = cust_row["id"]
-                                resolved_customer_name = cust_row["name"]
-                        except Exception:
-                            pass
-
-                    if not resolved_customer_id and customer_name and customer_name.strip():
-                        cust_match = await conn.fetchrow("SELECT id, name FROM customers WHERE name ILIKE $1", customer_name.strip())
-                        if cust_match:
-                            resolved_customer_id = cust_match["id"]
-                            resolved_customer_name = cust_match["name"]
-                        else:
-                            new_c_id = str(uuid.uuid4())
-                            await conn.execute(
-                                "INSERT INTO customers (id, name, active) VALUES ($1::uuid, $2, true) ON CONFLICT (name) DO NOTHING",
-                                new_c_id,
-                                customer_name.strip(),
-                            )
-                            resolved_customer_id = uuid.UUID(new_c_id)
-                            resolved_customer_name = customer_name.strip()
-
-                    # 3. Insert into jobs table
-                    await conn.execute(
-                        """
-                        INSERT INTO jobs (
-                            id, job_no, customer_id, po_ref, po_reference, po_date,
-                            agreed_rate, agreed_qty, agreed_unit, product, spec, width_mm,
-                            colour, qty_ordered, unit, qty_produced, machine,
-                            delivery_due, status, remarks, created_by
-                        ) VALUES (
-                            $1::uuid, $2, $3, $4, $5, $6,
-                            $7, $8, $9, $10, $11, $12,
-                            $13, $14, $15, $16, $17,
-                            $18, $19, $20, $21::uuid
+            if not resolved_customer_id and customer_name and customer_name.strip():
+                try:
+                    cust_match = await conn.fetchrow("SELECT id, name FROM customers WHERE name ILIKE $1", customer_name.strip())
+                    if cust_match:
+                        resolved_customer_id = cust_match["id"]
+                        resolved_customer_name = cust_match["name"]
+                    else:
+                        new_c_id = str(uuid.uuid4())
+                        await conn.execute(
+                            "INSERT INTO customers (id, name, active) VALUES ($1::uuid, $2, true) ON CONFLICT (name) DO NOTHING",
+                            new_c_id,
+                            customer_name.strip(),
                         )
-                        """,
-                        new_job_id,
-                        generated_job_no,
-                        resolved_customer_id,
-                        clean_po_ref,
-                        clean_po_reference,
-                        parsed_po_date,
-                        clean_agreed_rate,
-                        clean_agreed_qty,
-                        clean_agreed_unit,
-                        clean_product,
-                        clean_spec,
-                        width_mm,
-                        clean_colour,
-                        qty_ordered,
-                        clean_unit,
-                        qty_produced,
-                        clean_machine,
-                        parsed_due_date,
-                        clean_status,
-                        clean_remarks,
-                        user_id,
-                    )
+                        resolved_customer_id = uuid.UUID(new_c_id)
+                        resolved_customer_name = customer_name.strip()
+                except Exception:
+                    # If RLS prevents inline customer creation for role, proceed without blocking job creation
+                    pass
+
+            # 3. Insert into jobs table
+            await conn.execute(
+                """
+                INSERT INTO jobs (
+                    id, job_no, customer_id, po_ref, po_reference, po_date,
+                    agreed_rate, agreed_qty, agreed_unit, product, spec, width_mm,
+                    colour, qty_ordered, unit, qty_produced, machine,
+                    delivery_due, status, remarks, created_by
+                ) VALUES (
+                    $1::uuid, $2, $3, $4, $5, $6,
+                    $7, $8, $9, $10, $11, $12,
+                    $13, $14, $15, $16, $17,
+                    $18, $19, $20, $21::uuid
+                )
+                """,
+                new_job_id,
+                generated_job_no,
+                resolved_customer_id,
+                clean_po_ref,
+                clean_po_reference,
+                parsed_po_date,
+                clean_agreed_rate,
+                clean_agreed_qty,
+                clean_agreed_unit,
+                clean_product,
+                clean_spec,
+                width_mm,
+                clean_colour,
+                qty_ordered,
+                clean_unit,
+                qty_produced,
+                clean_machine,
+                parsed_due_date,
+                clean_status,
+                clean_remarks,
+                user_id,
+            )
         except Exception as exc:
             logger.error(f"Error inserting job in database: {exc}")
             if not generated_job_no:

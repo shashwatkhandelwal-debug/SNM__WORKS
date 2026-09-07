@@ -1,0 +1,31 @@
+<div class="card" style="padding: 1.25rem; background: var(--snm-paper); border: 1px solid var(--snm-line); margin-top: 1rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem;">
+    <span class="badge badge-olive" style="font-size: 0.75rem;">CAMPAIGN PREVIEW</span>
+    <span class="mono" style="font-size: 0.8rem; color: #666;">{{ occasion }}</span>
+  </div>
+  
+  <h3 style="font-size: 1.15rem; margin: 0.25rem 0; color: var(--snm-machine-black);">{{ headline }}</h3>
+  <p style="font-size: 0.9rem; color: #333; line-height: 1.4; margin-bottom: 1rem;">{{ body }}</p>
+
+  {% if featured_sku %}
+  <div style="background: var(--snm-greige); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; margin-bottom: 1rem; border: 1px solid var(--snm-line);">
+    <strong>Featured Product:</strong> {{ featured_sku.sku_code }} — {{ featured_sku.title }} ({{ featured_sku.family }})
+  </div>
+  {% endif %}
+
+  {% if post_draft %}
+  <div style="margin-top: 0.75rem;">
+    <div style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--snm-olive-dark); margin-bottom: 0.5rem;">Platform Drafts</div>
+    {% if post_draft is mapping %}
+      {% for plat, copy in post_draft.items() %}
+      <div style="margin-bottom: 0.5rem; font-size: 0.85rem;">
+        <span class="badge badge-outline" style="font-size: 0.7rem; text-transform: capitalize;">{{ plat }}</span>
+        <div class="mono" style="font-size: 0.8rem; background: #fff; padding: 0.5rem; border: 1px solid var(--snm-line); margin-top: 0.25rem; white-space: pre-wrap;">{{ copy }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="mono" style="font-size: 0.8rem; background: #fff; padding: 0.5rem; border: 1px solid var(--snm-line); white-space: pre-wrap;">{{ post_draft }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

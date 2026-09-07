@@ -458,7 +458,8 @@ Yash is on Windows with PowerShell. All commands must work in PowerShell.
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8080
+# or: python main.py
 pytest
 ```
 

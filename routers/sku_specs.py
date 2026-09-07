@@ -214,7 +214,11 @@ async def spec_review_view(
     if not sku_row:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="SKU not found.")
 
-    upload_uuid = uuid.UUID(upload_id)
+    try:
+        upload_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Spec upload record not found.")
+
     upload_row = await conn.fetchrow("SELECT * FROM spec_pdf_uploads WHERE id = $1;", upload_uuid)
     if not upload_row:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Spec upload record not found.")
@@ -332,7 +336,11 @@ async def stream_spec_pdf(
     """
     Streams raw PDF bytes for embedded iframe viewing in the Spec Review UI.
     """
-    upload_uuid = uuid.UUID(upload_id)
+    try:
+        upload_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="PDF upload record not found.")
+
     row = await conn.fetchrow("SELECT storage_path, original_filename FROM spec_pdf_uploads WHERE id = $1;", upload_uuid)
     if not row:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="PDF upload record not found.")
@@ -365,7 +373,11 @@ async def verify_spec_pdf_hash(
     """
     Recomputes physical file SHA-256 hashes and verifies database hash integrity and SHA-256 audit chain.
     """
-    upload_uuid = uuid.UUID(upload_id)
+    try:
+        upload_uuid = uuid.UUID(upload_id)
+    except ValueError:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Upload record not found.")
+
     try:
         res = await verify_upload_integrity(conn, upload_uuid)
     except Exception as exc:

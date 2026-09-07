@@ -86,3 +86,10 @@ async def health():
     Health check endpoint returning application status.
     """
     return {"status": "ok"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    from config import settings
+
+    uvicorn.run("main:app", host=settings.app_host, port=settings.app_port, reload=True)

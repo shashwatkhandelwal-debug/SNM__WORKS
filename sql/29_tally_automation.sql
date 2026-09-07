@@ -109,10 +109,10 @@ CREATE POLICY tally_sync_log_insert ON tally_sync_log FOR INSERT
 CREATE POLICY tally_sync_log_update ON tally_sync_log FOR UPDATE
   USING (auth_can('tally', 'update') OR auth_can('tally', 'create'));
 
--- Additive policies allowing tally roles to read and update master mapping fields
+-- Additive policies allowing tally roles and release actors to read master mapping fields
 DROP POLICY IF EXISTS customers_tally_read ON customers;
 CREATE POLICY customers_tally_read ON customers FOR SELECT
-  USING (auth_can('tally', 'read'));
+  USING (auth_can('customers', 'read') OR auth_can('tally', 'read') OR auth_can('despatch', 'approve'));
 
 DROP POLICY IF EXISTS customers_tally_update ON customers;
 CREATE POLICY customers_tally_update ON customers FOR UPDATE
@@ -121,7 +121,7 @@ CREATE POLICY customers_tally_update ON customers FOR UPDATE
 
 DROP POLICY IF EXISTS skus_tally_read ON skus;
 CREATE POLICY skus_tally_read ON skus FOR SELECT
-  USING (auth_can('tally', 'read'));
+  USING (auth_can('skus', 'read') OR auth_can('tally', 'read') OR auth_can('despatch', 'approve'));
 
 DROP POLICY IF EXISTS skus_tally_update ON skus;
 CREATE POLICY skus_tally_update ON skus FOR UPDATE
@@ -130,7 +130,7 @@ CREATE POLICY skus_tally_update ON skus FOR UPDATE
 
 DROP POLICY IF EXISTS suppliers_tally_read ON suppliers;
 CREATE POLICY suppliers_tally_read ON suppliers FOR SELECT
-  USING (auth_can('tally', 'read'));
+  USING (auth_can('purchase', 'read') OR auth_can('tally', 'read') OR auth_can('stock', 'create') OR auth_can('stock', 'read'));
 
 DROP POLICY IF EXISTS suppliers_tally_update ON suppliers;
 CREATE POLICY suppliers_tally_update ON suppliers FOR UPDATE

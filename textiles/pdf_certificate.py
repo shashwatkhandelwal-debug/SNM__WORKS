@@ -182,17 +182,17 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     story.append(Spacer(1, 8))
 
     # 2. Metadata & Consignment Matrix
-    cert_no = cert_data.get("cert_no", "DRAFT-PREVIEW")
-    issue_date = cert_data.get("issued_at", "--")
-    job_no = cert_data.get("job_no", "--")
-    product = cert_data.get("product", "--")
-    spec = cert_data.get("spec", "--")
-    customer = cert_data.get("customer_name", "Ordnance Factory Kanpur / Internal")
-    po_ref = cert_data.get("po_ref", "--")
-    qty_str = f"{cert_data.get('qty', '--')} {cert_data.get('unit', 'm')}"
-    despatch_no = cert_data.get("despatch_no") or "--"
-    invoice_no = cert_data.get("invoice_no") or "--"
-    rolls_str = str(cert_data.get("rolls", "--"))
+    cert_no = str(cert_data.get("cert_no") or "DRAFT-PREVIEW")
+    issue_date = str(cert_data.get("issued_at") or "--")
+    job_no = str(cert_data.get("job_no") or "--")
+    product = str(cert_data.get("product") or "--")
+    spec = str(cert_data.get("spec") or "--")
+    customer = str(cert_data.get("customer_name") or "Ordnance Factory Kanpur / Internal")
+    po_ref = str(cert_data.get("po_ref") or "--")
+    qty_str = f"{cert_data.get('qty') or '--'} {cert_data.get('unit') or 'm'}"
+    despatch_no = str(cert_data.get("despatch_no") or "--")
+    invoice_no = str(cert_data.get("invoice_no") or "--")
+    rolls_str = str(cert_data.get("rolls") or "--")
     gross_wt_str = f"{cert_data.get('gross_wt')} kg" if cert_data.get("gross_wt") else "--"
 
     meta_table_data = [
@@ -279,12 +279,12 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
             test_rec = f"{yl.get('incoming_test_no')} ({yl.get('incoming_test_verdict', 'PASS')})" if yl.get("incoming_test_no") else "PASS"
 
             lot_table_data.append([
-                Paragraph(yl.get("lot_no", "--"), style_val_mono),
-                Paragraph(yl.get("supplier_name", "--"), style_td),
-                Paragraph(yl.get("supplier_lot_no") or "--", style_td),
-                Paragraph(yarn_desc, style_td),
-                Paragraph(qty_str, style_td),
-                Paragraph(test_rec, style_td_pass if "PASS" in test_rec else style_td),
+                Paragraph(str(yl.get("lot_no") or "--"), style_val_mono),
+                Paragraph(str(yl.get("supplier_name") or "--"), style_td),
+                Paragraph(str(yl.get("supplier_lot_no") or "--"), style_td),
+                Paragraph(str(yarn_desc or "--"), style_td),
+                Paragraph(str(qty_str or "--"), style_td),
+                Paragraph(str(test_rec or "PASS"), style_td_pass if "PASS" in str(test_rec) else style_td),
             ])
 
         lot_table = Table(lot_table_data, colWidths=[75, 115, 95, 120, 55, 63])
@@ -311,11 +311,11 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         const_data = [
             [
                 Paragraph("Spec No:", style_label),
-                Paragraph(str(const.get("spec_no", "--")), style_val_mono),
+                Paragraph(str(const.get("spec_no") or "--"), style_val_mono),
                 Paragraph("Weave Structure:", style_label),
-                Paragraph(str(const.get("weave", "--")), style_val),
+                Paragraph(str(const.get("weave") or "--"), style_val),
                 Paragraph("Width (mm):", style_label),
-                Paragraph(str(const.get("width_mm", "--")), style_val),
+                Paragraph(str(const.get("width_mm") or "--"), style_val),
             ],
             [
                 Paragraph("Warp Yarn:", style_label),
@@ -362,12 +362,12 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
             spec_req = f"Range: {q.get('spec_value')} - {q.get('upper_limit')}{unit_str}"
 
         qc_table_data.append([
-            Paragraph(q.get("check_no", "--"), style_td),
-            Paragraph(q.get("parameter", "--"), style_td),
-            Paragraph(q.get("method") or "Standard Inspection", style_td),
-            Paragraph(spec_req, style_td),
-            Paragraph(f"{q.get('actual')}{unit_str}", style_td),
-            Paragraph(q.get("verdict", "PASS"), style_td_pass),
+            Paragraph(str(q.get("check_no") or "--"), style_td),
+            Paragraph(str(q.get("parameter") or "--"), style_td),
+            Paragraph(str(q.get("method") or "Standard Inspection"), style_td),
+            Paragraph(str(spec_req or "--"), style_td),
+            Paragraph(str(f"{q.get('actual') or '--'}{unit_str}"), style_td),
+            Paragraph(str(q.get("verdict") or "PASS"), style_td_pass),
         ])
 
     qc_table = Table(qc_table_data, colWidths=[85, 110, 100, 125, 60, 43])
@@ -409,13 +409,13 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         specs_str = ", ".join(str(s) for s in specs_list) if specs_list else (lt.get("result") or "--")
 
         lab_table_data.append([
-            Paragraph(lt.get("test_id", "--"), style_td),
-            Paragraph(lt.get("parameter", "--"), style_td),
-            Paragraph(lt.get("standard") or lt.get("lab") or "MIL-STD-191", style_td),
-            Paragraph(spec_req, style_td),
-            Paragraph(specs_str, style_td),
-            Paragraph(lt.get("result") or "--", style_td),
-            Paragraph(lt.get("verdict", "PASS"), style_td_pass),
+            Paragraph(str(lt.get("test_id") or "--"), style_td),
+            Paragraph(str(lt.get("parameter") or lt.get("test_type") or "--"), style_td),
+            Paragraph(str(lt.get("standard") or lt.get("lab") or "MIL-STD-191"), style_td),
+            Paragraph(str(spec_req or "--"), style_td),
+            Paragraph(str(specs_str or "--"), style_td),
+            Paragraph(str(lt.get("result") or "--"), style_td),
+            Paragraph(str(lt.get("verdict") or "PASS"), style_td_pass),
         ])
 
     lab_table = Table(lab_table_data, colWidths=[70, 95, 85, 105, 95, 33, 40])

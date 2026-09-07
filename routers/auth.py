@@ -74,7 +74,7 @@ async def login_submit(
                 "email": email,
                 "user": None,
             },
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
     if resp.status_code == 200:
@@ -89,7 +89,7 @@ async def login_submit(
                     "email": email,
                     "user": None,
                 },
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_502_BAD_GATEWAY,
             )
 
         response = RedirectResponse(
@@ -163,8 +163,8 @@ async def linkedin_oauth_redirect(request: Request):
     redirect_uri = settings.linkedin_redirect_uri
     state = secrets.token_urlsafe(16)
 
-    # Scopes for Personal Profile publishing (Share on LinkedIn product)
-    scopes = "w_member_social"
+    # Scopes for Personal Profile publishing & OpenID Connect member identity
+    scopes = "openid profile w_member_social"
 
     params = {
         "response_type": "code",
@@ -186,10 +186,14 @@ async def linkedin_oauth_callback(
 ):
     """
     Receives OAuth authorization code, exchanges it for an access token,
-    resolves member person URN, encrypts the token,
-    and stores it in the database against the owner profile.
+    queries OpenID Connect userinfo to resolve real member person URN (urn:li:person:{sub}),
+    encrypts the token, and stores it in platform_connections.
     """
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("access_token") or request.cookies.get("sb-access-token")
+    if not token and "authorization" in request.headers:
+        auth_hdr = request.headers.get("authorization", "")
+        if auth_hdr.startswith("Bearer "):
+            token = auth_hdr[7:]
     if not token:
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -216,7 +220,7 @@ async def linkedin_oauth_callback(
     access_token = None
     expires_in = 3600 * 24 * 60  # Default 60 days
     author_urn = None
-    account_name = "Yash Khandelwal (Personal LinkedIn)"
+    account_name = "LinkedIn Member"
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -226,40 +230,46 @@ async def linkedin_oauth_callback(
                 access_token = data.get("access_token")
                 expires_in = data.get("expires_in", expires_in)
 
-                # Attempt to query userinfo endpoint if available
-                try:
-                    userinfo_resp = await client.get(
-                        "https://api.linkedin.com/v2/userinfo",
-                        headers={"Authorization": f"Bearer {access_token}"}
-                    )
-                    if userinfo_resp.status_code == 200:
-                        ui_data = userinfo_resp.json()
-                        sub = ui_data.get("sub")
-                        if sub:
-                            author_urn = f"urn:li:person:{sub}"
-                        name = ui_data.get("name") or f"{ui_data.get('given_name', '')} {ui_data.get('family_name', '')}".strip()
-                        if name:
-                            account_name = f"{name} (LinkedIn Personal)"
-                except Exception:
-                    pass
+                if access_token:
+                    # Query OpenID Connect userinfo endpoint with the fresh access token
+                    try:
+                        userinfo_resp = await client.get(
+                            "https://api.linkedin.com/v2/userinfo",
+                            headers={"Authorization": f"Bearer {access_token}"}
+                        )
+                        if userinfo_resp.status_code == 200:
+                            ui_data = userinfo_resp.json()
+                            sub = ui_data.get("sub")
+                            if sub:
+                                author_urn = f"urn:li:person:{sub}"
+                            name = ui_data.get("name") or f"{ui_data.get('given_name', '')} {ui_data.get('family_name', '')}".strip()
+                            if name:
+                                account_name = f"{name} (LinkedIn Personal)"
+                        else:
+                            logger.warning(f"LinkedIn userinfo returned {userinfo_resp.status_code}: {userinfo_resp.text}")
+                    except Exception as u_exc:
+                        logger.warning(f"Exception fetching LinkedIn userinfo: {u_exc}")
             else:
                 logger.warning(f"LinkedIn token exchange returned {resp.status_code}: {resp.text}")
     except Exception as exc:
         logger.error(f"Error during LinkedIn token exchange: {exc}")
 
-    # Fallback to configured ID or default personal URN if userinfo is restricted under w_member_social
-    if not author_urn:
+    # Fallback to configured organization/company ID if explicit in settings and not resolved via personal userinfo
+    if not author_urn and settings.linkedin_company_page_id:
         cfg_id = settings.linkedin_company_page_id
-        if cfg_id and cfg_id.startswith("urn:li:"):
+        if cfg_id.startswith("urn:li:"):
             author_urn = cfg_id
-        elif cfg_id:
-            author_urn = f"urn:li:person:{cfg_id}"
         else:
-            author_urn = "urn:li:person:self"
+            author_urn = f"urn:li:organization:{cfg_id}"
 
     # For development fallback if testing locally without live LinkedIn API app
     if not access_token:
         access_token = f"li_token_mock_{secrets.token_hex(16)}"
+
+    if not author_urn:
+        err_msg = "Could not resolve LinkedIn member identity. Please disconnect and reconnect your LinkedIn account."
+        logger.error(err_msg)
+        return RedirectResponse(url=f"/settings?error={urllib.parse.quote(err_msg)}", status_code=status.HTTP_303_SEE_OTHER)
 
     # Encrypt token
     encrypted_token = encrypt_token(access_token)
@@ -272,7 +282,7 @@ async def linkedin_oauth_callback(
         "account_id": author_urn,
         "access_token_encrypted": encrypted_token,
         "token_expires_at": expires_at.isoformat(),
-        "scopes": ["w_member_social"],
+        "scopes": ["openid", "profile", "w_member_social"],
         "is_active": True,
         "updated_at": datetime.now().isoformat(),
     }
@@ -321,7 +331,11 @@ async def linkedin_disconnect(request: Request):
     """
     Disconnects the active LinkedIn integration.
     """
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("access_token") or request.cookies.get("sb-access-token")
+    if not token and "authorization" in request.headers:
+        auth_hdr = request.headers.get("authorization", "")
+        if auth_hdr.startswith("Bearer "):
+            token = auth_hdr[7:]
     if not token:
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 

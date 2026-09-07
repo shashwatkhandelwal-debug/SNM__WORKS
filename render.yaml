@@ -1,0 +1,45 @@
+# =============================================================================
+# render.yaml — Render Infrastructure as Code Blueprint for SNM Works
+# =============================================================================
+services:
+  - type: web
+    name: snm-works
+    runtime: python
+    plan: free
+    region: singapore # Closest Render region to Supabase ap-south-1 (Mumbai)
+    buildCommand: pip install -e .
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+
+    envVars:
+      # Non-sensitive runtime flags
+      - key: PYTHON_VERSION
+        value: 3.12.9
+      - key: APP_ENV
+        value: production
+      - key: GEMINI_IMAGE_MODEL
+        value: gemini-3.1-flash-image
+
+      # Sensitive credentials — configured securely in Render Dashboard (never in git)
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_REDIRECT_URI
+        sync: false
+      - key: LINKEDIN_COMPANY_PAGE_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

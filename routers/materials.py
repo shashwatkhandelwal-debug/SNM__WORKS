@@ -178,7 +178,7 @@ async def materials_dashboard(
                             y.lot_no,
                             y.yarn_type,
                             y.denier,
-                            p.email as issued_by_email
+                            p.full_name as issued_by_email
                         FROM job_material_issues i
                         JOIN jobs j ON j.id = i.job_id
                         JOIN yarn_lots y ON y.id = i.yarn_lot_id
@@ -486,7 +486,7 @@ async def get_yarn_lot_detail(request: Request, lot_id: str):
                                 j.id::text as job_id,
                                 j.job_no,
                                 j.product as job_product,
-                                p.email as issued_by_email
+                                p.full_name as issued_by_email
                             FROM job_material_issues i
                             JOIN jobs j ON j.id = i.job_id
                             LEFT JOIN profiles p ON p.id = i.issued_by
@@ -788,6 +788,9 @@ async def create_supplier(
     email: Optional[str] = Form(None),
     phone: Optional[str] = Form(None),
     address: Optional[str] = Form(None),
+    gst_state: Optional[str] = Form(None),
+    gstin: Optional[str] = Form(None),
+    tally_ledger_name: Optional[str] = Form(None),
     conn=Depends(database.get_db),
     user=Depends(require("purchase", "create")),
 ):
@@ -796,11 +799,16 @@ async def create_supplier(
     """
     await conn.execute(
         """
-        INSERT INTO suppliers (supplier_code, name, contact_person, email, phone, address)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO suppliers (
+            supplier_code, name, contact_person, email, phone, address,
+            gst_state, gstin, tally_ledger_name
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (supplier_code) DO UPDATE 
         SET name = EXCLUDED.name, contact_person = EXCLUDED.contact_person, 
-            email = EXCLUDED.email, phone = EXCLUDED.phone, address = EXCLUDED.address;
+            email = EXCLUDED.email, phone = EXCLUDED.phone, address = EXCLUDED.address,
+            gst_state = EXCLUDED.gst_state, gstin = EXCLUDED.gstin,
+            tally_ledger_name = EXCLUDED.tally_ledger_name;
         """,
         supplier_code.strip(),
         name.strip(),
@@ -808,5 +816,8 @@ async def create_supplier(
         email.strip() if email else None,
         phone.strip() if phone else None,
         address.strip() if address else None,
+        gst_state.strip() if gst_state else None,
+        gstin.strip() if gstin else None,
+        tally_ledger_name.strip() if tally_ledger_name else None,
     )
     return RedirectResponse(url="/suppliers", status_code=status.HTTP_303_SEE_OTHER)

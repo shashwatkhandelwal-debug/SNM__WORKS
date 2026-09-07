@@ -205,7 +205,7 @@ async def generate_campaign_preview(
     try:
         user = await get_authenticated_user(request)
     except HTTPException:
-        return HTMLResponse("<div class='alert alert-fail'>Authentication required</div>")
+        return HTMLResponse("<div class='alert alert-fail'>Authentication required</div>", status_code=status.HTTP_401_UNAUTHORIZED)
 
     clean_occasion = occasion.strip()[:80]
     clean_headline = headline.strip()[:100]
@@ -280,6 +280,7 @@ async def preview_campaign_image(
 
 @router.post("/campaign/generate-image", response_class=HTMLResponse)
 async def generate_campaign_image_card(
+    request: Request,
     occasion: str = Form("Independence Day 2026"),
     headline: str = Form("Proudly Weaving Defence-Grade Narrow Fabrics for India"),
     body: str = Form("Swadeshi Niwar Mills salutes the armed forces with MIL-spec technical webbing."),
@@ -287,6 +288,10 @@ async def generate_campaign_image_card(
     """
     HTMX live visual preview card returning generated banner graphic.
     """
+    try:
+        user = await get_authenticated_user(request)
+    except HTTPException:
+        return HTMLResponse("<div class='alert alert-fail'>Authentication required</div>", status_code=status.HTTP_401_UNAUTHORIZED)
     import urllib.parse
     params = urllib.parse.urlencode({"occasion": occasion.strip(), "headline": headline.strip(), "body": body.strip()})
     img_url = f"/marketing/campaign/image-preview?{params}"
@@ -403,24 +408,27 @@ async def create_campaign(
 
     # Store directly in PostgreSQL campaigns table (No in-memory fallback)
     if database.pool is not None:
-        async with database.pool.acquire() as conn:
-            async with conn.transaction():
-                await set_rls_claims(conn, user["claims"])
-                await conn.execute(
-                    """
-                    INSERT INTO campaigns (id, occasion, headline, body, featured_sku_id, platforms, scheduled_at, post_status, post_draft)
-                    VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6, $7, $8, $9::jsonb)
-                    """,
-                    uuid.UUID(campaign_id),
-                    clean_occasion,
-                    clean_headline,
-                    clean_body,
-                    uuid.UUID(featured_sku_id.strip()) if featured_sku_id else None,
-                    clean_platforms,
-                    sched_dt,
-                    "queued",
-                    json.dumps(post_draft, ensure_ascii=False),
-                )
+        try:
+            async with database.pool.acquire() as conn:
+                async with conn.transaction():
+                    await set_rls_claims(conn, user["claims"])
+                    await conn.execute(
+                        """
+                        INSERT INTO campaigns (id, occasion, headline, body, featured_sku_id, platforms, scheduled_at, post_status, post_draft)
+                        VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6, $7, $8, $9::jsonb)
+                        """,
+                        uuid.UUID(campaign_id),
+                        clean_occasion,
+                        clean_headline,
+                        clean_body,
+                        uuid.UUID(featured_sku_id.strip()) if featured_sku_id else None,
+                        clean_platforms,
+                        sched_dt,
+                        "queued",
+                        json.dumps(post_draft, ensure_ascii=False),
+                    )
+        except Exception as exc:
+            logger.warning(f"Could not insert campaign in database: {exc}")
 
     return RedirectResponse(url="/marketing/queue", status_code=status.HTTP_303_SEE_OTHER)
 

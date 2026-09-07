@@ -109,15 +109,13 @@ async def create_sku(
     blurb: Optional[str] = Form(None),
     catalogue_visible: Optional[bool] = Form(False),
     status: str = Form("Draft"),
+    user: Dict[str, Any] = Depends(require("skus", "create")),
 ):
     """
     Creates a new SKU record.
     Saves the SKU, then invokes check_and_queue() to evaluate marketing triggers.
     """
-    try:
-        claims = await get_user_claims(request)
-    except HTTPException:
-        return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
+    claims = user.get("claims") or {}
 
     clean_sku_code = sku_code.strip()
     clean_family = family.strip()
@@ -239,14 +237,21 @@ async def upload_sku_photo(
     actual_sku_id = str(sku_data.get("id") or sku_id)
 
     # 2. Automatically Brand Photo with Pillow
-    branded_bytes = brand_product_image(
-        image_bytes=raw_bytes,
-        sku_code=sku_data.get("sku_code") or "SNM-PROD",
-        standard=sku_data.get("standard") or "",
-        material=sku_data.get("material") or "",
-        breaking_strength=str(sku_data.get("breaking_strength") or "Contact us"),
-        family=sku_data.get("family") or "Narrow woven",
-    )
+    try:
+        branded_bytes = brand_product_image(
+            image_bytes=raw_bytes,
+            sku_code=sku_data.get("sku_code") or "SNM-PROD",
+            standard=sku_data.get("standard") or "",
+            material=sku_data.get("material") or "",
+            breaking_strength=str(sku_data.get("breaking_strength") or "Contact us"),
+            family=sku_data.get("family") or "Narrow woven",
+        )
+    except Exception as e:
+        logger.warning(f"Failed to process/brand image for SKU {actual_sku_id}: {e}")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=f"Invalid image file or format: {e}",
+        )
 
     # 3. Store to Supabase Storage & local cache
     storage_path = f"{actual_sku_id}.jpg"

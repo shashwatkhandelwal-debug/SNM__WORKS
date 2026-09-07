@@ -17,6 +17,7 @@ dependencies = [
     "reportlab>=4.2",
     "Pillow>=10.0",
     "supabase>=2.0",
+    "pdfplumber>=0.11.0",
 ]
 
 [project.optional-dependencies]
@@ -33,7 +34,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["auth*", "textiles*", "routers*"]
+include = ["auth*", "textiles*", "routers*", "services*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

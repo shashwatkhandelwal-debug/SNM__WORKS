@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import Optional
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,14 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("ENCRYPTION_KEY", "TOKEN_ENCRYPTION_KEY")
     )
+    app_host: str = Field(
+        default="127.0.0.1",
+        validation_alias=AliasChoices("APP_HOST", "HOST")
+    )
+    app_port: int = Field(
+        default=8080,
+        validation_alias=AliasChoices("APP_PORT", "PORT")
+    )
     linkedin_client_id: Optional[str] = Field(
         default=None,
         validation_alias=AliasChoices("LINKEDIN_CLIENT_ID")
@@ -35,9 +43,9 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("LINKEDIN_CLIENT_SECRET")
     )
-    linkedin_redirect_uri: str = Field(
-        default="http://localhost:8000/auth/linkedin/callback",
-        validation_alias=AliasChoices("LINKEDIN_REDIRECT_URI")
+    linkedin_redirect_uri: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("LINKEDIN_REDIRECT_URI", "REDIRECT_URI")
     )
     linkedin_company_page_id: Optional[str] = Field(
         default=None,
@@ -57,6 +65,12 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+
+    @model_validator(mode="after")
+    def set_default_redirect_uri(self) -> "Settings":
+        if not self.linkedin_redirect_uri:
+            self.linkedin_redirect_uri = f"http://{self.app_host}:{self.app_port}/auth/linkedin/callback"
+        return self
 
     @property
     def supabase_key(self) -> str:

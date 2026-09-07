@@ -202,6 +202,10 @@ async def db_lifespan():
                     u["id"], u["name"], legacy_role
                 )
                 await conn.execute(
+                    "DELETE FROM user_roles WHERE user_id = $1::uuid AND role_code != $2",
+                    u["id"], u["role_code"]
+                )
+                await conn.execute(
                     """
                     INSERT INTO user_roles (user_id, role_code, active)
                     VALUES ($1::uuid, $2, true)

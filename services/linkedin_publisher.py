@@ -54,20 +54,26 @@ async def get_stored_linkedin_connection(user_id: Optional[str] = None, conn=Non
         logger.error(f"Failed to decrypt LinkedIn access token: {exc}")
         return None
 
-    # Resolve company page ID or author URN
-    company_id = connection_row.get("account_id") or settings.linkedin_company_page_id
-    if company_id and not company_id.startswith("urn:li:"):
-        author_urn = f"urn:li:organization:{company_id}"
-    elif company_id:
-        author_urn = company_id
+    # Resolve author URN from stored account_id (or settings fallback)
+    account_id = connection_row.get("account_id")
+    if account_id in ("urn:li:person:self", "self", "urn:li:person:"):
+        logger.warning(f"Stored LinkedIn connection has invalid placeholder account_id '{account_id}'. Reconnection required.")
+        author_urn = None
+    elif account_id and account_id.startswith("urn:li:"):
+        author_urn = account_id
+    elif account_id:
+        author_urn = f"urn:li:person:{account_id}"
+    elif settings.linkedin_company_page_id:
+        cfg = settings.linkedin_company_page_id
+        author_urn = cfg if cfg.startswith("urn:li:") else f"urn:li:organization:{cfg}"
     else:
-        author_urn = "urn:li:organization:10000001"  # Default fallback
+        author_urn = None
 
     return {
         "access_token": raw_token,
         "author_urn": author_urn,
         "account_name": connection_row.get("account_name") or "Swadeshi Niwar Mills",
-        "company_id": company_id,
+        "company_id": account_id,
         "metadata": connection_row.get("metadata") or {},
     }
 
@@ -128,15 +134,19 @@ async def publish_to_linkedin(
     conn=None,
 ) -> Dict[str, Any]:
     """
-    Posts to the SNM company page using LinkedIn Share API v2 (POST https://api.linkedin.com/v2/ugcPosts).
-    If no token is stored, returns a clear error message.
+    Posts to the SNM company page or member feed using LinkedIn Share API v2 (POST https://api.linkedin.com/v2/ugcPosts).
+    If no valid token or author URN is stored, returns a clear error message.
     """
     connection = await get_stored_linkedin_connection(user_id=user_id, conn=conn)
-    if not connection:
+    if not connection or not connection.get("author_urn"):
+        if connection and connection.get("company_id") in ("urn:li:person:self", "self"):
+            error_msg = "LinkedIn connection has invalid placeholder member ID. Please disconnect and reconnect your LinkedIn account in Settings."
+        else:
+            error_msg = "LinkedIn not connected -- go to Settings to connect your account"
         return {
             "status": "error",
             "platform": "linkedin",
-            "error": "LinkedIn not connected -- go to Settings to connect your account",
+            "error": error_msg,
         }
 
     access_token = connection["access_token"]
