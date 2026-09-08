@@ -210,9 +210,12 @@ async def spec_review_view(
         "full_name": user.get("claims", {}).get("user_metadata", {}).get("full_name") or user.get("email"),
     }
 
-    sku_row = await conn.fetchrow("SELECT * FROM skus WHERE id::text = $1 OR sku_code = $1;", sku_id)
-    if not sku_row:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="SKU not found.")
+    if str(sku_id).lower() in ("standalone", "none", "unlinked"):
+        sku_row = {"id": None, "sku_code": "STANDALONE", "title": "Standalone Reference Specification"}
+    else:
+        sku_row = await conn.fetchrow("SELECT * FROM skus WHERE id::text = $1 OR sku_code = $1;", sku_id)
+        if not sku_row:
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="SKU not found.")
 
     try:
         upload_uuid = uuid.UUID(upload_id)
@@ -269,11 +272,15 @@ async def submit_spec_review(
     3. Updates spec_pdf_uploads with corrected path and hash.
     4. Invokes shared load_specification_document() to populate DB and sync SKU.
     """
-    sku_row = await conn.fetchrow("SELECT id, sku_code FROM skus WHERE id::text = $1 OR sku_code = $1;", sku_id)
-    if not sku_row:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="SKU not found.")
+    if str(sku_id).lower() in ("standalone", "none", "unlinked"):
+        sku_row = {"id": None, "sku_code": "STANDALONE", "title": "Standalone Reference Specification"}
+        sku_uuid = None
+    else:
+        sku_row = await conn.fetchrow("SELECT id, sku_code FROM skus WHERE id::text = $1 OR sku_code = $1;", sku_id)
+        if not sku_row:
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="SKU not found.")
+        sku_uuid = sku_row["id"]
 
-    sku_uuid = sku_row["id"]
     upload_uuid = uuid.UUID(upload_id)
     user_id = uuid.UUID(user["id"])
 
@@ -312,12 +319,12 @@ async def submit_spec_review(
             relationship=relationship,
             upload_id=upload_uuid,
         )
-        logger.info(f"Specification '{load_res['spec_no']}' loaded successfully for SKU {sku_row['sku_code']}.")
+        logger.info(f"Specification '{load_res['spec_no']}' loaded successfully.")
     except Exception as exc:
         logger.error(f"Failed to load specification from review: {exc}", exc_info=True)
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=f"Failed to load specification: {exc}")
 
-    target_url = f"/skus/{sku_uuid}"
+    target_url = f"/specifications/{load_res['spec_id']}" if not sku_uuid else f"/skus/{sku_uuid}"
     if request.headers.get("hx-request") == "true":
         response = Response(status_code=HTTP_200_OK)
         response.headers["HX-Redirect"] = target_url

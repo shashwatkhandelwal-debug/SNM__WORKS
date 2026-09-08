@@ -27,6 +27,7 @@ from routers.sku_specs import router as sku_specs_router
 from routers.tally import router as tally_router
 from routers.analytics import router as analytics_router
 from routers.public_verify import router as public_verify_router
+from routers.api_mobile import router as api_mobile_router
 
 
 
@@ -77,6 +78,7 @@ app.include_router(materials_router)
 app.include_router(tally_router)
 app.include_router(analytics_router)
 app.include_router(public_verify_router)
+app.include_router(api_mobile_router)
 
 
 

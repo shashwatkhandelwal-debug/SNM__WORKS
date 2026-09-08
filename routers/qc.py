@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 from database import get_db
 from auth.dependencies import current_user, require
+from services.qc_service import record_qc_check
 
 logger = logging.getLogger("snm_works.qc")
 router = APIRouter(prefix="/qc", tags=["QC"])
@@ -232,81 +233,24 @@ async def create_qc_check(
     - check_no handles concurrency by catching unique constraint collisions and retrying.
     - verdict is computed strictly by PostgreSQL generated column (never sent in INSERT).
     """
-    inspector_id = uuid.UUID(str(user["id"]))
-
-    parsed_date = date.today()
-    if checked_on and checked_on.strip():
-        try:
-            parsed_date = datetime.strptime(checked_on.strip(), "%Y-%m-%d").date()
-        except ValueError:
-            parsed_date = date.today()
-
-    clean_stage = stage.strip() if stage else "On-Loom Inspection"
-    clean_family = family.strip() if family else None
-    clean_parameter = parameter.strip()
-    clean_unit = unit.strip() if unit else None
-    clean_method = method.strip() if method else None
-    clean_limit_type = limit_type.strip().lower() if limit_type else "nominal"
-    clean_defect_code = defect_code.strip() if defect_code else None
-    clean_action_taken = action_taken.strip() if action_taken else None
-
-    resolved_job_id = None
-    if job_id and job_id.strip():
-        try:
-            resolved_job_id = uuid.UUID(job_id.strip())
-        except (ValueError, TypeError):
-            resolved_job_id = None
-
-    new_qc_id = str(uuid.uuid4())
-
-    # Insert with concurrency retry on check_no unique violation
-    max_retries = 3
-    for attempt in range(max_retries):
-        generated_check_no = await get_next_qc_check_no(conn)
-        try:
-            # Use savepoint so retry works within the request transaction
-            async with conn.transaction():
-                row = await conn.fetchrow(
-                    """
-                    INSERT INTO qc_checks (
-                        id, check_no, job_id, checked_on, stage, family,
-                        parameter, unit, method, limit_type, spec_value,
-                        tolerance, upper_limit, actual, defect_code,
-                        action_taken, inspector_id
-                    ) VALUES (
-                        $1::uuid, $2, $3, $4, $5, $6,
-                        $7, $8, $9, $10::limit_kind, $11,
-                        $12, $13, $14, $15,
-                        $16, $17
-                    )
-                    RETURNING id::text, check_no, verdict
-                    """,
-                    new_qc_id,
-                    generated_check_no,
-                    resolved_job_id,
-                    parsed_date,
-                    clean_stage,
-                    clean_family,
-                    clean_parameter,
-                    clean_unit,
-                    clean_method,
-                    clean_limit_type,
-                    spec_value,
-                    tolerance,
-                    upper_limit,
-                    actual,
-                    clean_defect_code,
-                    clean_action_taken,
-                    inspector_id,
-                )
-            break
-        except asyncpg.UniqueViolationError:
-            if attempt == max_retries - 1:
-                raise HTTPException(
-                    status_code=HTTP_400_BAD_REQUEST,
-                    detail="Could not generate unique check number due to concurrent submissions. Please retry.",
-                )
-            continue
+    data = {
+        "job_id": job_id,
+        "checked_on": checked_on,
+        "stage": stage,
+        "family": family,
+        "parameter": parameter,
+        "unit": unit,
+        "method": method,
+        "limit_type": limit_type,
+        "spec_value": spec_value,
+        "tolerance": tolerance,
+        "upper_limit": upper_limit,
+        "actual": actual,
+        "defect_code": defect_code,
+        "action_taken": action_taken,
+    }
+    result = await record_qc_check(conn, user["id"], data)
+    new_qc_id = result["id"]
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
