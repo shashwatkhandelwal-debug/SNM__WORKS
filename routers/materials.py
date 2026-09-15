@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict, List, Optional
 import uuid
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -11,6 +11,7 @@ from auth.dependencies import current_user, require
 from auth.jwt import decode_access_token
 from auth.middleware import set_rls_claims
 import database
+from services.materials_service import issue_job_material
 from services.tally_gateway import sync_purchase_voucher_for_grn
 
 logger = logging.getLogger("snm.materials")
@@ -694,49 +695,22 @@ async def create_material_issue(
     POST /materials/issue -- Issues material from an Approved yarn lot to a Job Card.
     Enforces atomic serialization and quantity checks via process_job_material_issue() trigger.
     """
-    try:
-        j_uuid = uuid.UUID(job_id.strip())
-        l_uuid = uuid.UUID(yarn_lot_id.strip())
-    except ValueError:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Job ID or Yarn Lot ID format")
-
-    if qty_issued <= 0:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Issued quantity must be greater than 0")
-
     uid = user.get("id") or user.get("sub") if isinstance(user, dict) else getattr(user, "id", None)
-    user_uuid = uuid.UUID(str(uid)) if uid else None
+    data = {
+        "job_id": job_id,
+        "yarn_lot_id": yarn_lot_id,
+        "qty_issued": qty_issued,
+        "unit": unit,
+        "issued_date": issued_date,
+        "remarks": remarks,
+    }
+    await issue_job_material(conn, uid, data)
 
-    # Generate sequence issue number: ISS-YYYY-NNNN
-    current_year = date.today().year
-    seq_val = await conn.fetchval("SELECT nextval('material_issue_seq');")
-    issue_no = f"ISS-{current_year}-{seq_val:04d}"
-
-    iss_date_val = date.fromisoformat(issued_date) if issued_date else date.today()
-
-    try:
-        await conn.execute(
-            """
-            INSERT INTO job_material_issues (
-                issue_no, job_id, yarn_lot_id, qty_issued, unit, issued_date, issued_by, remarks
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
-            """,
-            issue_no,
-            j_uuid,
-            l_uuid,
-            qty_issued,
-            unit.strip() if unit else "kg",
-            iss_date_val,
-            user_uuid,
-            remarks.strip() if remarks else None,
-        )
-    except Exception as e:
-        logger.error(f"Material issue failed: {e}")
-        # Surface database trigger validation error
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e).replace('RAISE EXCEPTION', '').strip(),
-        )
+    is_htmx = request.headers.get("hx-request") == "true"
+    if is_htmx:
+        response = Response(status_code=status.HTTP_200_OK)
+        response.headers["HX-Redirect"] = f"/jobs/{job_id}"
+        return response
 
     return RedirectResponse(url=f"/jobs/{job_id}", status_code=status.HTTP_303_SEE_OTHER)
 

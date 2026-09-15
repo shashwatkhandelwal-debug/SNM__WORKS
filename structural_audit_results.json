@@ -1,0 +1,5492 @@
+[
+  {
+    "filename": "1981_6.pdf",
+    "upload_id": "406d1417-428d-5a90-b233-5607c993741d",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1981/6",
+    "title": "7.1 (I) If ordered for delivery to ...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2000_55.pdf",
+    "upload_id": "5c968e07-a14a-5c83-9f42-8cf4a8f00d55",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/55",
+    "title": "CORDAGE NYLON BRAIDED CORELESS",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2011_3.pdf",
+    "upload_id": "7c33d2d1-19b8-5bb7-af66-17da49d30918",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2011/03",
+    "title": "TECHNICAL PARTICULARS FOR CORDAGE, ...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2018_6.pdf",
+    "upload_id": "3435c99e-e7f8-51c8-b810-622dae87e29f",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/C/2018/06",
+    "title": "Technical Particulars for Braided C...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2019_2.pdf",
+    "upload_id": "4a152196-8b1d-5573-ac51-60d349f43307",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/W/2019/02",
+    "title": "Technical Particulars for Webbing N...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2020_02.pdf",
+    "upload_id": "cc3a1b62-8910-5e17-92f5-5f677a94c0ef",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/C/2020/02",
+    "title": "Technical Particulars for Braided C...",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "2021_2.pdf",
+    "upload_id": "23ab8562-19c2-5817-8cc9-bc983f3c681d",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2021/02",
+    "title": "Technical Particulars for Tape Nylo...",
+    "variants": 1,
+    "total_reqs": 12,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 12,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "78(a).pdf",
+    "upload_id": "0840fb2a-b876-5131-a31d-da793074568c",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/78",
+    "title": "Webbing Nylon 78 mm 950 kgf Dyed/Un...",
+    "variants": 1,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "94(a).pdf",
+    "upload_id": "78dac1b6-c28e-5eb7-bcd1-ba2cc8579335",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/SPECN/94",
+    "title": "Tape Nylon 13mm 182 kgf Dyed/Undyed",
+    "variants": 4,
+    "total_reqs": 30,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 30,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ADRDE 6 ITEMS SPEC.pdf",
+    "upload_id": "0b49c97b-1c87-5a1a-8fdc-94a04e225557",
+    "has_header": true,
+    "spec_no": "ADRDE/AS/QMS/P12/TGTE/T/\n364",
+    "title": "Tape Para-aramid 13mm,",
+    "variants": 3,
+    "total_reqs": 140,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 140,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ARAMID SEWING THREAD.pdf",
+    "upload_id": "fbb403e1-dd20-5193-91f1-189d46a06fb1",
+    "has_header": true,
+    "spec_no": "ARAMID SEWING THREAD",
+    "title": "Technical Specification for Aramid ...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ASSISTANCE OF BAG KIT UNIVERSAL.pdf",
+    "upload_id": "8fe12168-6a26-5c75-b2f4-52d9f8c9b6f4",
+    "has_header": true,
+    "spec_no": "IND/TC/2324(b)",
+    "title": "0.1 The specification for Bag Kit U...",
+    "variants": 1,
+    "total_reqs": 38,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 38,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ASSISTANCE OF RUCKSACK 90.pdf",
+    "upload_id": "9301b77b-7130-5f89-b909-49e5d0bbbfe9",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "(a) Fabric for Main Pack",
+    "variants": 1,
+    "total_reqs": 55,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 55,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "BAG KIT UNIVERSAL MK2.pdf",
+    "upload_id": "52bece19-e49f-532d-a02d-53e91d8e198b",
+    "has_header": true,
+    "spec_no": "IS: 2454",
+    "title": "NYLON WEBBING ANDINYION TAPES'OLIVE...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "BELT DEEP BLUE.pdf",
+    "upload_id": "eb051c65-e372-545c-bac1-0eb53dc94cde",
+    "has_header": true,
+    "spec_no": "IAFS 01002: 2007",
+    "title": "POLYESTER MIXED WITH RUBBER BELT DE...",
+    "variants": 1,
+    "total_reqs": 28,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 28,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "BLENDED FABRIC POLYESTER COTTON OPF.pdf",
+    "upload_id": "f116aa08-7f3d-505a-a140-e3684af2cda1",
+    "has_header": true,
+    "spec_no": "IND/TC/3038",
+    "title": "BLENDED FABRIC POLYESTER & COTTON (...",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "BLENDED FABRIC POLYESTER COTTON.pdf",
+    "upload_id": "5ec97a3c-362c-5ca8-ae36-34a0ad6ddc94",
+    "has_header": true,
+    "spec_no": "IND/TC/3038",
+    "title": "BLENDED FABRIC POLYESTER & COTTON (...",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "BRAIDED CORD 450 KG.pdf",
+    "upload_id": "3f9e509d-49bf-58d8-bbf8-47aeaa6e1927",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/C/2019/06",
+    "title": "Technical Particulars for Braided C...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CANVAS COTTON 375 GM IAF.pdf",
+    "upload_id": "620df3f9-815a-50d9-934d-b816546b277d",
+    "has_header": true,
+    "spec_no": "ADRDE/1164/A6",
+    "title": "CANVAS COTTON OG 375 GRAM (GIG No.-...",
+    "variants": 1,
+    "total_reqs": 17,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 17,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CANVAS FLAX.pdf",
+    "upload_id": "243c8548-6e7b-5f5f-9489-beb2f6704b11",
+    "has_header": true,
+    "spec_no": "CANVAS FLAX",
+    "title": "FLAX CANVAS (VARIETY NO.1)",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH CALICO KHAKI.pdf",
+    "upload_id": "6c2f2719-e1bb-5b40-8b80-8c853a0ccd67",
+    "has_header": true,
+    "spec_no": "IND/TC/0040",
+    "title": "IS 1544 : 1973 SPECIFICATION FOR CO...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH DRILL COTTON 142 CM KHAKI.pdf",
+    "upload_id": "55cedd72-350d-57b6-8b75-b3b78be56ec6",
+    "has_header": true,
+    "spec_no": "IS: 177-1989",
+    "title": "CLOTH DRILL COTTON KHAKI 142 CMS(V....",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH DRILL COTTON 142 CM.pdf",
+    "upload_id": "cbdd6187-12ac-5d07-a99a-ad4d83d02e04",
+    "has_header": true,
+    "spec_no": "IS 177:1989",
+    "title": "CLOTH DRILL COTTON WHITE BLEACHED 1...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH DRILL COTTON.pdf",
+    "upload_id": "6c32d1a2-b0a3-54ca-9717-d42945066603",
+    "has_header": true,
+    "spec_no": "JSS 8315-08:2021",
+    "title": "Cloth Drill Cotton Disruptive Patte...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH DUCK COTTON 475 GRM BLK.pdf",
+    "upload_id": "5a752970-de95-58c0-8545-efe3e34e5ee7",
+    "has_header": true,
+    "spec_no": "IS:1422-1983",
+    "title": "CLOTH DUCK COTTON 475 GRM. BLACK W....",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH DUCK POLYESTER BLENDED.pdf",
+    "upload_id": "1260ae8f-1832-57d9-8539-1a3a5ce2294f",
+    "has_header": true,
+    "spec_no": "IS:13510-2000",
+    "title": "CLOTH DUCK POLYESTER/COTTON BLENDED...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH FLAX.pdf",
+    "upload_id": "2bdc2108-673d-5e5b-8eb3-fd6603f8ca6c",
+    "has_header": true,
+    "spec_no": "CLOTH FLAX",
+    "title": "FLAX CANVAS (VARIETY NO.1)",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH PLAIN WEAVE KHAKI.pdf",
+    "upload_id": "f74bdc37-79c7-54d5-8dc2-6ed4125c7082",
+    "has_header": true,
+    "spec_no": "IND/TC/0048",
+    "title": "CLOTH PLAIN WEAVE POLYESTER & VISCO...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CLOTH RIP POLYESTER.pdf",
+    "upload_id": "2b91e2f7-ed64-5754-86f4-ea06febbc9fa",
+    "has_header": true,
+    "spec_no": "Prov/S/2599/TC1(a)/2022/1(b)",
+    "title": "CLOTH RIPSTOP POLYESTER&COTTON (20:...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CLOTH RIPSTOP PLOYESTER COTTON.pdf",
+    "upload_id": "b8f2e692-1ad1-59e2-96ab-329fe9c26277",
+    "has_header": true,
+    "spec_no": "Prov/S/2599/TC-1(a)/2022/01(b)",
+    "title": "Cloth Rip-stop Polyester & Cotton (...",
+    "variants": 1,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 1785 WHITE.pdf",
+    "upload_id": "9d823230-6f0c-5406-bfee-6dc161848927",
+    "has_header": true,
+    "spec_no": "JSS 4020 - 09: 2013",
+    "title": "Specification for Country Jute Twin...",
+    "variants": 3,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 1800 KG.pdf",
+    "upload_id": "65486abe-813a-520e-a4d2-a3186e5d5748",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/80",
+    "title": "CORDAGE NYLON, BRAIDED, CORELESS, U...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 200 KG BRAIDED.pdf",
+    "upload_id": "64d9f09d-6bd3-55aa-be06-a2278eafc896",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2011/03",
+    "title": "TECHNICAL PARTICULARS FOR CORDAGE, ...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 200 KG WITH CORE.pdf",
+    "upload_id": "8724b243-dc32-5323-96c1-d97a1ea34721",
+    "has_header": true,
+    "spec_no": "ADRDE/TDTM/C/2011/03",
+    "title": "CORD NYLON 200 KGF WITH CORE",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 2450N UD.pdf",
+    "upload_id": "e67c4cf4-081a-52d1-938b-6059060e43b9",
+    "has_header": true,
+    "spec_no": "CORD 2450N UD",
+    "title": "CORD 2450N UD",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 2452 UD OPF.pdf",
+    "upload_id": "baa60b18-a5f2-5356-82fb-e38a68d3f0b0",
+    "has_header": true,
+    "spec_no": "IS 4227",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 250 KG CORELESS.pdf",
+    "upload_id": "6fee247e-72e5-5c88-a1d5-c3e8d9e800bc",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/55",
+    "title": "Item Name - - CORD NYLON CORELESS 2...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 250 KG HZP.pdf",
+    "upload_id": "bb61bc0b-8576-5abc-9f80-6424b5f05a3e",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2013/05",
+    "title": "Item Name - CORDAGE NYLON 250 KGF W...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 250KG  CORE.pdf",
+    "upload_id": "f313b605-5c7c-55f9-b4db-4541c0308444",
+    "has_header": true,
+    "spec_no": "CORD 250KG  CORE",
+    "title": "CORD 250KG  CORE",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 2940N.pdf",
+    "upload_id": "aaa0e1bc-b8ad-5a4b-a39a-338b6d339745",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/71",
+    "title": "Cordage Nylon Braided 2940N Undyed",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 3120 NBL OG.pdf",
+    "upload_id": "4286dcde-f1d6-535b-b86a-b12bbd309c1f",
+    "has_header": true,
+    "spec_no": "JSS:4020 -9:2013",
+    "title": "CORD NYLON 3120 NBL O.G.",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 3120 NBL V NO 13.pdf",
+    "upload_id": "fed29e2f-44f1-59b2-a937-7e5bcd8d5ceb",
+    "has_header": true,
+    "spec_no": "IS 4227",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 3120 OEF SPEC.pdf",
+    "upload_id": "b842d431-0b3b-58c4-b98e-7e5708380c43",
+    "has_header": true,
+    "spec_no": "JSS:4020 -9:2013",
+    "title": "CORD NYLON 3120 NBL O.G.",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD 3600 N.pdf",
+    "upload_id": "6588cda2-d76b-534b-9859-f0d69a7b6048",
+    "has_header": true,
+    "spec_no": "CORD 3600 N",
+    "title": "The item:- Cordage Nylon Braided BS...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 492N VR NO 5.pdf",
+    "upload_id": "32519964-7ddc-5666-80cb-df0b15075e4f",
+    "has_header": true,
+    "spec_no": "IS 4227",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD 68 KG BRAIDED.pdf",
+    "upload_id": "58368adc-c6a8-545e-b316-e251fafa7e68",
+    "has_header": true,
+    "spec_no": "IS 4227",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD COTTON BRAIDED 125 KG.pdf",
+    "upload_id": "cc5b5d71-cc6a-540d-9abd-40d4dada37af",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1992",
+    "title": "CORD COTTON BRAIDED VARIOUS",
+    "variants": 3,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD ELASTIC FLY INNER 4M2M.pdf",
+    "upload_id": "23320eff-4ec1-593a-8231-9e56320e95f3",
+    "has_header": true,
+    "spec_no": "IND/TC/2118",
+    "title": "CORD ELASTIC LOOP FOR TENT EXTENDAB...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD ELASTIC LOOP 4M2M.pdf",
+    "upload_id": "a4ff9586-4f9d-5165-bcb6-b636287c4d72",
+    "has_header": true,
+    "spec_no": "IND/TC/2118(a)",
+    "title": "CORD ELASTIC LOOP FOR TENT EXTENDAB...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD ELASTIC RING FOR FLY INNER 4M2M.pdf",
+    "upload_id": "0d4cd237-f50e-5ab6-8f09-1ec1abbcb7bd",
+    "has_header": true,
+    "spec_no": "IND/TC/2118",
+    "title": "CORD ELASTIC RING FOR TENT EXTENDAB...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD ELASTIC RING HOOK.pdf",
+    "upload_id": "789e742f-b116-55c4-97ca-72acd52a3ae0",
+    "has_header": true,
+    "spec_no": "IND/TC/2118(a)",
+    "title": "CORD ELASTIC RING FOR TENT EXTENDAB...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD FLAX.pdf",
+    "upload_id": "4e435b26-eff1-5acd-ade8-36b4810ff693",
+    "has_header": true,
+    "spec_no": "ADRDE/SPLCN/1984/19",
+    "title": "(NIV) CORD] FLAX",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD LOCK FOR TAPE.pdf",
+    "upload_id": "547f74b5-1100-5aa0-a5c6-9f3e89a27ef7",
+    "has_header": true,
+    "spec_no": "Cordlock Black",
+    "title": "Cordlock Black Polyester Low Densit...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 1785 N OG.pdf",
+    "upload_id": "95070fc8-cbaa-5228-a5b4-8d4494f5c6ae",
+    "has_header": true,
+    "spec_no": "IS:764\n-1979",
+    "title": "CORD NYLON O.G. 1785N",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 1800 KGF.pdf",
+    "upload_id": "08a9dc1b-8ccf-51f6-a6af-fdbca3bfaa18",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/80",
+    "title": "CORDAGE NYLON, BRAIDED, CORELESS, U...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 200 KG.pdf",
+    "upload_id": "1a412279-abb0-59df-8c57-50f4a696b11a",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2011/03",
+    "title": "TECHNICAL PARTICULARS FOR CORDAGE, ...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 23 KGF.pdf",
+    "upload_id": "817199dd-1d92-5552-a761-6b873b5e98ce",
+    "has_header": true,
+    "spec_no": "IS 4227",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 250 KGF.pdf",
+    "upload_id": "cef6f56d-824f-5987-a366-0474880c9e77",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2013/05",
+    "title": "TECHNICAL PARTICULARS FOR CORDAGE, ...",
+    "variants": 1,
+    "total_reqs": 12,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 12,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 3120 W.pdf",
+    "upload_id": "d058d9c2-f0bc-5f45-9296-2af818e15529",
+    "has_header": true,
+    "spec_no": "CORD NYLON 3120 W",
+    "title": "CORD NYLON WHITE 3120 NBL",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CORD NYLON 345N.pdf",
+    "upload_id": "61aef83f-056f-5ad0-ac06-0ffdb4d053a6",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1987/31.\n1987",
+    "title": "CORD NYLON BRAIDED 345 NEWTONS CORE...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON 451N.pdf",
+    "upload_id": "1f85c3d1-4681-5bec-a297-7f26fc3570b9",
+    "has_header": true,
+    "spec_no": "IS 4227: 1998",
+    "title": "3.2 Cord",
+    "variants": 3,
+    "total_reqs": 29,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 29,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORD NYLON BRAIDED 1785.pdf",
+    "upload_id": "26d07bee-a61d-531f-ac88-381982b4f794",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/PG1PAS/44/A",
+    "title": "Cordage Nylon, Braided, Cored, 1785...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORDAGE NYLON BRAIDED 225 N WHITE.pdf",
+    "upload_id": "55eaca2a-f7d4-54dd-9842-3ac7f9ab72c2",
+    "has_header": true,
+    "spec_no": "ADRDE/1402-00",
+    "title": "CORDAGE NYLON BRAIDED BS 225N WHITE",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CORDAGE NYLON CORED 200 KG.pdf",
+    "upload_id": "532ad066-5eba-5c65-9e8d-4efe37194472",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/C/2011/03",
+    "title": "TECHNICAL PARTICULARS FOR CORDAGE, ...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON CLOTH 170 GSM CLOSELY.pdf",
+    "upload_id": "f9ff38fe-62b7-57db-8bef-16962618e8b9",
+    "has_header": true,
+    "spec_no": "JSS",
+    "title": "ITEM Cloth Cotton closely woven 170...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "COTTON CLOTH 91 CM.pdf",
+    "upload_id": "8843725b-4485-501f-b25a-a44c54d1afe7",
+    "has_header": true,
+    "spec_no": "ADRDE/AMS/MAT/24",
+    "title": "CLOTH COTTON CLOSELY WOVEN",
+    "variants": 2,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON CLOTH PLAIN WEAVE 85 GSM 150 CM.pdf",
+    "upload_id": "d59351f7-39ed-5933-8c1f-21744f379a9f",
+    "has_header": true,
+    "spec_no": "iS 667",
+    "title": "CLOTH COTTON VOILE PLAIN WEAVE 85GS...",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON CLOTH PLAIN WEAVE 85 GSM.pdf",
+    "upload_id": "876e3e8e-2f25-5384-b6a4-5bfbb6128655",
+    "has_header": true,
+    "spec_no": "IS 667",
+    "title": "CLOTH COTTON VOILE PLAIN WEAVE 85 G...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON WEBBING 76MM WIDTH.pdf",
+    "upload_id": "a443eb73-76af-542b-aa68-5d3a622f7876",
+    "has_header": true,
+    "spec_no": "IS: 6488:1999",
+    "title": "Cotton Webbing for Personal Web Equ...",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON YARN NE 2BY 2.pdf",
+    "upload_id": "70ea330e-87c7-54ef-8878-712f53bd3ede",
+    "has_header": true,
+    "spec_no": "IS 138-1992",
+    "title": "or cotton twine of suitable quality...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "COTTON YARN NE 30 BY 2.pdf",
+    "upload_id": "c73c5d35-f468-503e-a040-4f24000ba789",
+    "has_header": true,
+    "spec_no": "IS 138-1992",
+    "title": "or cotton twine of suitable quality...",
+    "variants": 1,
+    "total_reqs": 29,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 29,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CREEPE ELASTIC 25MM.pdf",
+    "upload_id": "83a44222-83e8-58ed-abd0-fcee7f4f873e",
+    "has_header": true,
+    "spec_no": "IND/TC/4987",
+    "title": "Crepe Elastic (Nylon spandex & rubb...",
+    "variants": 1,
+    "total_reqs": 287,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 287,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "CST 270DTEX.pdf",
+    "upload_id": "61525a38-ae56-524b-ae75-7d1e4c8e4577",
+    "has_header": true,
+    "spec_no": "IS : 1720 : 1978",
+    "title": "COTTON SEWING THREAD 270 D TEX/9 WH...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "CyQ.pdf",
+    "upload_id": "8d309ecf-c284-5597-849c-dc40673fe40b",
+    "has_header": true,
+    "spec_no": "CyQ",
+    "title": "areat 41 \u043d\u0430\u0447\u0447\u0430",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "DIGITAL FABRIC OF CC LARGE.pdf",
+    "upload_id": "2a22f3ef-7bd8-5b85-9f66-ab886740b462",
+    "has_header": true,
+    "spec_no": "IND/TC/4983",
+    "title": "FABRIC NYLON DIGITAL CAMOUFLAGE PRI...",
+    "variants": 2,
+    "total_reqs": 303,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 303,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "DUCK COTTON 475 GSM.pdf",
+    "upload_id": "b2998310-a257-5bd1-8b41-bd43c6a9e5aa",
+    "has_header": true,
+    "spec_no": "IND/TC/0201",
+    "title": "COTTON DUCK",
+    "variants": 2,
+    "total_reqs": 12,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 12,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "DUCK NYLON 230 GSM OG.pdf",
+    "upload_id": "b30332ca-cc0e-5cff-8913-15d463ffcc46",
+    "has_header": true,
+    "spec_no": "ADRDE/1984/23",
+    "title": "Item Name: DUCK NYLON 230 GSM OG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "ELASTC TAPE 38MM.pdf",
+    "upload_id": "0ae736b8-4119-5093-a813-a52ff70b3d88",
+    "has_header": true,
+    "spec_no": "IS:9686-1980",
+    "title": "ELASTIC TAPE 38MM-BLACK KNITTED HEA...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "ELASTIC TAPE 10MM.pdf",
+    "upload_id": "e4046bd9-b966-573e-b0f7-0a79875b8cb3",
+    "has_header": true,
+    "spec_no": "ELASTIC TAPE 10MM",
+    "title": "ELASTIC TAPE 10MM",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "ELASTIC TAPE 20MM.pdf",
+    "upload_id": "eb6c394d-95ab-5f76-8040-fbca104454fe",
+    "has_header": true,
+    "spec_no": "Elastic",
+    "title": "Elastic Tape Black With Button Hole...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ELASTIC TAPE 25MM BLK.pdf",
+    "upload_id": "7b491c01-f227-5f2e-b861-8bf4c66e50a2",
+    "has_header": true,
+    "spec_no": "Elastic",
+    "title": "Elastic Tape Black 25mm",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ELASTIC TAPE 38MM BLACK.pdf",
+    "upload_id": "59bd4b72-256d-5720-9a52-d59c9d12b4a1",
+    "has_header": true,
+    "spec_no": "IS:9686-1980",
+    "title": "ELASTIC TAPE 38MM-BLACK KNITTED HEA...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "ELASTIC TAPE 40MM.pdf",
+    "upload_id": "a6315525-b623-5198-b99c-c59e93cb01c2",
+    "has_header": true,
+    "spec_no": "IS: 9686-1980",
+    "title": "ELASTIC TAPE WHITE 40 MM",
+    "variants": 1,
+    "total_reqs": 3,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 3,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC 205 GSM.pdf",
+    "upload_id": "1c099c0a-e43e-5a2d-ab88-37a4a2ed7777",
+    "has_header": true,
+    "spec_no": "PROV/S/4369/FABRIC",
+    "title": "FABRIC GREEN 205 GMS SPUN P.V. BLEN...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC 230 GSM.pdf",
+    "upload_id": "a1ca2940-45c5-596d-8c30-58bc00a696ff",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1984/23",
+    "title": "DUCK NYLON VARIOUS OG",
+    "variants": 2,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC 300 GSM RIPSTOP.pdf",
+    "upload_id": "b2226b31-1f52-56b4-a686-77e2bc3d8b0c",
+    "has_header": true,
+    "spec_no": "IND/TC/0155",
+    "title": "FABRIC NYLON 300 GSM RIPSTOP PU COA...",
+    "variants": 1,
+    "total_reqs": 38,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 38,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC 410 GSM.pdf",
+    "upload_id": "b0cd6330-c1cc-58d8-922f-57aa845c3f54",
+    "has_header": true,
+    "spec_no": "PROV/S/4369/FWP",
+    "title": "FABRIC 410 GSM OG WP PV DOPE DYED",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC 410 SGM OEF.pdf",
+    "upload_id": "4df433fa-eaed-5500-abe9-390a9362ba27",
+    "has_header": true,
+    "spec_no": "IND/TC/2562",
+    "title": "FABRIC 410 GMS OG WP P.V. DOPE DYED...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC 65 GSM.pdf",
+    "upload_id": "16c9cb00-ce0c-5d42-b638-365c8a7b5df4",
+    "has_header": true,
+    "spec_no": "FABRIC 65 GSM",
+    "title": "FABRIC 65 GSM",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC 93GSM UD.pdf",
+    "upload_id": "bdbfa421-4005-517e-a531-2bdbff1fb145",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/53",
+    "title": "Fabric Nylon 93 gsm Undyed/ Dyed",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC ARCYLIC.pdf",
+    "upload_id": "2349090f-a98c-5b30-a47e-457a106a0676",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/F/2017/01",
+    "title": "TECHNICAL PARTICULARS FOR FABRIC AC...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC CANVAS DUCK 230 GSM IAF.pdf",
+    "upload_id": "f5d6fd53-c1d0-5f89-8753-cd07d5f91947",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1984/23",
+    "title": "Fabric (Canvas/ Duck) Nylon 230 GSM...",
+    "variants": 1,
+    "total_reqs": 21,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 21,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC COTTON FR AVADI.pdf",
+    "upload_id": "1e6ca599-6d0b-56a6-a8bb-47e0d4736e12",
+    "has_header": true,
+    "spec_no": "IS 667:1981",
+    "title": "FABRIC COTTON WITH FR AND CHEMICAL ...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC MERCERISED.pdf",
+    "upload_id": "2f33077d-b0b9-5351-85d6-4aec58ffdbe5",
+    "has_header": true,
+    "spec_no": "is 514 : 1992",
+    "title": "3.2 Fabric",
+    "variants": 2,
+    "total_reqs": 48,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 48,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 120 GSM.pdf",
+    "upload_id": "20d4ba53-6575-57f9-ae2a-c50e6fb1c227",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "FABRIC NYLON 120 GSM OG PU COATED W...",
+    "variants": 1,
+    "total_reqs": 55,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 55,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 190 GSM UD OPF.pdf",
+    "upload_id": "52a51899-1782-5caa-b24f-538a6695d81b",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/F/2019/03",
+    "title": "TECHNICAL PARTICULARS FOR FABRIC NY...",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 220 GSM.pdf",
+    "upload_id": "6fae70b1-da14-5fee-947f-7b4a692b277f",
+    "has_header": true,
+    "spec_no": "IND/TC/0160",
+    "title": "FABRIC NYLON 220GSM WHITE / O.G.",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 230 GSM.pdf",
+    "upload_id": "d8f58dc5-94e0-5e44-9ca1-3584684bbfe2",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1985/29",
+    "title": "Fabric Nylon 230 gsm",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 300 GSM RIP STOP.pdf",
+    "upload_id": "68d889c7-4d69-520c-8102-cc58d8314464",
+    "has_header": true,
+    "spec_no": "IND/TC/2324(b)",
+    "title": "0.1 The specification for Bag Kit U...",
+    "variants": 1,
+    "total_reqs": 41,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 41,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 35 GMS.pdf",
+    "upload_id": "2757c632-fcc0-50e7-a8ea-76c2b395f936",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/SPECN/98",
+    "title": "Fabric Nylon 35 gsm",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 37 GSM OD 288SD.pdf",
+    "upload_id": "72982168-d56e-5ee9-b554-24fa995dfe39",
+    "has_header": true,
+    "spec_no": "IS :\n4726-2025",
+    "title": "FABRIC NYLON LT. WT. 37g RIP STOP W...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC NYLON 37 GSM.pdf",
+    "upload_id": "8044185d-e547-5244-bab4-68e48ae81095",
+    "has_header": true,
+    "spec_no": "IS: 4726 - 1984",
+    "title": "ITEM - FABRIC NYLON 37 GM UD 94 CM",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 45 GSM LOW POROSITY.pdf",
+    "upload_id": "29e4bb94-24cf-5e33-a967-7990150b5501",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/73",
+    "title": "Fabric Nylon 42g Low Porosity",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 45GSM POROSITY.pdf",
+    "upload_id": "d2e4451f-e1a9-5826-90d3-208b8203a05a",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN.1983/14",
+    "title": "FABRIC NYLON LOW POROSITY 52 GM ODS...",
+    "variants": 1,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 48 GRM PLAIN WEAVE.pdf",
+    "upload_id": "c60fcb5e-a856-5514-8fd6-cfaa02be6ef3",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2002/56",
+    "title": "Fabric Nylon 48 g Undyed / Dyed",
+    "variants": 2,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 48 GSM.pdf",
+    "upload_id": "41bfd9ec-55f3-54ab-9873-f0697d3972de",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2002/56",
+    "title": "The linear density of yarn retrieve...",
+    "variants": 2,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 66 240 GSM.pdf",
+    "upload_id": "8a471053-002d-536b-9ccc-335dd3152cb0",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "FABRIC NYLON 6,6 240 GSM OG PU COAT...",
+    "variants": 1,
+    "total_reqs": 55,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 55,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 66 90 GSM.pdf",
+    "upload_id": "c18938e7-e1c9-59df-9e3a-22b49ec48a34",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/F/2013/01",
+    "title": "TECHNICAL PARTICULARS FOR FABRIC NY...",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 66 AIE TEXSTURED.pdf",
+    "upload_id": "c30d0649-6c1d-5320-a19e-141784046d0c",
+    "has_header": true,
+    "spec_no": "IND/TC/0155",
+    "title": "FABRIC NYLON 66 AIRTEXTURED PU COAT...",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 66 PU COATED oef.pdf",
+    "upload_id": "2f86d251-2aa9-5207-bd94-8156a07e8efc",
+    "has_header": true,
+    "spec_no": "Prov/S/3566/RAIN",
+    "title": "FABRIC NYLON 66 BREATHABLE POLYURET...",
+    "variants": 1,
+    "total_reqs": 22,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 22,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 66 PU COATED.pdf",
+    "upload_id": "c0b77338-8d4f-52d1-af9a-c976bef3c4d3",
+    "has_header": true,
+    "spec_no": "Prov/S/3566/RAIN",
+    "title": "Fabric Nylon 66 breathable Polyuret...",
+    "variants": 1,
+    "total_reqs": 22,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 22,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 75 GSM PU COATED.pdf",
+    "upload_id": "4ef0bceb-9ce8-5e49-92b2-a92902a5b11b",
+    "has_header": true,
+    "spec_no": "JSS 4240-03:2011",
+    "title": "FABRIC NYLON 75 GMS O.G. POLYURETHA...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC NYLON 90 GSM.pdf",
+    "upload_id": "2d207af7-6060-5274-bff7-72c1a9eccbd5",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/F/2013/01",
+    "title": "TECHNICAL PARTICULARS FOR FABRIC NY...",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON 93GSM UD.pdf",
+    "upload_id": "d751d67e-db34-503b-9542-fce4f7f72bc6",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/53",
+    "title": "Fabric Nylon 93 gsm Undyed/ Dyed",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON LT WT 37GRM.pdf",
+    "upload_id": "e4e1192c-b051-52b3-9d01-c44ee7deddd7",
+    "has_header": true,
+    "spec_no": "IS :\n4726-2025",
+    "title": "FABRIC NYLON LT. WT. 37g RIP STOP W...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC NYLON PU COATED 230 GSM BLACK.pdf",
+    "upload_id": "133c8259-b817-57aa-bede-b2407164db16",
+    "has_header": true,
+    "spec_no": "IND/TC/0155",
+    "title": "FABRIC NYLON PU COATED BLACK GSM-25...",
+    "variants": 5,
+    "total_reqs": 21,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 21,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON PU COATED.pdf",
+    "upload_id": "bd931b56-5022-5d69-a848-fee9df59e544",
+    "has_header": true,
+    "spec_no": "IS:7016",
+    "title": "PU COATED NYLON FABRIC PLAIN WEAVE ...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC NYLON TYPE SM.pdf",
+    "upload_id": "36387819-c0f6-5903-8ee0-720864533146",
+    "has_header": true,
+    "spec_no": "IS 4726 : 2025",
+    "title": "b) Requirement of fabric stability ...",
+    "variants": 2,
+    "total_reqs": 71,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 71,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC PARA ARAMID 100 CM.pdf",
+    "upload_id": "eb621502-51c4-5227-b570-c8805939f41f",
+    "has_header": true,
+    "spec_no": "ADRDE/ASQMS/P12/TGTE/F/2025/02",
+    "title": "Item & Quantity: Fabric Para-aramid...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC PARA ARAMID 50 GSM.pdf",
+    "upload_id": "5e2e7ebe-73d9-5ba7-8591-82afb215d166",
+    "has_header": true,
+    "spec_no": "ADRDE/ASQMS/P12/TGTE/F/2025/01",
+    "title": "Item & Quantity: Fabric Para-aramid...",
+    "variants": 2,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC PLAIN WEAVE 48GSM.pdf",
+    "upload_id": "cb61f6fb-97df-55ee-803f-051574fc1016",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2002/56",
+    "title": "Fabric Nylon 48 g Undyed / Dyed",
+    "variants": 2,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC PLAIN WEAVE FR AVADI.pdf",
+    "upload_id": "34420d45-0aa8-5358-8fdb-4ad0259b0dae",
+    "has_header": true,
+    "spec_no": "IS 3442",
+    "title": "SPECIFICATION FOR FLAME RETARDANT F...",
+    "variants": 1,
+    "total_reqs": 35,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 35,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC POLYESTER 210 GSM.pdf",
+    "upload_id": "5f878716-eb2c-5b4d-b9bf-7f34d8f3952e",
+    "has_header": true,
+    "spec_no": "JSS: 4020-09:2013\nCord Nylon 1785",
+    "title": "climates. This mattress is a self i...",
+    "variants": 1,
+    "total_reqs": 26,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 26,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC POLYESTER 235 GSM.pdf",
+    "upload_id": "be1640de-0a19-5d88-9f7b-8086bda3b1c3",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC5/2017",
+    "title": "FABRIC POLYESTER 235 GSM OG PU COAT...",
+    "variants": 1,
+    "total_reqs": 55,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 55,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FABRIC POLYESTER 650 GSM.pdf",
+    "upload_id": "982c2ce0-7d6f-5909-9ede-1a433501cb12",
+    "has_header": true,
+    "spec_no": "FABRIC POLYESTER 650 GSM",
+    "title": "FABRIC POLYESTER 650 GSM PVC COATED...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FABRIC POLYESTER WHITE WIND CHEATER.pdf",
+    "upload_id": "677378bf-2f5c-5702-bb3a-585368ddce85",
+    "has_header": true,
+    "spec_no": "IS : 667:1981",
+    "title": "Fabric Polyester white (Wind Cheate...",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FASTNER HOOK LOOP 2.5 CM.pdf",
+    "upload_id": "1bcb740a-4a70-5efd-9d8f-8dcbb0eb43cf",
+    "has_header": true,
+    "spec_no": "IS : 8156-2014",
+    "title": "Fastener Hook & Loop Tape Synthetic...",
+    "variants": 3,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FASTNER HOOK TAPE 25MM OG.pdf",
+    "upload_id": "659481cb-23e9-50c2-a0ef-a4cd6f8cc00f",
+    "has_header": true,
+    "spec_no": "IS:8156-2014",
+    "title": "FASTNER HOOK TAPE 25 MM OG.",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FASTNER LOOP TAPE 10CM.pdf",
+    "upload_id": "4b403ed8-0e64-5263-848d-071cc6867990",
+    "has_header": true,
+    "spec_no": "IS : 8156-2014",
+    "title": "Fasteners Loop Tape Synthetic 10cm....",
+    "variants": 3,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FASTNER LOOP TAPE 25MM OG.pdf",
+    "upload_id": "0f1adb6e-c272-5136-9f2f-16a3b6bb81cf",
+    "has_header": true,
+    "spec_no": "IS:8156-2014",
+    "title": "FASTNER LOOP TAPE 25 MM OG.",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "FIBRE GLASS SLEEVE 5-6 MM.pdf",
+    "upload_id": "47107d82-8fa6-5d5b-b400-95cdf6206907",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/C/2019/04",
+    "title": "Technical Particulars for Fibre Gla...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "FIBRE GLASS TAPE 60MM.pdf",
+    "upload_id": "c97f2db8-5a85-5c90-8e49-5f73a511c5ae",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1998/51",
+    "title": "FIBRE GLASS TAPE 60 MM",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "Fastner Loop Tape 5cm.pdf",
+    "upload_id": "288ff5f1-40c5-5352-a10c-be25532a2435",
+    "has_header": true,
+    "spec_no": "IS : 8156-2014",
+    "title": "Fasteners Loop Tape Synthetic 5 cm....",
+    "variants": 3,
+    "total_reqs": 7,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 7,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "HARD COKE.pdf",
+    "upload_id": "44d7960d-8ca6-540e-a669-8fedd7de4ef3",
+    "has_header": true,
+    "spec_no": "IS 439",
+    "title": "NOMENCLATURE AND SPECIFICATION OF I...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "HOOK LOOP 25MM OG.pdf",
+    "upload_id": "0b666a56-0063-50f1-ac21-bbeca83efe41",
+    "has_header": true,
+    "spec_no": "IS:8156-2014",
+    "title": "SET FAST HOOK&LOOP TAPE 25 MM OG Pa...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "INTERLINING FABRIC POLYESTER 35 GSM.pdf",
+    "upload_id": "a883dae5-2daf-52f1-80d1-3bdfe535c3e2",
+    "has_header": true,
+    "spec_no": "IS 667:1981",
+    "title": "Item: INTERLINING FABRIC 100%POLY M...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "INTERLINING FABRIC POLYESTER.pdf",
+    "upload_id": "f380fffd-316d-5759-a4be-66e3262ee05b",
+    "has_header": true,
+    "spec_no": "IS : 667:1981",
+    "title": "Interlining Fabric 100% Polyester M...",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "LACING TAPE BLACK.pdf",
+    "upload_id": "9d0322d2-e919-5894-90e9-81517d021c1a",
+    "has_header": true,
+    "spec_no": "LACING TAPE BLACK",
+    "title": "LACING TAPES,NYLON TAPE FOR LACING ...",
+    "variants": 1,
+    "total_reqs": 3,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 3,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "LONG COTTON CLOTH.pdf",
+    "upload_id": "015c8d44-9ac1-58a6-8868-0483350d64fc",
+    "has_header": true,
+    "spec_no": "IS:187-2022",
+    "title": "LONG CLOTH COTTON WHITE BLEACHED 91...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "META ARAMID FABRIC.pdf",
+    "upload_id": "a2012fa4-f74e-5006-9912-cd973ded43da",
+    "has_header": true,
+    "spec_no": "IS 1964",
+    "title": "META ARAMID FABRIC 180GSM SAGE GREE...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NON WOVEN POLYESTER FABRIC 225 GSM.pdf",
+    "upload_id": "50bfb1b2-c6f7-5258-8a0e-36b3708da870",
+    "has_header": true,
+    "spec_no": "IND/TC/3847",
+    "title": "NON WOVEN POLYSTER FABRIC OF 250 GS...",
+    "variants": 5,
+    "total_reqs": 21,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 21,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NST H1 OG.pdf",
+    "upload_id": "66341daf-a3c3-514e-b440-00ded783166a",
+    "has_header": true,
+    "spec_no": "IS:4229-1992",
+    "title": "NYLON SEWING THREAD FOR AERO SPACE",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "NST H2 OEF.pdf",
+    "upload_id": "f63604c8-c931-5bbf-8ed4-b77d9aeae309",
+    "has_header": true,
+    "spec_no": "IS: 4229",
+    "title": "NYLON SEWING THREAD FOR AEROSPACE P...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NST H2.pdf",
+    "upload_id": "0120946b-790b-5889-b8c4-8c970f9034ee",
+    "has_header": true,
+    "spec_no": "IS 4229",
+    "title": "4.2 A lubricating finish may be app...",
+    "variants": 2,
+    "total_reqs": 3,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 3,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NST L35N.pdf",
+    "upload_id": "db29755d-d9e9-5006-91b1-95305dae71d3",
+    "has_header": true,
+    "spec_no": "IS 4229 : 1992",
+    "title": "IND/ADE/0063 Thread, sewing, nylon,...",
+    "variants": 2,
+    "total_reqs": 27,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 27,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON 6 FABRIC 50 GSM.pdf",
+    "upload_id": "98fc7215-3bc2-527d-9205-ae807bb8cefa",
+    "has_header": true,
+    "spec_no": "IND/TC/4987",
+    "title": "Nylon 6, Woven, 50 GSM Green Colour...",
+    "variants": 2,
+    "total_reqs": 278,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 278,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON 66 RIP STOP EXTRA EXTRA LARGE.pdf",
+    "upload_id": "18f4e16d-206f-5732-82df-dacb5d85ec6c",
+    "has_header": true,
+    "spec_no": "IND/TC/4984",
+    "title": "Repellency Olive Green & Black Fabr...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON 66 RIP STOP EXTRA LARGE.pdf",
+    "upload_id": "6208c66d-67e2-50e3-a75f-a1d5ee5b57f6",
+    "has_header": true,
+    "spec_no": "IND/TC/4984",
+    "title": "Repellency Olive Green & Black Fabr...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON 66 RIP STOP LARGE.pdf",
+    "upload_id": "ecb0c090-6f4b-5ba5-90a5-26deb96edc64",
+    "has_header": true,
+    "spec_no": "IND/TC/4984",
+    "title": "Repellency Olive Green & Black Fabr...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON 66 RIP STOP MEDIUM.pdf",
+    "upload_id": "ec655a0b-8073-53fb-ade0-221625b0b1ac",
+    "has_header": true,
+    "spec_no": "IND/TC/4984",
+    "title": "Repellency Olive Green & Black Fabr...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON CORD 6MM DIA.pdf",
+    "upload_id": "2b553a95-9206-52bd-9e08-ae2994efcf38",
+    "has_header": true,
+    "spec_no": "IS : 1315",
+    "title": "NYLON SEVING THREAD OLIVE GREEN",
+    "variants": 1,
+    "total_reqs": 23,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 23,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON FILM LAMINATED NYLON FABRIC 100 GSM.pdf",
+    "upload_id": "b759f78c-e2ce-53ea-bc43-4bd95027faa4",
+    "has_header": true,
+    "spec_no": "ADRDE/ASQMS/P12/TGTE/CF/2025/01\n7000",
+    "title": "Item: Nylon Film Laminated Nylon Fa...",
+    "variants": 1,
+    "total_reqs": 22,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 22,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON ROPE 16MM DIA.pdf",
+    "upload_id": "ce6d1b92-29b8-5523-98db-937486d71045",
+    "has_header": true,
+    "spec_no": "IS 7071",
+    "title": "such backs shall then be wrapped wi...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "NYLON SEWING THREAD 66 NAVY BLUE.pdf",
+    "upload_id": "dd85d848-e999-56df-8533-23dccac8eef7",
+    "has_header": true,
+    "spec_no": "ADRDE/TDTM/TH/2009/1",
+    "title": "Item Name - SEWING THREAD NYLON '66...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "NYLON STRING.pdf",
+    "upload_id": "cf365e89-2512-5c1f-a547-4f6b48fe9d1e",
+    "has_header": true,
+    "spec_no": "NYLON STRING",
+    "title": "SPECIFICATION OF NYLON STRING",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "P P TAPE 8MM OG.pdf",
+    "upload_id": "b467bcd3-9dde-5c7a-98d2-f1d3cd840508",
+    "has_header": true,
+    "spec_no": "IS 667",
+    "title": "2) Tape Width: 8 mm (Tol +0mm / -0....",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "P U COATED 300 GSM.pdf",
+    "upload_id": "629d961d-b106-5848-bfef-11fb8e1d5ead",
+    "has_header": true,
+    "spec_no": "ADRDE/TDTM/F/2012/08",
+    "title": "Technical Particulars for Polyureth...",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PARA ARAMID SLING 45 TON.pdf",
+    "upload_id": "42821636-056c-5b0f-bc32-5014704665ed",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/W/2022/21",
+    "title": "Enclosure I",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PARA ARAMID WOVEN GRD FA.pdf",
+    "upload_id": "a91e4757-f90c-5cc1-a508-96d477548988",
+    "has_header": true,
+    "spec_no": "PARA ARAMID WOVEN GRD FA",
+    "title": "(iii) THREAD DENSITY (WARP&WEFT) -8...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PIPING FOR BLANKET NB.pdf",
+    "upload_id": "aeda9144-becc-5c67-af60-81d869e67902",
+    "has_header": true,
+    "spec_no": "IND/TC/2123(b)",
+    "title": "from 100% high quality Polyester Sa...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "POLYESTER BATTING 425 GSM.pdf",
+    "upload_id": "6ed035df-d8c7-5777-b965-d6a90cd86ffd",
+    "has_header": true,
+    "spec_no": "POLYESTER BATTING 425 GSM",
+    "title": "NON-WOVEN POLYESTER FABRIC GSM 425+...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "POLYESTER ELASTIC TAPE.pdf",
+    "upload_id": "5031c233-81df-5f2c-ae9e-cdd00892ff29",
+    "has_header": true,
+    "spec_no": "POLYESTER ELASTIC TAPE",
+    "title": "POLYESTER ELASTIC TAPE 25MM BLACK",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PP TAPE 8MM OG.pdf",
+    "upload_id": "dcc955a8-f703-548b-ba63-735fc848b0d6",
+    "has_header": true,
+    "spec_no": "Polypropylene",
+    "title": "Polypropylene Tape OG 8mm",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "PU COATED 370 GSM FABRIC.pdf",
+    "upload_id": "26a3e3d1-6418-5a79-8115-ba7906a5f615",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/75",
+    "title": "Fabric 370 gsm and 475 gsm Air Text...",
+    "variants": 2,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PU FOAM 10MM.pdf",
+    "upload_id": "7e0f07e8-414a-5d25-83a7-cbaa7614448a",
+    "has_header": true,
+    "spec_no": "IND/TC/3847(A)",
+    "title": "ITEM : PU FOAM 10 MM THICK X 90 CM ...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "PU FOAM 188 CM.pdf",
+    "upload_id": "b0b4457d-cef9-5619-a0ba-0b20c7756cb2",
+    "has_header": true,
+    "spec_no": "JSS: 4020-09:2013\nCord Nylon 1785",
+    "title": "climates. This mattress is a self i...",
+    "variants": 1,
+    "total_reqs": 26,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 26,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PU FOAM 8MM HZP.pdf",
+    "upload_id": "adb3bde5-a7ae-51f6-8905-065ba6567e8d",
+    "has_header": true,
+    "spec_no": "IS : 7933 - 1975",
+    "title": "(Reaffirmed 2008)",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PU FOAM 8MM.pdf",
+    "upload_id": "8fc0bb8d-6877-5025-bca2-c118c55d5444",
+    "has_header": true,
+    "spec_no": "IS: 7933-1975",
+    "title": "Item Code : 9910262296",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "PVC SHEET HZP.pdf",
+    "upload_id": "95e2392b-888f-5c1d-9548-ce4518cc40b4",
+    "has_header": true,
+    "spec_no": "IND/TC/2324(b)",
+    "title": "0.1 The specification for Bag Kit U...",
+    "variants": 1,
+    "total_reqs": 41,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 41,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "PVC SHEET.pdf",
+    "upload_id": "a7252b0e-3923-5293-8b5a-72fe592ff35a",
+    "has_header": true,
+    "spec_no": "S/2532/BAG KIT UNIVERSAL(OG)/TC-6 AMENDMENT NO.1 DATED 01 SE",
+    "title": "Item Code : 2103712921",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "RIBBON 50MM UD.pdf",
+    "upload_id": "edf3d5d2-590d-5b12-9a47-b6a27f50938a",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/12",
+    "title": "Determination of crimp and count of...",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "RIBBON NYLON 16MM IAF.pdf",
+    "upload_id": "8d5d32b0-986c-5d51-8859-43c0f3ae288d",
+    "has_header": true,
+    "spec_no": "ADRDE/540",
+    "title": "RIBBON NYLON 16 SPECIFICATION",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "RIBBON NYLON 50MM IAF.pdf",
+    "upload_id": "1aa75f1e-a75a-5447-be34-1842e2191b3a",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/12",
+    "title": "GIG- 919-338234 33923'1",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "ROPE NYLON 8MM UD.pdf",
+    "upload_id": "fc0621a0-1259-5530-80b3-68e0fabfa392",
+    "has_header": true,
+    "spec_no": "ROPE NYLON 8MM UD",
+    "title": "Item Code : 2101560006",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "ROPE PP OG.pdf",
+    "upload_id": "76de6356-2cda-5ea1-8abe-f5343e303dbe",
+    "has_header": true,
+    "spec_no": "IND/TC/2324",
+    "title": "Item Code : 9910261049",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "RUCKSACK 90 LTR.pdf",
+    "upload_id": "9eed08e0-6067-536e-9705-3608b2ecbf1e",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "(a) Fabric for Main Pack",
+    "variants": 1,
+    "total_reqs": 56,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 56,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SET OF FASTNER HOOK LOOP 25MM AVADI.pdf",
+    "upload_id": "169b5060-5b7c-5fe9-a453-04bcd9b88d58",
+    "has_header": true,
+    "spec_no": "IS: 8156 - 2024",
+    "title": "SET FASTNERS HOOK & LOOP TAPE SYNTH...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "SET OF FASTNER HOOK LOOP 25MM SJH.pdf",
+    "upload_id": "d4339a03-1706-5460-b311-d9eaa572b565",
+    "has_header": true,
+    "spec_no": "IS:8156-2014",
+    "title": "SET OF FASTENERS HOOK & LOOP TAPE S...",
+    "variants": 3,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SET OF FASTNER HOOK LOOP 25MM.pdf",
+    "upload_id": "1ad4d637-9817-5ded-b403-2da190cc7d69",
+    "has_header": true,
+    "spec_no": "IS 8156 : 1994",
+    "title": "TAPE - SPECIFICATION",
+    "variants": 2,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SET OF FASTNER HOOK LOOP 50mm.pdf",
+    "upload_id": "74c91a13-ff84-5698-99f8-297902762c72",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "FASTNER HOOK & LOOP TAPE OG 50MM,ON...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SET OF NYLON 66 RIP STOP.pdf",
+    "upload_id": "4d17c469-12fc-5a3c-b78c-690fdd2746f1",
+    "has_header": true,
+    "spec_no": "IND/TC/4984",
+    "title": "Repellency Olive Green & Black Fabr...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SEWING THREAD 125 D TEX SHJ.pdf",
+    "upload_id": "ec6978c9-3a58-5c77-b044-a2928b9312a2",
+    "has_header": true,
+    "spec_no": "IND/TC/0296(b)",
+    "title": "SEWING THREAD 125d TEX/3 SPUN POLYE...",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SEWING THREAD 145D TEX HZP.pdf",
+    "upload_id": "509530f5-1073-5d47-b7a8-60300917168d",
+    "has_header": true,
+    "spec_no": "IS : 9543",
+    "title": "The Delhi Cloth & General Mills Co ...",
+    "variants": 2,
+    "total_reqs": 22,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 22,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SEWING THREAD LINEN.pdf",
+    "upload_id": "03741319-6d91-52b3-956f-63812978e7f9",
+    "has_header": true,
+    "spec_no": "IS 2196 : 2024",
+    "title": "Sewing Thread for Aerospace",
+    "variants": 2,
+    "total_reqs": 25,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 25,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SEWING THREAD SPUN POLYESTER 125 D TEX.pdf",
+    "upload_id": "d7030281-2aba-5a71-b230-6149bd3907d4",
+    "has_header": true,
+    "spec_no": "IS : 9543-2015",
+    "title": "Sewing Thread Spun Polyester 125 dt...",
+    "variants": 2,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SHEATH NYLON 30MM.pdf",
+    "upload_id": "0847c228-2460-512a-9eb6-9a30dd51a585",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/C/2019/03",
+    "title": "TECHNICAL PARTICULARS FOR SHEATH NY...",
+    "variants": 1,
+    "total_reqs": 9,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 9,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SILICA GEL.pdf",
+    "upload_id": "59794552-d830-53f3-8546-d19fb37f2aea",
+    "has_header": true,
+    "spec_no": "IS:3401:2023",
+    "title": "ITEM SPECIFICATION ITM CD :21116572...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SNM ATC 6661559.pdf",
+    "upload_id": "1fb76bec-b03f-513c-8005-b80c51a81d94",
+    "has_header": true,
+    "spec_no": "PROV/S/4369/FWP",
+    "title": "Manufacturer of Cotton/Polyester Ca...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SOW MULTIPLE ELEMENT NET.pdf",
+    "upload_id": "c887f85a-840d-57db-a820-461078299c04",
+    "has_header": true,
+    "spec_no": "ADRDE/GMS/AABG/667/9",
+    "title": "BY MEAN OF CORD MATERIAL's2'",
+    "variants": 1,
+    "total_reqs": 33,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 33,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "SPEC FABRIC NYLON 66 90 GSM OPF.pdf",
+    "upload_id": "a40fe6b1-33e9-5b68-8a26-53b93b4140f7",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/F/2013/01",
+    "title": "FABRIC NYLON 66,90 +- - 3 GM UD 100...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE 1.6CM BS 210 KG.pdf",
+    "upload_id": "748dcc2f-c242-55ce-9631-59397ed28132",
+    "has_header": true,
+    "spec_no": "TAPE 1.6CM BS 210 KG",
+    "title": "TAPE 1.6CM BS 210 KG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE 13MM 80 KG UD.pdf",
+    "upload_id": "4a63145a-13b6-5f26-a290-8e44caef453f",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/62",
+    "title": "ITEM - Tape Nylon 66 13 MM 80 KGF U...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE 14MM 850 KG.pdf",
+    "upload_id": "d23683b9-815c-5fd6-b81d-d95e504182bb",
+    "has_header": true,
+    "spec_no": "IS : 1963-1960",
+    "title": "tape nylon shall be delivered loose...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE 19MM BLUE IAF.pdf",
+    "upload_id": "12949668-38ef-53f5-be21-fa3a2cb870df",
+    "has_header": true,
+    "spec_no": "TAPE 19MM BLUE IAF",
+    "title": "TAPE NYLON 19MM BRAIDED BLUE",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE 26MM 17500N.pdf",
+    "upload_id": "10e0d43d-3560-5959-851b-45818d3337c8",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1985/27",
+    "title": "Vty, No. 1: Tape Nylon 43 mm",
+    "variants": 1,
+    "total_reqs": 17,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 17,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON 19MM OG SPL.pdf",
+    "upload_id": "08916014-755b-51e6-82ed-6ddb245933d7",
+    "has_header": true,
+    "spec_no": "IS 3255 : 2024",
+    "title": "c) Width of tape (mm);",
+    "variants": 3,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON 25MM MIL.pdf",
+    "upload_id": "5d3ad788-af3a-5222-91d4-95b41ded3d66",
+    "has_header": true,
+    "spec_no": "IND/ME/888 (PROV) DC NO.6104- ME DATED 31/08/2019",
+    "title": "Item Nomenclature: - \"TAPE COTTON M...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE COTTON 25MM OG.pdf",
+    "upload_id": "449e0524-f5fc-5458-997b-30e9e660188d",
+    "has_header": true,
+    "spec_no": "IS 3255 : 2024",
+    "title": "c) Width of tape (mm);",
+    "variants": 3,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON 30MM THIN.pdf",
+    "upload_id": "d902f116-3e93-5743-b95d-9bf05a8535f1",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2019/09",
+    "title": "Technical Particulars for Tape Cott...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON 38MM OG.pdf",
+    "upload_id": "057c7a43-dc20-573b-854e-4ec42da112bb",
+    "has_header": true,
+    "spec_no": "IS 3255 : 2024",
+    "title": "c) Width of tape (mm);",
+    "variants": 3,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON 76.5 MM.pdf",
+    "upload_id": "6a00d5a4-c0f1-5d24-b4ad-5612e02e2c9b",
+    "has_header": true,
+    "spec_no": "IS 3255 : 2024",
+    "title": "c) Width of tape (mm);",
+    "variants": 3,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE COTTON RED MIL.pdf",
+    "upload_id": "db3d8ff2-b952-5156-99b6-a7ca0ae3512a",
+    "has_header": true,
+    "spec_no": "IS 3255 : 2024",
+    "title": "c) Width of tape (mm);",
+    "variants": 3,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE ELASTIC 25MM OG.pdf",
+    "upload_id": "0e462663-c264-5ade-ada1-ff665df43808",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017)",
+    "title": "TAPE ELASTIC 25 MM O.G.",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE ELASTIC 50MM OG.pdf",
+    "upload_id": "dfc66b03-0f2c-50f0-abed-b525495af7ab",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "TAPE ELASTIC OG 50MM",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NEWAR POLYESTER 25MM HZP.pdf",
+    "upload_id": "bba304f3-da60-5046-82ba-8877838cc31b",
+    "has_header": true,
+    "spec_no": "IS: 1954",
+    "title": "The Schedule covers the requirement...",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NEWAR POLYESTER 25MM.pdf",
+    "upload_id": "7ce64903-ea73-569f-91ab-dc2fa0ca9f62",
+    "has_header": true,
+    "spec_no": "CQA (T",
+    "title": "TAPE NEWAR POLYESTER O.G. 25 MM",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NEWAR POLYESTER FLY INNER TEFS 4M.pdf",
+    "upload_id": "7b7d573d-3777-5786-98be-a3d1fdd3c21c",
+    "has_header": true,
+    "spec_no": "CQA (T",
+    "title": "TAPE NEWAR POLYESTER O.G. OFF SIZES...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NEWAR POLYESTER KHAKI.pdf",
+    "upload_id": "5a36fc40-0f12-5d1a-ae1e-4f8fd34ef933",
+    "has_header": true,
+    "spec_no": "IND/TC/0296",
+    "title": "The Schedule covers the requirement...",
+    "variants": 1,
+    "total_reqs": 17,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 17,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NEWAR POLYESTER LINNER INNER 2M.pdf",
+    "upload_id": "59d170a4-bc61-5573-bb1e-0559e8304a1b",
+    "has_header": true,
+    "spec_no": "CQA (T",
+    "title": "TAPE NEWAR POLYESTER O.G. OFF SIZES...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NEWAR TEFS 4M.pdf",
+    "upload_id": "159aa157-8006-58ab-a5d2-68b6b3326523",
+    "has_header": true,
+    "spec_no": "CQA(T",
+    "title": "TAPE NEWAR POLYSTER OG OFF SIZES ( ...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 1.3CM 80KG UD.pdf",
+    "upload_id": "343df6fa-2c33-59cc-b8d6-f464976ab7e8",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/62",
+    "title": "Tape Nylon 1.3 cm 80kgf Dyed/Undyed",
+    "variants": 3,
+    "total_reqs": 30,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 30,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 1.6CM 210 KG.pdf",
+    "upload_id": "38be09f4-cea5-5aed-af8b-faa4ba0c1fe1",
+    "has_header": true,
+    "spec_no": "TAPE NYLON 1.6CM 210 KG",
+    "title": "TAPE NYLON 1.6CM 210 KG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON 1345 N.pdf",
+    "upload_id": "eac7588f-7f54-5d3e-a61a-9337671547df",
+    "has_header": true,
+    "spec_no": "IS 4228 : 2023",
+    "title": "shall be made firm with interlockin...",
+    "variants": 1,
+    "total_reqs": 34,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 34,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 14MM 230 KG.pdf",
+    "upload_id": "96179df8-79f8-5bb0-beca-de660732ae8e",
+    "has_header": true,
+    "spec_no": "JSS 8315-06:2014",
+    "title": "TAPE, NYLON, DYED / UNDYED",
+    "variants": 2,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 15MM 1815N.pdf",
+    "upload_id": "c685f8ec-dd31-58d9-aa36-84bd78f41933",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2019/02",
+    "title": "Technical Particulars for Tape Nylo...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 17500N.pdf",
+    "upload_id": "37367ef6-4abc-5848-a8c8-bdca1642a760",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1985/27",
+    "title": "Vty. No. 1: Tape Nylon 43 mm",
+    "variants": 1,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 19MM 193 KG.pdf",
+    "upload_id": "8e248f80-5d5b-5bc9-840c-6801df5ae6f9",
+    "has_header": true,
+    "spec_no": "IS 4228-1979",
+    "title": "Item Name-Tape Nylon 19 MM 193 KG O...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON 19MM UD.pdf",
+    "upload_id": "0ddcf8ae-9dee-51da-b9ad-127bc5d51a77",
+    "has_header": true,
+    "spec_no": "(NIV) TABES",
+    "title": "Tape Nylon 13 ME",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 2.6 CM BS 700 KG.pdf",
+    "upload_id": "ded131ed-2f34-594e-bdeb-4146f1517deb",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/65",
+    "title": "TAPE NYLON SAND GREY 26 MM 600 KGF",
+    "variants": 1,
+    "total_reqs": 19,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 19,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 20MM 5680N.pdf",
+    "upload_id": "c5cabc43-cd7d-5b25-9d9e-a613e0d739e8",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2019/08",
+    "title": "Technical Particulars for Tape Nylo...",
+    "variants": 1,
+    "total_reqs": 13,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 13,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 210 KG.pdf",
+    "upload_id": "fb7532f0-af99-5ade-bcfd-efef732a6f48",
+    "has_header": true,
+    "spec_no": "TAPE NYLON 210 KG",
+    "title": "TAPE NYLON 210 KG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON 21MM 600 KG IAF.pdf",
+    "upload_id": "1644bde9-4fb2-55de-99f4-51f5a2853d12",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/54",
+    "title": "TAPE NYLON 66, 21 MM, BS 600 KGF, U...",
+    "variants": 1,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 21MM 600 KG.pdf",
+    "upload_id": "58e1c236-5b54-5b99-810e-e7ac5eecaa92",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TG",
+    "title": "Revised Copy of Spec No. ADRDE/SPEC...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 25.4MM 250 KG.pdf",
+    "upload_id": "62eb359c-bc37-5a0c-9498-9daa83842e21",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/64",
+    "title": "Tape Nylon 25.4mm 250 kgf Dyed/Undy...",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 25MM 450 KG UD.pdf",
+    "upload_id": "80f0a975-af2b-5b49-8439-dd4b5717f297",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1992/38",
+    "title": "Tape Nylon Various for Auronautical...",
+    "variants": 2,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 26MM 1850.pdf",
+    "upload_id": "059f50c8-47ac-55f1-8b4b-fef5038e75b6",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TG",
+    "title": "Revised Copy of Spec No. ADRDE/SPEC...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 26MM 200 KG UD.pdf",
+    "upload_id": "a106dfdc-6f15-5d71-91c9-83bdd8a8a5fa",
+    "has_header": true,
+    "spec_no": "ADRDE/BP/1",
+    "title": "Item Name - Tape Nylon 26 MM BS 200...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON 26MM 600 KG BED.pdf",
+    "upload_id": "fa8c9b42-c25b-5124-ad35-1b18a6742afa",
+    "has_header": true,
+    "spec_no": "ADRDE/BP/1",
+    "title": "TAPE NYLON 26 mm O/G 600 Kgf",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 26MM MED SG 700 KG.pdf",
+    "upload_id": "e3a03ca4-68d8-5475-a7b9-7fd47f31d85b",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/65",
+    "title": "Tape Nylon 26mm 700 kgf Dyed/Undyed",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 550 KG UD.pdf",
+    "upload_id": "938c1252-6835-5d10-afbd-8b88396f55a6",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TG",
+    "title": "Revised Copy of Spec No. ADRDE/SPEC...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 66 14MM 230 KG HZP.pdf",
+    "upload_id": "e48b306b-1f95-55fe-99e5-5113de9b7a7d",
+    "has_header": true,
+    "spec_no": "IS:4228-1979",
+    "title": "Item Name- Tape Nylon 66 14 MM 230 ...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON 66, 43MM 9000 N.pdf",
+    "upload_id": "340f5a78-2f3c-5791-8b35-3e02e0d32b30",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1985/27",
+    "title": "Vty. No. 1: Tape Nylon 43 mm",
+    "variants": 1,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 70 25 38MM SET.pdf",
+    "upload_id": "9c6f851a-0e71-5ecc-9c9a-20eea64a6f40",
+    "has_header": true,
+    "spec_no": "TAPE NYLON 70 25 38MM SET",
+    "title": "TAPE NYLON CONSISTING OF FOLLOWING:...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 700 KG.pdf",
+    "upload_id": "cd6a3363-ea02-507f-9072-88ca97518848",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/65",
+    "title": "Tape Nylon 26mm 700 kgf Dyed/Undyed",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 850 KG IAF.pdf",
+    "upload_id": "ea10d2ac-dbdc-5f87-b557-952256f09fd3",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2000/54",
+    "title": "TAPE NYLON 66, 26MM BS:850 KGF U/D",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 850 KG RESIN TR.pdf",
+    "upload_id": "b2b3662e-708b-51e3-b506-07944c5aa7a9",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TG",
+    "title": "Revised Copy of Spec No. ADRDE/SPEC...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON 8MM 400 KG.pdf",
+    "upload_id": "6f4b14a4-8c9a-5f01-9029-4de3c93fcb85",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/13",
+    "title": "This specification is revision of A...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON BLACK STRETCH 25MM.pdf",
+    "upload_id": "476e0c4c-46a1-5378-aca9-7a42b35c92f7",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2019/07",
+    "title": "Technical Particulars for Tape Nylo...",
+    "variants": 1,
+    "total_reqs": 11,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 11,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON HAVERSACK SET.pdf",
+    "upload_id": "43b86c45-801c-57d0-9b58-d9bf8b6354f5",
+    "has_header": true,
+    "spec_no": "DMSRDE/T",
+    "title": "TAPE NYLON THIN/THICK OG OFF SIZES ...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON SET.pdf",
+    "upload_id": "297d7af4-9620-52bd-9680-d25374a0a5ed",
+    "has_header": true,
+    "spec_no": "Prov/S/7823/TC-5/2017",
+    "title": "TAPE NYLON OG,ONE SET CONSISTING OF...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON TEFS 4M UNIT.pdf",
+    "upload_id": "27a6dfa9-03ab-572d-a14a-99077357e145",
+    "has_header": true,
+    "spec_no": "CQA (T4C)/TEFS/GAR/TC-6/2005 (7070/PK DT",
+    "title": "TAPE NEWAR POLYSTER OG OFF SIZES ( ...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON THICK 25MM OG.pdf",
+    "upload_id": "c92574de-ac4e-5119-8547-9ff6e092ec74",
+    "has_header": true,
+    "spec_no": "TAPE NYLON THICK 25MM OG",
+    "title": "TAPE NYLON THICK 25MM OG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON THIN 13MM OG.pdf",
+    "upload_id": "319f87bd-d82b-5fa6-ba34-43e826c94b71",
+    "has_header": true,
+    "spec_no": "TAPE NYLON THIN 13MM OG",
+    "title": "TAPE NYLON THIN 13MM OG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE NYLON TUB. 36MM BS 29000 N.pdf",
+    "upload_id": "066ab0bc-215f-5173-b8cc-ca92e01ffcaf",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1985/27",
+    "title": "Vty, No. 1: Tape Nylon 43 mm",
+    "variants": 2,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE NYLON UVR HZP.pdf",
+    "upload_id": "64d11589-b059-5870-98da-dbe92ed2923a",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/70",
+    "title": "(NIV) TAPE WOVEN NYLON UNTREATED, U...",
+    "variants": 7,
+    "total_reqs": 104,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 104,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE PARA ARAMID 21MM 900 KGF.pdf",
+    "upload_id": "8832ac5f-21ef-558a-91f6-d8a7ce4fb503",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2002/57",
+    "title": "Tape and Webbing Para aramid, Vario...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE POLYESTER 12.7MM.pdf",
+    "upload_id": "95b6052e-b47c-539d-8a59-0a7af3882c8c",
+    "has_header": true,
+    "spec_no": "IS:3846:1984",
+    "title": "100 % POLYESTER TAPE 12.7 MM",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE POLYESTER 13.5MM 3200 N.pdf",
+    "upload_id": "adb0536e-3320-54b5-aa3c-102c71cf3a2b",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2020/01",
+    "title": "Technical Particulars for Tape Poly...",
+    "variants": 1,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE POLYESTER 13MM.pdf",
+    "upload_id": "6c787679-eb59-5523-91d1-852cfa4cb3b9",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/T/2019/03",
+    "title": "TECHNICAL PARTICULARS FOR TAPE POLY...",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE POLYESTER 19MM BLK.pdf",
+    "upload_id": "9d1453a2-3167-5638-90e3-c9b88c4f7017",
+    "has_header": true,
+    "spec_no": "TAPE POLYESTER 19MM BLK",
+    "title": "TAPE POLYESTER THIN 19 MM BLACK COL...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE POLYESTER 25MM.pdf",
+    "upload_id": "0e388dce-f31f-52e8-9125-eb2a50d8cbf5",
+    "has_header": true,
+    "spec_no": "IS : 3846:1984",
+    "title": "The item.:- 100% Polyester Tape 25 ...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TAPE TUBULAR 13MM.pdf",
+    "upload_id": "345c1cde-3a04-5d8e-91fb-ca1409995bd6",
+    "has_header": true,
+    "spec_no": "IS : 9267-2021",
+    "title": "The item :- Tubular Nylon Webbing 1...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "TAPE TUBULAR NYLON 14MM BS 850 KG.pdf",
+    "upload_id": "fd10c9b6-37c2-5ebd-9bf1-84b477b3e4c6",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1981/6",
+    "title": "tape nylon shall be delivered loose...",
+    "variants": 1,
+    "total_reqs": 5,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 5,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "TARPAULIN SPEC.pdf",
+    "upload_id": "6e34d089-7016-531b-af55-f81199d50dea",
+    "has_header": true,
+    "spec_no": "TARPAULIN SPEC",
+    "title": "SPECIFICATION FOR TARPOLINE",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "UNCOATED POLYESTER FABRIC.pdf",
+    "upload_id": "037ea12a-9082-52f1-b2d3-58755cde4323",
+    "has_header": true,
+    "spec_no": "JSS: 4020-09:2013\nCord Nylon 1785",
+    "title": "UNCOATED POLYESTER FABRIC OG, GSM 9...",
+    "variants": 1,
+    "total_reqs": 26,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 26,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "VE ATC 6713016.pdf",
+    "upload_id": "2c96825d-63d8-5091-b189-7ff0dd43d9ac",
+    "has_header": true,
+    "spec_no": "IS 439",
+    "title": "Govt. Contractor & Suppliers of All...",
+    "variants": 1,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEB COTTON BLK 13MM THN.pdf",
+    "upload_id": "491dacde-7275-5c65-98fb-239577a1ccba",
+    "has_header": true,
+    "spec_no": "IS:6488-1987",
+    "title": "Item Code : 2101873849",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "WEB COTTON BLK THK 25MM.pdf",
+    "upload_id": "0f763fd7-1603-55d2-a355-896a6f6442f4",
+    "has_header": true,
+    "spec_no": "IS:6488-1987",
+    "title": "Item Code : 2101874417",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "WEB COTTON BLK THN 25MM.pdf",
+    "upload_id": "508a2b57-e4c9-5735-b18a-2d3e69482030",
+    "has_header": true,
+    "spec_no": "IS:6488-1987",
+    "title": "Item Code : 2101873850",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "WEB NYLON THICK 57MM OG.pdf",
+    "upload_id": "391b9b97-bad4-5155-8e85-dbe642ee6b14",
+    "has_header": true,
+    "spec_no": "WEB NYLON THICK 57MM OG",
+    "title": "WEB NYLON THICK 57MM OG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "WEBBING 10MM 400 KGF.pdf",
+    "upload_id": "dd95b2fd-a8b2-52e8-a3ac-3601cc0e0633",
+    "has_header": true,
+    "spec_no": "ADRDE/AS-QMS/P12/TGTE/W/2025/03\n2000",
+    "title": "Webbing Polyester 10 mm, 400 kgf BS...",
+    "variants": 1,
+    "total_reqs": 33,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 33,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 13MM 460 KG.pdf",
+    "upload_id": "d7638a60-d527-5fe0-94c1-590a78a5a7ce",
+    "has_header": true,
+    "spec_no": "IS 9267",
+    "title": "IS 9267 (1979) : Tubular Nylon Webb...",
+    "variants": 3,
+    "total_reqs": 82,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 82,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 14MM 1100 KG IAF.pdf",
+    "upload_id": "55a6197f-642c-5b0b-acc6-1aade7fc77e8",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "WEBBING SPECIFICATION REF: DRDE/SPE...",
+    "variants": 1,
+    "total_reqs": 16,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 16,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 25.5 MM BS 500 KG.pdf",
+    "upload_id": "9411a53b-6573-5b43-b119-3ec4063670a8",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "Determination of crimp and count of...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 25.5MM 550 KGF.pdf",
+    "upload_id": "4f19240c-a539-57d0-b2df-ec5eed3f8440",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "Determination of crimp and count of...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 44MM 1000 KGF SG.pdf",
+    "upload_id": "a17ef903-81c2-5564-9c54-1c00c5843225",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/SPECN/99",
+    "title": "Webbing Nylon, 44 mm, 1000 Kgf, Und...",
+    "variants": 1,
+    "total_reqs": 8,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 8,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 44MM 1815 KHG.pdf",
+    "upload_id": "36335d66-bd70-5dce-9ab0-d738c335de42",
+    "has_header": true,
+    "spec_no": "ADRDE/Tech",
+    "title": "TECHNICAL PARTICULARS OF WEBBING NY...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 44MM 2950 IAF.pdf",
+    "upload_id": "d697ca86-8172-5296-9366-c9bfeeb38e96",
+    "has_header": true,
+    "spec_no": "IS 4727- 2020",
+    "title": "MIG/143-2 WEBBING NYLON 44 MM SG 29...",
+    "variants": 1,
+    "total_reqs": 17,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 17,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING 76MM 8025 N.pdf",
+    "upload_id": "2029517f-4fb0-5746-adb0-8c059919d5d0",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/W/2022/08",
+    "title": "Technical Particulars for Webbing N...",
+    "variants": 1,
+    "total_reqs": 12,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 12,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING COTTON 2.5MM.pdf",
+    "upload_id": "92fc606f-fd29-5e94-9983-88d862970f4a",
+    "has_header": true,
+    "spec_no": "JSS-8305-18-2017",
+    "title": "SPECIFICATION OF (2101876679) WEBBI...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 14MM 1100 KGF.pdf",
+    "upload_id": "7a01dffb-aba2-5266-9881-94e561aac41b",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "Determination of crimp and count of...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 25MM 2750 KG.pdf",
+    "upload_id": "a4437786-6f8d-56b1-9948-e87ce5151bb3",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/W/2020/01",
+    "title": "WEBBING NYLON 25MM BS 2750 KG",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 2700 KGF.pdf",
+    "upload_id": "071ec9ff-a4ef-5c45-b749-e4e52e97a884",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TGTE/W/2021/02",
+    "title": "Technical Particulars for Webbing N...",
+    "variants": 1,
+    "total_reqs": 18,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 18,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 44MM 1000 KGF.pdf",
+    "upload_id": "ef6d0829-f947-5227-b544-a435e6558848",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/SPECN/99",
+    "title": "Webbing Nylon, 44 mm, 1000 Kgf, Und...",
+    "variants": 1,
+    "total_reqs": 14,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 14,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 44MM 1815 KG SG.pdf",
+    "upload_id": "b44261ad-ecc7-5620-8ff6-ce6e359cdb55",
+    "has_header": true,
+    "spec_no": "IS 4727 : 2020",
+    "title": "Textiles - - Nylon Webbing",
+    "variants": 2,
+    "total_reqs": 21,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 21,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 44MM BS 1000 KG IAF.pdf",
+    "upload_id": "767eae58-854b-5d58-937f-4760a95fa59c",
+    "has_header": true,
+    "spec_no": "ADRDE/QMS/TDTM/SPECN/99",
+    "title": "WEBBING NYLON 44 MM BS 1000 KGS",
+    "variants": 1,
+    "total_reqs": 20,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 20,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 4800 KG.pdf",
+    "upload_id": "4af3b3f4-1519-5fdd-917f-0ee803451479",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1993/44",
+    "title": "Tape Nylon Various Undyed/Dyed, Web...",
+    "variants": 1,
+    "total_reqs": 10,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 10,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 51MM 480 KG IAF.pdf",
+    "upload_id": "9fa582a4-6b95-5e81-aa73-72a62039d1a2",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "WEBBING NYLON 51mm (BS 480 KG) U/D",
+    "variants": 1,
+    "total_reqs": 17,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 17,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING NYLON 51MM 480 KG.pdf",
+    "upload_id": "f3c04243-1f39-58de-984f-a5104627358c",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1983/11",
+    "title": "Determination of crimp and count of...",
+    "variants": 1,
+    "total_reqs": 4,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 4,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "WEBBING POLYESTER 40MM.pdf",
+    "upload_id": "bebb0463-7c54-5703-825a-7db764bea05f",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/69",
+    "title": "Webbing Polyester, 40 mm, Untreated...",
+    "variants": 2,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "assistance of web belt bdu.pdf",
+    "upload_id": "ca4e6594-fbcd-5b4a-b48b-8469bbbf9915",
+    "has_header": true,
+    "spec_no": "IAFS 01005",
+    "title": "ASSISTANCE FOR PRODUCTION OF WEB BE...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "assistance of web belt deep blue.pdf",
+    "upload_id": "d368e793-3e60-50fd-afcc-f94791dbff3c",
+    "has_header": true,
+    "spec_no": "IAFS 01002:2007",
+    "title": "ASSISTANCE FOR PRODUCTION OF BELT D...",
+    "variants": 2,
+    "total_reqs": 39,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 39,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "cord 12740n.pdf",
+    "upload_id": "e49dab1b-dcbc-5b5c-9150-07b1423fd72a",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/1984/17",
+    "title": "CORDAGE NYTON BOAL",
+    "variants": 1,
+    "total_reqs": 15,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 15,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "cord 1785 black.pdf",
+    "upload_id": "354d7bfc-951b-5e92-90dd-8880e74afa82",
+    "has_header": true,
+    "spec_no": "JSS:4020-09 : 2013",
+    "title": "CORD NYLON 1785-N BLACK",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "cord vr no 8.pdf",
+    "upload_id": "c9335353-abbc-5d2e-b83a-28f9eaa5dfb3",
+    "has_header": true,
+    "spec_no": "IS 4227 : 1998",
+    "title": "3.2 Cord",
+    "variants": 2,
+    "total_reqs": 12,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 12,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "cord_elastc_ring_specn_03-11_2025-11-03-10-13-11_c9584164af77b5113a93e11c7347c20e.pdf",
+    "upload_id": "b3e40060-10bd-5298-9db7-4dbe10a393a5",
+    "has_header": true,
+    "spec_no": "IND/TC/2118(a)",
+    "title": "CORD ELASTIC RING FOR TENT EXTENDAB...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "cord_nylon1785__specn_2025-12-16-11-02-49_58da1b79df03a46820124fd6f9b82f98.pdf",
+    "upload_id": "bf10f0f5-e90b-5682-b8cb-42231fe7f0a7",
+    "has_header": true,
+    "spec_no": "IS:764\n-1979",
+    "title": "CORD NYLON O.G. 1785N",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "cord_nylon__specn_2025.pdf",
+    "upload_id": "9b593f1d-3437-563c-9381-51c646e60d54",
+    "has_header": true,
+    "spec_no": "IS:764\n-1979",
+    "title": "CORD NYLON O.G. 1785N",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "cotton sewing 6 white.pdf",
+    "upload_id": "8074f3b0-a401-55d6-87e4-6c16427392e0",
+    "has_header": true,
+    "spec_no": "IS : 1720 : 1978",
+    "title": "COTTON SEWING THREAD 165 DTEX/6 WHI...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "fabric_green_205_gms_spun.pdf",
+    "upload_id": "59d625d8-1ca9-5e87-9f60-f86a957d7672",
+    "has_header": true,
+    "spec_no": "PROV/S/4369/FABRIC",
+    "title": "FABRIC GREEN 205 GMS SPUN P.V. BLEN...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "fabric_nylon_66_48_gsmspec_2002_56_b_2026-02-02-15-11-25_452343b5b309fd0dbd80629d1fd9abb3.pdf",
+    "upload_id": "b6247e11-5dcb-5425-822a-3e61b3685fa6",
+    "has_header": true,
+    "spec_no": "ADRDE/SPECN/2002/56",
+    "title": "The linear density of yarn retrieve...",
+    "variants": 2,
+    "total_reqs": 2,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 2,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "fabric_pp_tpo_fr_specification.pdf",
+    "upload_id": "d6c1f0ed-21fd-5e75-8cb9-4f0d92f09621",
+    "has_header": true,
+    "spec_no": "IND/TC/2118",
+    "title": "FABRIC PP TPO COATED WITH F.R.TREAT...",
+    "variants": 1,
+    "total_reqs": 36,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 36,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "hawser_laid_specn_ROPE.pdf",
+    "upload_id": "a75945c9-9e73-59e7-bc8c-2ca33b005ccb",
+    "has_header": true,
+    "spec_no": "IS 5176",
+    "title": "Item Code : 2030304855",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "is.9267.1979.pdf",
+    "upload_id": "fe0ab6b5-52fc-554d-bb46-2b08571334ea",
+    "has_header": true,
+    "spec_no": "IS 9267",
+    "title": "IS 9267 (1979) : Tubular Nylon Webb...",
+    "variants": 3,
+    "total_reqs": 82,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 82,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "outer_inner_of_tha_specification_07-10-25_compresse_2025-10-07-17-22-15_f103ed0de03b65fbc5868faca06d32dd.pdf",
+    "upload_id": "2a80bd40-e60e-59a0-9675-2b435f4d7909",
+    "has_header": true,
+    "spec_no": "JSS- 4020 - 9\nUndyed\nHDPE Monofilament Mosquito Netting\nIS: 10054",
+    "title": "QUILTING (INCLUDING MATERIAL/GARNIT...",
+    "variants": 1,
+    "total_reqs": 50,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 50,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "p u foam 20mm.pdf",
+    "upload_id": "2d3e2e4e-214e-5c51-a8bd-f273ca747584",
+    "has_header": true,
+    "spec_no": "p u foam 20mm",
+    "title": "Item Code : 2030304956",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "pp rope 6mm og.pdf",
+    "upload_id": "cd84c021-dd0b-5942-97df-1db86909d853",
+    "has_header": true,
+    "spec_no": "IND/TC/2324(b)",
+    "title": "b, Laminated Cloth Heasian",
+    "variants": 7,
+    "total_reqs": 28,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 28,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "pp starp 0.5 mm.pdf",
+    "upload_id": "03360781-c212-51a1-891a-e5dd651fa750",
+    "has_header": true,
+    "spec_no": "Polypropylene strapping 0.5 mm thick (min.)",
+    "title": "POLYPROP STRAP 0.5 MM THICK & 12MM ...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "spc_tape_nylon_25_mm_compressed_2026-03-12-16-07-51_02d6e314cf1f31075c6d111cde14010a.pdf",
+    "upload_id": "66bc5b2d-cd05-58ed-b781-c37e899b7507",
+    "has_header": true,
+    "spec_no": "spc_tape_nylon_25_mm_compressed_2026-03-12-16-07-51_02d6e314cf1f31075c6d111cde14010a",
+    "title": "TAPE NYLON THICK 25MM OG",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "specification_fabric_cotton_closely_woven_237_gsm_2025-12-27-09-11-52_1fda171ccc2400edae40929e7b0c798a.pdf",
+    "upload_id": "c126ef29-ab6c-5ad8-8185-5d9c672930a3",
+    "has_header": true,
+    "spec_no": "specification_fabric_cotton_closely_woven_237_gsm_2025-12-27-09-11-52_1fda171ccc2400edae40929e7b0c798a",
+    "title": "FABRIC COTTON CLOSELY WOVEN 237 GSM...",
+    "variants": 1,
+    "total_reqs": 0,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 0,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "ZERO_REQUIREMENTS"
+    ],
+    "flag": "MANUAL ATTENTION (ZERO_REQUIREMENTS)"
+  },
+  {
+    "filename": "specification_tape_nylon_for_bag_kit_2026-03-16-16-23-10_972ab9741347166ccb4e8e11d5dd2cfb.pdf",
+    "upload_id": "11a1a829-7049-5e60-9faa-dc2d241db932",
+    "has_header": true,
+    "spec_no": "DMSRDE/T",
+    "title": "TAPE NYLON THICK OG OF SIZES FOR BA...",
+    "variants": 1,
+    "total_reqs": 1,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 1,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "specification_tefs4m_compressed-1_2025-12-22-10-11-23_d9dd8fab39ec453f61e09b390d43ba34.pdf",
+    "upload_id": "9282ebdb-512e-523f-ab63-fd863206ac85",
+    "has_header": true,
+    "spec_no": "IS : 617",
+    "title": "the relevant paras of this tech spe...",
+    "variants": 2,
+    "total_reqs": 37,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 37,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "specification_tefs_2m_compressed_2025-12-22-10-14-58_4adaefd073cbe3ef81b9926da12140a5.pdf",
+    "upload_id": "fd78dc33-dbc9-51c7-af98-3333b56ffb26",
+    "has_header": true,
+    "spec_no": "IS : 617",
+    "title": "the relevant paras of this tech spe...",
+    "variants": 2,
+    "total_reqs": 37,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 37,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "tape_newar_specn_2025.pdf",
+    "upload_id": "7223f150-8fae-50f0-baa3-c34538fa4978",
+    "has_header": true,
+    "spec_no": "CQA(T",
+    "title": "TAPE NEWAR POLYSTER OG OFF SIZES ( ...",
+    "variants": 1,
+    "total_reqs": 6,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 6,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  },
+  {
+    "filename": "webbing nylon 44mm 2950 kg.pdf",
+    "upload_id": "7098aaf6-9850-55f0-b3ae-5c8433992e95",
+    "has_header": true,
+    "spec_no": "IS 4727 : 2020",
+    "title": "Textiles - - Nylon Webbing",
+    "variants": 2,
+    "total_reqs": 21,
+    "clean_reqs": 0,
+    "low_struct_reqs": 0,
+    "null_reqs": 21,
+    "clean_ratio": 0.0,
+    "needs_attention": true,
+    "reasons": [
+      "LOW_USABLE_RATIO_0.0%"
+    ],
+    "flag": "MANUAL ATTENTION (LOW_USABLE_RATIO_0.0%)"
+  }
+]

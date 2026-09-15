@@ -1,0 +1,95 @@
+1981_6.pdf                                 | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/406d1417-428d-5a90-b233-5607c993741d
+78(a).pdf                                  | reqs:  7 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/0840fb2a-b876-5131-a31d-da793074568c
+CLOTH DRILL COTTON 142 CM KHAKI.pdf        | reqs:  2 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/55cedd72-350d-57b6-8b75-b3b78be56ec6
+CLOTH RIP POLYESTER.pdf                    | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/2b91e2f7-ed64-5754-86f4-ea06febbc9fa
+CORD 200 KG WITH CORE.pdf                  | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/8724b243-dc32-5323-96c1-d97a1ea34721
+CORD 2450N UD.pdf                          | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/e67c4cf4-081a-52d1-938b-6059060e43b9
+CORD 250 KG CORELESS.pdf                   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/6fee247e-72e5-5c88-a1d5-c3e8d9e800bc
+CORD 250 KG HZP.pdf                        | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/bb61bc0b-8576-5abc-9f80-6424b5f05a3e
+CORD 250KG  CORE.pdf                       | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/f313b605-5c7c-55f9-b4db-4541c0308444
+CORD 3120 NBL OG.pdf                       | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/4286dcde-f1d6-535b-b86a-b12bbd309c1f
+CORD 3120 OEF SPEC.pdf                     | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/b842d431-0b3b-58c4-b98e-7e5708380c43
+CORD ELASTIC FLY INNER 4M2M.pdf            | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/23320eff-4ec1-593a-8231-9e56320e95f3
+CORD ELASTIC LOOP 4M2M.pdf                 | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/a4ff9586-4f9d-5165-bcb6-b636287c4d72
+CORD ELASTIC RING FOR FLY INNER 4M2M.pdf   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/0d4cd237-f50e-5ab6-8f09-1ec1abbcb7bd
+CORD ELASTIC RING HOOK.pdf                 | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/789e742f-b116-55c4-97ca-72acd52a3ae0
+CORD NYLON 250 KGF.pdf                     | reqs: 12 | usable:  2 (16.7%) | reasons: LOW_USABLE_16.7%          | /skus/standalone/spec-review/cef6f56d-824f-5987-a366-0474880c9e77
+CORD NYLON 3120 W.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/d058d9c2-f0bc-5f45-9296-2af818e15529
+CORD NYLON BRAIDED 1785.pdf                | reqs: 10 | usable:  1 (10.0%) | reasons: LOW_USABLE_10.0%          | /skus/standalone/spec-review/26d07bee-a61d-531f-ac88-381982b4f794
+COTTON CLOTH 170 GSM CLOSELY.pdf           | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/f9ff38fe-62b7-57db-8bef-16962618e8b9
+COTTON WEBBING 76MM WIDTH.pdf              | reqs: 11 | usable:  2 (18.2%) | reasons: LOW_USABLE_18.2%          | /skus/standalone/spec-review/a443eb73-76af-542b-aa68-5d3a622f7876
+CST 270DTEX.pdf                            | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/61525a38-ae56-524b-ae75-7d1e4c8e4577
+CyQ.pdf                                    | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/8d309ecf-c284-5597-849c-dc40673fe40b
+DUCK NYLON 230 GSM OG.pdf                  | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/b30332ca-cc0e-5cff-8913-15d463ffcc46
+ELASTC TAPE 38MM.pdf                       | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/0ae736b8-4119-5093-a813-a52ff70b3d88
+ELASTIC TAPE 10MM.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/e4046bd9-b966-573e-b0f7-0a79875b8cb3
+ELASTIC TAPE 38MM BLACK.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/59bd4b72-256d-5720-9a52-d59c9d12b4a1
+FABRIC 205 GSM.pdf                         | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/1c099c0a-e43e-5a2d-ab88-37a4a2ed7777
+FABRIC 410 SGM OEF.pdf                     | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/4df433fa-eaed-5500-abe9-390a9362ba27
+FABRIC 65 GSM.pdf                          | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/16c9cb00-ce0c-5d42-b638-365c8a7b5df4
+FABRIC 93GSM UD.pdf                        | reqs:  4 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/bdbfa421-4005-517e-a531-2bdbff1fb145
+FABRIC NYLON 37 GSM OD 288SD.pdf           | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/72982168-d56e-5ee9-b554-24fa995dfe39
+FABRIC NYLON 45GSM POROSITY.pdf            | reqs:  7 | usable:  1 (14.3%) | reasons: LOW_USABLE_14.3%          | /skus/standalone/spec-review/d2e4451f-e1a9-5826-90d3-208b8203a05a
+FABRIC NYLON 75 GSM PU COATED.pdf          | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/4ef0bceb-9ce8-5e49-92b2-a92902a5b11b
+FABRIC NYLON LT WT 37GRM.pdf               | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/e4e1192c-b051-52b3-9d01-c44ee7deddd7
+FABRIC POLYESTER 650 GSM.pdf               | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/982c2ce0-7d6f-5909-9ede-1a433501cb12
+FASTNER HOOK TAPE 25MM OG.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/659481cb-23e9-50c2-a0ef-a4cd6f8cc00f
+FASTNER LOOP TAPE 25MM OG.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/0f1adb6e-c272-5136-9f2f-16a3b6bb81cf
+LONG COTTON CLOTH.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/015c8d44-9ac1-58a6-8868-0483350d64fc
+NST H1 OG.pdf                              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/66341daf-a3c3-514e-b440-00ded783166a
+NYLON CORD 6MM DIA.pdf                     | reqs: 23 | usable:  2 ( 8.7%) | reasons: LOW_USABLE_8.7%           | /skus/standalone/spec-review/2b553a95-9206-52bd-9e08-ae2994efcf38
+NYLON ROPE 16MM DIA.pdf                    | reqs:  2 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/ce6d1b92-29b8-5523-98db-937486d71045
+NYLON SEWING THREAD 66 NAVY BLUE.pdf       | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/dd85d848-e999-56df-8533-23dccac8eef7
+POLYESTER BATTING 425 GSM.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/6ed035df-d8c7-5777-b965-d6a90cd86ffd
+PP TAPE 8MM OG.pdf                         | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/dcc955a8-f703-548b-ba63-735fc848b0d6
+PU COATED 370 GSM FABRIC.pdf               | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/26a3e3d1-6418-5a79-8115-ba7906a5f615
+PU FOAM 10MM.pdf                           | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/7e0f07e8-414a-5d25-83a7-cbaa7614448a
+PU FOAM 8MM.pdf                            | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/8fc0bb8d-6877-5025-bca2-c118c55d5444
+RIBBON 50MM UD.pdf                         | reqs:  5 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/edf3d5d2-590d-5b12-9a47-b6a27f50938a
+ROPE NYLON 8MM UD.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/fc0621a0-1259-5530-80b3-68e0fabfa392
+ROPE PP OG.pdf                             | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/76de6356-2cda-5ea1-8abe-f5343e303dbe
+SET OF FASTNER HOOK LOOP 25MM AVADI.pdf    | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/169b5060-5b7c-5fe9-a453-04bcd9b88d58
+SEWING THREAD SPUN POLYESTER 125 D TEX.pdf | reqs:  2 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/d7030281-2aba-5a71-b230-6149bd3907d4
+SPEC FABRIC NYLON 66 90 GSM OPF.pdf        | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/a40fe6b1-33e9-5b68-8a26-53b93b4140f7
+TAPE 1.6CM BS 210 KG.pdf                   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/748dcc2f-c242-55ce-9631-59397ed28132
+TAPE 13MM 80 KG UD.pdf                     | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/4a63145a-13b6-5f26-a290-8e44caef453f
+TAPE 14MM 850 KG.pdf                       | reqs:  4 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/d23683b9-815c-5fd6-b81d-d95e504182bb
+TAPE COTTON 25MM MIL.pdf                   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/5d3ad788-af3a-5222-91d4-95b41ded3d66
+TAPE ELASTIC 50MM OG.pdf                   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/dfc66b03-0f2c-50f0-abed-b525495af7ab
+TAPE NEWAR POLYESTER 25MM.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/7ce64903-ea73-569f-91ab-dc2fa0ca9f62
+TAPE NEWAR POLYESTER FLY INNER TEFS 4M.pdf | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/7b7d573d-3777-5786-98be-a3d1fdd3c21c
+TAPE NEWAR POLYESTER LINNER INNER 2M.pdf   | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/59d170a4-bc61-5573-bb1e-0559e8304a1b
+TAPE NYLON 1.6CM 210 KG.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/38be09f4-cea5-5aed-af8b-faa4ba0c1fe1
+TAPE NYLON 19MM 193 KG.pdf                 | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/8e248f80-5d5b-5bc9-840c-6801df5ae6f9
+TAPE NYLON 210 KG.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/fb7532f0-af99-5ade-bcfd-efef732a6f48
+TAPE NYLON 21MM 600 KG.pdf                 | reqs: 10 | usable:  1 (10.0%) | reasons: LOW_USABLE_10.0%          | /skus/standalone/spec-review/58e1c236-5b54-5b99-810e-e7ac5eecaa92
+TAPE NYLON 26MM 1850.pdf                   | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/059f50c8-47ac-55f1-8b4b-fef5038e75b6
+TAPE NYLON 26MM 200 KG UD.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/a106dfdc-6f15-5d71-91c9-83bdd8a8a5fa
+TAPE NYLON 550 KG UD.pdf                   | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/938c1252-6835-5d10-afbd-8b88396f55a6
+TAPE NYLON 66 14MM 230 KG HZP.pdf          | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/e48b306b-1f95-55fe-99e5-5113de9b7a7d
+TAPE NYLON 850 KG RESIN TR.pdf             | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/b2b3662e-708b-51e3-b506-07944c5aa7a9
+TAPE NYLON HAVERSACK SET.pdf               | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/43b86c45-801c-57d0-9b58-d9bf8b6354f5
+TAPE NYLON SET.pdf                         | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/297d7af4-9620-52bd-9680-d25374a0a5ed
+TAPE NYLON THICK 25MM OG.pdf               | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/c92574de-ac4e-5119-8547-9ff6e092ec74
+TAPE NYLON THIN 13MM OG.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/319f87bd-d82b-5fa6-ba34-43e826c94b71
+TAPE POLYESTER 12.7MM.pdf                  | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/95b6052e-b47c-539d-8a59-0a7af3882c8c
+TAPE POLYESTER 19MM BLK.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/9d1453a2-3167-5638-90e3-c9b88c4f7017
+TAPE TUBULAR 13MM.pdf                      | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/345c1cde-3a04-5d8e-91fb-ca1409995bd6
+TARPAULIN SPEC.pdf                         | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/6e34d089-7016-531b-af55-f81199d50dea
+WEB COTTON BLK 13MM THN.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/491dacde-7275-5c65-98fb-239577a1ccba
+WEB COTTON BLK THK 25MM.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/0f763fd7-1603-55d2-a355-896a6f6442f4
+WEB COTTON BLK THN 25MM.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/508a2b57-e4c9-5735-b18a-2d3e69482030
+WEB NYLON THICK 57MM OG.pdf                | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/391b9b97-bad4-5155-8e85-dbe642ee6b14
+WEBBING 44MM 1000 KGF SG.pdf               | reqs:  8 | usable:  1 (12.5%) | reasons: LOW_USABLE_12.5%          | /skus/standalone/spec-review/a17ef903-81c2-5564-9c54-1c00c5843225
+WEBBING NYLON 44MM 1000 KGF.pdf            | reqs: 14 | usable:  1 ( 7.1%) | reasons: LOW_USABLE_7.1%           | /skus/standalone/spec-review/ef6d0829-f947-5227-b544-a435e6558848
+WEBBING POLYESTER 40MM.pdf                 | reqs:  1 | usable:  0 ( 0.0%) | reasons: LOW_USABLE_0.0%           | /skus/standalone/spec-review/bebb0463-7c54-5703-825a-7db764bea05f
+assistance of web belt bdu.pdf             | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/ca4e6594-fbcd-5b4a-b48b-8469bbbf9915
+cord 1785 black.pdf                        | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/354d7bfc-951b-5e92-90dd-8880e74afa82
+cord_elastc_ring_specn_03-11_2025-11-03-10-13-11_c9584164af77b5113a93e11c7347c20e.pdf | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/b3e40060-10bd-5298-9db7-4dbe10a393a5
+cotton sewing 6 white.pdf                  | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/8074f3b0-a401-55d6-87e4-6c16427392e0
+fabric_green_205_gms_spun.pdf              | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/59d625d8-1ca9-5e87-9f60-f86a957d7672
+hawser_laid_specn_ROPE.pdf                 | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/a75945c9-9e73-59e7-bc8c-2ca33b005ccb
+p u foam 20mm.pdf                          | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/2d3e2e4e-214e-5c51-a8bd-f273ca747584
+pp starp 0.5 mm.pdf                        | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/03360781-c212-51a1-891a-e5dd651fa750
+spc_tape_nylon_25_mm_compressed_2026-03-12-16-07-51_02d6e314cf1f31075c6d111cde14010a.pdf | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/66bc5b2d-cd05-58ed-b781-c37e899b7507
+specification_fabric_cotton_closely_woven_237_gsm_2025-12-27-09-11-52_1fda171ccc2400edae40929e7b0c798a.pdf | reqs:  0 | usable:  0 ( 0.0%) | reasons: ZERO_REQS                 | /skus/standalone/spec-review/c126ef29-ab6c-5ad8-8185-5d9c672930a3

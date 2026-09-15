@@ -68,11 +68,14 @@ def assign_batch(filename: str) -> str:
     return "Batch 8: Omnibus Standards & End-Item Manuals"
 
 
-async def main_async(target: str):
+async def main_async(target: str, input_dir_arg: Optional[str] = None, staging_dir_arg: Optional[str] = None):
+    in_dir = Path(input_dir_arg) if input_dir_arg else INPUT_DIR
+    stg_dir = Path(staging_dir_arg) if staging_dir_arg else (in_dir / "parsed_staging")
+
     print("=" * 80)
     print("  SNM Works — Spec Review Bridge & Staging Orchestrator")
-    print(f"  Source PDFs:     {INPUT_DIR}")
-    print(f"  Staging JSONs:   {STAGING_DIR}")
+    print(f"  Source PDFs:     {in_dir}")
+    print(f"  Staging JSONs:   {stg_dir}")
     print("=" * 80)
 
     # 1. Ensure local storage mirrors exist
@@ -134,7 +137,7 @@ async def main_async(target: str):
         source_val = 'bulk_textract_batch'
 
         # 3. Read manual review list
-        manual_csv_path = STAGING_DIR / "manual_review_needed.csv"
+        manual_csv_path = stg_dir / "manual_review_needed.csv"
         manual_docs = {}
         if manual_csv_path.exists():
             with open(manual_csv_path, encoding="utf-8") as f_csv:
@@ -142,8 +145,10 @@ async def main_async(target: str):
                 for r in reader:
                     manual_docs[r["filename"]] = r["reason"]
 
-        # 4. Scan all PDFs in input dir
-        pdf_files = sorted(INPUT_DIR.glob("*.pdf"))
+        # 4. Scan all PDFs in input dir (check flat dir or pdfs subfolder)
+        pdf_files = sorted(in_dir.glob("*.pdf"))
+        if not pdf_files and (in_dir / "pdfs").exists():
+            pdf_files = sorted((in_dir / "pdfs").glob("*.pdf"))
         print(f"\nProcessing {len(pdf_files)} specification documents...")
 
         staged_items: List[Dict[str, Any]] = []
@@ -166,9 +171,9 @@ async def main_async(target: str):
             local_pdf_path.parent.mkdir(parents=True, exist_ok=True)
             local_pdf_path.write_bytes(pdf_bytes)
 
-            # Resolve JSON content
-            json_staging_path = STAGING_DIR / f"{clean_stem}.json"
-            if not is_manual and json_staging_path.exists():
+            # Resolve JSON content: prefer existing parsed staging JSON
+            json_staging_path = stg_dir / f"{clean_stem}.json"
+            if json_staging_path.exists():
                 json_bytes = json_staging_path.read_bytes()
                 spec_data = json.loads(json_bytes.decode("utf-8"))
             else:
@@ -246,7 +251,7 @@ async def main_async(target: str):
 
     # 5. Generate Review Queue HTML
     queue_html = generate_queue_html(staged_items)
-    out_html_path = STAGING_DIR / "review_queue.html"
+    out_html_path = stg_dir / "review_queue.html"
     out_html_path.write_text(queue_html, encoding="utf-8")
     print(f"\n[Artifact] Generated interactive Review Queue: {out_html_path}")
 
@@ -352,8 +357,20 @@ def main():
         default="local",
         help="Target database: 'local' (default, 127.0.0.1:5433) or 'prod' (Supabase production).",
     )
+    parser.add_argument(
+        "--input-dir",
+        type=str,
+        default=None,
+        help="Directory containing source PDFs (default: C:\\Users\\ASUS\\Downloads\\bulk_spec_import).",
+    )
+    parser.add_argument(
+        "--staging-dir",
+        type=str,
+        default=None,
+        help="Directory containing parsed staging JSONs (default: <input-dir>/parsed_staging).",
+    )
     args = parser.parse_args()
-    asyncio.run(main_async(args.target))
+    asyncio.run(main_async(args.target, args.input_dir, args.staging_dir))
 
 
 if __name__ == "__main__":

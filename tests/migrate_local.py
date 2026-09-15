@@ -30,6 +30,7 @@ sql_files = [
     'sql/25_materials.sql',
     'sql/26_traceability.sql',
     'sql/28_spec_pdf_ingestion.sql',
+    'sql/29_spec_uploads_standalone_and_source.sql',
     'sql/29_tally_automation.sql',
     'sql/30_kpi_public_verify_analytics.sql',
 ]

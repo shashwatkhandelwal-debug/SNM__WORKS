@@ -30,31 +30,18 @@ from starlette.status import (
 
 from auth.dependencies import current_user, require
 from database import get_db
+from services.downtime_service import (
+    REASONS,
+    SHIFTS,
+    fetch_active_jobs,
+    fetch_machines,
+    format_duration,
+    get_next_log_no,
+    record_downtime_log,
+)
 
 router = APIRouter(prefix="/downtime", tags=["Downtime Telemetry"])
 templates = Jinja2Templates(directory="templates")
-
-SHIFTS = [
-    "Shift A (06:00-14:00)",
-    "Shift B (14:00-22:00)",
-    "Night Shift (22:00-06:00)",
-    "General Shift (09:00-17:30)",
-]
-
-REASONS = [
-    "Mechanical Breakdown",
-    "Electrical Fault",
-    "Yarn Breakage / Warp Knotting",
-    "Weft Package Change",
-    "Beam Change / Creeling",
-    "Preventive Maintenance",
-    "Shade Matching / Dyebath Wait",
-    "No Operator / Absenteeism",
-    "Power Outage / Utilities",
-    "Cleaning & Lubrication",
-    "Quality Inspection Hold",
-    "Other Stoppage",
-]
 
 
 # ============================================================================
@@ -295,65 +282,24 @@ async def create_downtime(
     """
     POST /downtime -- Creates a new downtime stoppage log with race-safe sequence numbering.
     """
-    operator_id = user.get("id")
-    if not operator_id:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Authenticated operator ID is missing.")
+    data = {
+        "logged_on": logged_on,
+        "shift": shift,
+        "machine": machine,
+        "reason": reason,
+        "minutes": minutes,
+        "job_id": job_id,
+        "remarks": remarks,
+    }
+    result = await record_downtime_log(conn, user.get("id"), data)
+    created_id = result["id"]
 
-    if minutes < 0:
-        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Downtime minutes cannot be negative.")
-
-    max_retries = 20
-    created_id = None
-
-    for attempt in range(max_retries):
-        log_no = await get_next_log_no(conn)
-        new_id = uuid.uuid4()
-
-        try:
-            async with conn.transaction():
-                row = await conn.fetchrow(
-                    """
-                    INSERT INTO downtime (
-                        id,
-                        log_no,
-                        logged_on,
-                        shift,
-                        machine,
-                        reason,
-                        minutes,
-                        job_id,
-                        operator_id,
-                        remarks
-                    ) VALUES (
-                        $1::uuid, $2, COALESCE($3::date, CURRENT_DATE), $4, $5, $6, $7, $8::uuid, $9::uuid, $10
-                    )
-                    RETURNING id::text;
-                    """,
-                    new_id,
-                    log_no,
-                    logged_on.strip() if logged_on and logged_on.strip() else None,
-                    shift.strip(),
-                    machine.strip(),
-                    reason.strip(),
-                    minutes,
-                    uuid.UUID(job_id) if job_id and job_id.strip() else None,
-                    uuid.UUID(operator_id),
-                    remarks.strip() if remarks else None,
-                )
-                created_id = row["id"]
-                break
-        except UniqueViolationError:
-            if attempt == max_retries - 1:
-                raise HTTPException(
-                    status_code=HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Could not generate unique Log No due to high concurrency. Please retry.",
-                )
-            await asyncio.sleep(0.01 * (attempt + 1))
-        except CheckViolationError as e:
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail=f"Validation constraint error: {str(e)}",
-            )
+    is_htmx = request.headers.get("hx-request") == "true"
+    if is_htmx:
+        from fastapi import Response
+        response = Response(status_code=HTTP_200_OK)
+        response.headers["HX-Redirect"] = f"/downtime/{created_id}"
+        return response
 
     return RedirectResponse(url=f"/downtime/{created_id}", status_code=HTTP_303_SEE_OTHER)
 

@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Review Trade Document — {{ doc.doc_number }} — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div style="max-width: 1440px; margin: 0 auto;" x-data="tradeDocReviewApp()">
+
+  <!-- Top Navigation & Summary Banner -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <a href="/trade-docs" class="btn btn-outline btn-sm" style="color: var(--snm-machine-black); border-color: var(--snm-line);">
+        ← Back to Documents
+      </a>
+      <span class="badge badge-olive" style="font-size: 0.85rem; text-transform: uppercase;">
+        {{ doc.doc_type|replace('_', ' ') }}
+      </span>
+      <span class="badge badge-gray" style="font-size: 0.85rem;">Source: {{ doc.source|upper }}</span>
+      <span class="badge {% if doc.status == 'Confirmed' or doc.status == 'SyncedToTally' %}badge-pass{% else %}badge-hold{% endif %}" style="font-size: 0.85rem;">
+        Status: {{ doc.status|upper }}
+      </span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <button type="button" class="btn btn-outline btn-sm" @click="saveDraft()">
+        Save Changes
+      </button>
+      <button type="button" class="btn btn-pass btn-sm" @click="confirmDocument()" style="font-weight: 600;">
+        ✓ Confirm Document
+      </button>
+      <button type="button" class="btn btn-olive btn-sm" @click="exportToTally()" style="font-weight: 600;">
+        ⚡ Export Tally XML
+      </button>
+    </div>
+  </div>
+
+  <!-- Document Header Bar -->
+  <div class="card" style="margin-bottom: 1rem; padding: 0.75rem 1rem; border-left: 4px solid var(--snm-olive); background: var(--snm-paper);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="mono" style="font-size: 0.8rem; color: #666;">DOCUMENT:</span>
+        <strong style="margin-left: 0.25rem;">{{ doc.party_name }} — {{ doc.doc_number }}</strong>
+        <span class="mono" style="font-size: 0.75rem; color: #888; margin-left: 0.5rem;">Dated: {{ doc.doc_date }}</span>
+      </div>
+      <div style="font-size: 0.8rem; color: #666;">
+        <span class="mono">NET PAYABLE:</span>
+        <strong class="mono" style="font-size: 1rem; color: var(--snm-pass); margin-left: 0.25rem;">
+          ₹<span x-text="doc.net_payable.toFixed(2)"></span>
+        </strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Split Screen Grid -->
+  <div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; min-height: 82vh;">
+
+    <!-- Left Pane: PDF Viewer -->
+    <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--snm-line);">
+      <div style="background: var(--snm-machine-black); color: #fff; padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+        <span style="font-family: var(--font-heading); letter-spacing: 0.05em;">ORIGINAL PDF DOCUMENT</span>
+        {% if doc.pdf_path %}
+        <a href="/trade-docs/{{ doc.id }}/pdf" target="_blank" style="color: var(--snm-greige); text-decoration: none; font-size: 0.8rem;">
+          Open in New Tab ↗
+        </a>
+        {% endif %}
+      </div>
+      {% if doc.pdf_path %}
+      <iframe 
+        src="/trade-docs/{{ doc.id }}/pdf" 
+        style="width: 100%; height: 100%; min-height: 75vh; border: none; flex: 1;"
+        title="Document PDF Viewer"
+      ></iframe>
+      {% else %}
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 60vh; color: #888;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+        <p>No PDF attached to this record.</p>
+        <span class="mono" style="font-size: 0.8rem;">Manual / Synthetic Entry</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Pane: Interactive Review & Ledger Mapping Form -->
+    <div class="card" style="padding: 1.25rem; overflow-y: auto; max-height: 82vh; border: 1px solid var(--snm-line); background: #fff;">
+      
+      <!-- Section 1: Party & Tally Ledger Mapping -->
+      <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; font-family: var(--font-heading);">
+          1. PARTY & TALLY LEDGER MAPPING
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Party Name (from OCR / Doc) *</label>
+            <input type="text" class="input" x-model="doc.party_name" style="width: 100%; font-weight: 600;">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Tally Master Ledger Name *</label>
+            <input type="text" class="input" x-model="doc.tally_ledger_name" placeholder="e.g. Shaktie Steel Ltd." style="width: 100%; font-weight: 700; border-color: var(--snm-olive);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">GSTIN</label>
+            <input type="text" class="input mono" x-model="doc.gstin" @input="onGstinChange()" placeholder="09XXXXX1234X1Z5" style="width: 100%;">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Supply Classification</label>
+            <select class="input" x-model="doc.supply_type" @change="recalculateTotals()" style="width: 100%;">
+              <option value="intra_state">Intra-State (CGST 9% + SGST 9%)</option>
+              <option value="inter_state">Inter-State (IGST 18%)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Document Metadata -->
+      <div style="border-bottom: 2px solid var(--snm-olive); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; font-family: var(--font-heading);">
+          2. INVOICE / ORDER METADATA
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Document Number *</label>
+            <input type="text" class="input mono" x-model="doc.doc_number" style="width: 100%; font-weight: 700;">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">Document Date *</label>
+            <input type="date" class="input" x-model="doc.doc_date" style="width: 100%;">
+          </div>
+          <div>
+            <label class="mono" style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 2px;">PO Reference</label>
+            <input type="text" class="input" x-model="doc.po_reference" placeholder="e.g. PO-2026-99" style="width: 100%;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Line Items Table -->
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.05rem; font-family: var(--font-heading); margin: 0;">
+            3. LINE ITEMS (<span x-text="doc.items.length"></span>)
+          </h3>
+          <button type="button" class="btn btn-outline btn-xs" @click="addItem()">
+            + Add Line Item
+          </button>
+        </div>
+
+        <div style="overflow-x: auto; border: 1px solid var(--snm-line); border-radius: 4px;">
+          <table class="table" style="font-size: 0.8rem; margin-bottom: 0;">
+            <thead>
+              <tr style="background: var(--snm-paper);">
+                <th style="width: 30px;">#</th>
+                <th>Description</th>
+                <th style="width: 75px;">HSN/SAC</th>
+                <th style="width: 65px;">Qty</th>
+                <th style="width: 55px;">Unit</th>
+                <th style="width: 75px;">Rate</th>
+                <th style="width: 90px;">Taxable</th>
+                <th style="width: 30px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(item, idx) in doc.items" :key="idx">
+                <tr>
+                  <td class="mono" x-text="idx + 1"></td>
+                  <td>
+                    <input type="text" class="input" x-model="item.description" style="width: 100%; font-size: 0.8rem; padding: 2px 4px;">
+                  </td>
+                  <td>
+                    <input type="text" class="input mono" x-model="item.hsn_sac" style="width: 100%; font-size: 0.8rem; padding: 2px 4px;">
+                  </td>
+                  <td>
+                    <input type="number" step="any" class="input mono" x-model.number="item.qty" @input="recalcItem(item)" style="width: 100%; font-size: 0.8rem; padding: 2px 4px; text-align: right;">
+                  </td>
+                  <td>
+                    <input type="text" class="input" x-model="item.unit" style="width: 100%; font-size: 0.8rem; padding: 2px 4px;">
+                  </td>
+                  <td>
+                    <input type="number" step="any" class="input mono" x-model.number="item.rate" @input="recalcItem(item)" style="width: 100%; font-size: 0.8rem; padding: 2px 4px; text-align: right;">
+                  </td>
+                  <td class="mono" style="text-align: right; font-weight: 600;">
+                    ₹<span x-text="(item.taxable_value || 0).toFixed(2)"></span>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-fail btn-xs" @click="removeItem(idx)" style="padding: 0 4px; font-size: 0.7rem;">×</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 4: Taxes & Final Payable Summary -->
+      <div style="background: var(--snm-paper); padding: 1rem; border-radius: 4px; border: 1px solid var(--snm-line);">
+        <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; font-family: var(--font-heading);">
+          4. TAX CALCULATION & NET TOTAL
+        </h4>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Total Taxable Value:</span>
+              <strong class="mono">₹<span x-text="doc.total_taxable_value.toFixed(2)"></span></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;" x-show="doc.supply_type === 'intra_state'">
+              <span>CGST (9%):</span>
+              <span class="mono">₹<span x-text="doc.total_cgst.toFixed(2)"></span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;" x-show="doc.supply_type === 'intra_state'">
+              <span>SGST (9%):</span>
+              <span class="mono">₹<span x-text="doc.total_sgst.toFixed(2)"></span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;" x-show="doc.supply_type === 'inter_state'">
+              <span>IGST (18%):</span>
+              <span class="mono">₹<span x-text="doc.total_igst.toFixed(2)"></span></span>
+            </div>
+          </div>
+
+          <div style="border-left: 1px solid var(--snm-line); padding-left: 1rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Total Tax:</span>
+              <strong class="mono">₹<span x-text="doc.total_tax.toFixed(2)"></span></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Round Off:</span>
+              <input type="number" step="0.01" class="input mono" x-model.number="doc.round_off" @input="recalcPayable()" style="width: 70px; height: 22px; font-size: 0.75rem; text-align: right; padding: 0 4px;">
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--snm-line); font-size: 1.05rem;">
+              <strong>Net Payable:</strong>
+              <strong class="mono" style="color: var(--snm-pass);">₹<span x-text="doc.net_payable.toFixed(2)"></span></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function tradeDocReviewApp() {
+  return {
+    doc: {{ doc_json|safe }},
+    
+    init() {
+      if (!this.doc.items || this.doc.items.length === 0) {
+        this.addItem();
+      }
+      this.recalculateTotals();
+    },
+
+    onGstinChange() {
+      if (this.doc.gstin && this.doc.gstin.length >= 2) {
+        if (this.doc.gstin.startsWith("09")) {
+          this.doc.supply_type = "intra_state";
+        } else {
+          this.doc.supply_type = "inter_state";
+        }
+      }
+      this.recalculateTotals();
+    },
+
+    addItem() {
+      this.doc.items.push({
+        line_no: this.doc.items.length + 1,
+        description: "Goods / Services",
+        hsn_sac: "",
+        qty: 1.0,
+        unit: "PCS",
+        rate: 0.0,
+        taxable_value: 0.0,
+        cgst_rate: 0.0,
+        cgst_amount: 0.0,
+        sgst_rate: 0.0,
+        sgst_amount: 0.0,
+        igst_rate: 0.0,
+        igst_amount: 0.0,
+        line_total: 0.0
+      });
+      this.recalculateTotals();
+    },
+
+    removeItem(idx) {
+      this.doc.items.splice(idx, 1);
+      this.recalculateTotals();
+    },
+
+    recalcItem(item) {
+      item.taxable_value = Math.round((Number(item.qty || 0) * Number(item.rate || 0)) * 100) / 100;
+      this.recalculateTotals();
+    },
+
+    recalculateTotals() {
+      let taxable = 0;
+      for (const item of this.doc.items) {
+        taxable += Number(item.taxable_value || 0);
+      }
+      this.doc.total_taxable_value = Math.round(taxable * 100) / 100;
+
+      if (this.doc.supply_type === "intra_state") {
+        this.doc.total_cgst = Math.round(this.doc.total_taxable_value * 0.09 * 100) / 100;
+        this.doc.total_sgst = Math.round(this.doc.total_taxable_value * 0.09 * 100) / 100;
+        this.doc.total_igst = 0;
+      } else {
+        this.doc.total_cgst = 0;
+        this.doc.total_sgst = 0;
+        this.doc.total_igst = Math.round(this.doc.total_taxable_value * 0.18 * 100) / 100;
+      }
+
+      this.doc.total_tax = Math.round((this.doc.total_cgst + this.doc.total_sgst + this.doc.total_igst) * 100) / 100;
+      this.recalcPayable();
+    },
+
+    recalcPayable() {
+      const gross = this.doc.total_taxable_value + this.doc.total_tax + Number(this.doc.round_off || 0);
+      this.doc.net_payable = Math.round(gross * 100) / 100;
+    },
+
+    async saveDraft() {
+      try {
+        const resp = await fetch(`/trade-docs/${this.doc.id}/save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.doc)
+        });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert("Document saved successfully!");
+        } else {
+          alert("Error: " + (res.detail || "Failed to save document."));
+        }
+      } catch (err) {
+        alert("Network error saving document.");
+      }
+    },
+
+    async confirmDocument() {
+      if (!this.doc.tally_ledger_name) {
+        alert("Please specify a Tally Master Ledger Name before confirming.");
+        return;
+      }
+      try {
+        const resp = await fetch(`/trade-docs/${this.doc.id}/confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.doc)
+        });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert("Document confirmed & party mapping saved!");
+          window.location.reload();
+        } else {
+          alert("Error: " + (res.detail || "Failed to confirm document."));
+        }
+      } catch (err) {
+        alert("Network error confirming document.");
+      }
+    },
+
+    async exportToTally() {
+      try {
+        const resp = await fetch(`/trade-docs/${this.doc.id}/export-tally`, {
+          method: "POST"
+        });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert("Tally XML Generated Successfully!\nVoucher: " + res.voucher_number + "\nStatus: " + res.status);
+          window.location.reload();
+        } else {
+          alert("Error: " + (res.detail || "Failed to export Tally XML."));
+        }
+      } catch (err) {
+        alert("Network error exporting Tally XML.");
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

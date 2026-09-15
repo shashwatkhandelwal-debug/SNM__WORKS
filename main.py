@@ -28,6 +28,7 @@ from routers.tally import router as tally_router
 from routers.analytics import router as analytics_router
 from routers.public_verify import router as public_verify_router
 from routers.api_mobile import router as api_mobile_router
+from routers.trade_docs import router as trade_docs_router
 
 
 
@@ -79,6 +80,7 @@ app.include_router(tally_router)
 app.include_router(analytics_router)
 app.include_router(public_verify_router)
 app.include_router(api_mobile_router)
+app.include_router(trade_docs_router)
 
 
 

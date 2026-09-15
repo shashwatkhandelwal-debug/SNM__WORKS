@@ -579,4 +579,142 @@ def test_extract_narrative_override_cloth_duck_cotton_475():
     assert light_req["source"] == "narrative_override"
 
 
+def test_reference_table_with_breaking_load_rejected():
+    """
+    Regression test: Related specifications list (e.g. pp rope 6mm og.pdf page 2)
+    contains standard citations and phrases like 'breaking load' in the standard title,
+    but must be recognized as a reference table and rejected from physical requirements.
+    """
+    table_grid = [
+        [("(a)", 95.0), ("IS : 764 - 1979", 95.0), ("Method for determination of colour fastness of textile materials to washing.", 94.0)],
+        [("(b)", 95.0), ("IS : 1912 - 1984", 95.0), ("Country Jute Twine.", 94.0)],
+        [("(j)", 95.0), ("IS : 7071 - 1986 Pt IV", 95.0), ("Method for physical test for Ropes & Cordages breaking load and elongation at break.", 96.0)],
+        [("(m)", 95.0), ("IND/TC/2123(b)", 94.0), ("Laminated Cloth Hessian.", 93.0)],
+    ]
+    t_str = " ".join([c[0] for row in table_grid for c in row if c[0]]).lower()
+    
+    # Check reference table filter rule
+    is_reference_table = (
+        any(k in t_str for k in (
+            "reference is made in this specification", "related specifications",
+            "referenced documents", "list of referred standards", "referenced standards",
+        ))
+        or (
+            ("method for determination" in t_str or "glossary of terms" in t_str or "methods of physical test" in t_str)
+            and any(k in t_str for k in ("is :", "is:", "jss:", "jss :", "ind/tc/"))
+            and not any(k in t_str for k in ("specified", "requirement", "tolerance", "min.", "max."))
+        )
+    )
+    assert is_reference_table is True
+
+
+def test_bare_number_parameter_rejected():
+    """
+    Regression test: Grids where row values or serial numbers are parsed as parameters
+    (e.g. '3.70', '1', '(a)', 'IS: 7071') must be rejected by parameter validation guards.
+    """
+    table_grid = [
+        [("Param", 95.0), ("Value", 95.0)],
+        [("3.70", 95.0), ("600", 95.0)],
+        [("(a)", 95.0), ("Standard title", 95.0)],
+        [("IS: 7071", 95.0), ("Test method title", 95.0)],
+        [("pH", 95.0), ("5.5", 95.0)],
+        [("Breaking Strength", 95.0), ("450", 95.0)],
+    ]
+    variants, requirements = parse_physical_table_with_confidence(table_grid, confidence_threshold=90.0)
+
+    # Bare numbers, parenthetical letters, and standard citations must NOT become requirements
+    param_names = [r["parameter"] for r in requirements]
+    assert "3.70" not in param_names
+    assert "(a)" not in param_names
+    assert "IS: 7071" not in param_names
+
+    # Legitimate parameters like 'pH' and 'Breaking Strength' must be retained
+    assert "pH" in param_names
+    assert "Breaking Strength" in param_names
+    assert len(requirements) == 2
+
+
+def test_horizontal_variant_rope_table():
+    """
+    Regression test: Grid matching pp rope 6mm og.pdf page 3 (horizontal/row-variant structure)
+    where Column 0 is DIA (mm) and subsequent columns are physical parameters.
+    Must extract variants for each diameter and map columns to correct parameters and values.
+    """
+    table_grid = [
+        [("DIA (mm)", 98.0), ("Mass/Coil (kg)", 95.0), ("Linear Density (g/m)", 96.0), ("Breaking Load (Kgf)", 97.0)],
+        [("6", 95.0), ("3.70", 95.0), ("17", 95.0), ("600", 95.0)],
+        [("8", 95.0), ("6.60", 95.0), ("30", 95.0), ("1060", 95.0)],
+        [("32", 95.0), ("101.00", 95.0), ("460", 95.0), ("13500", 95.0)],
+    ]
+    variants, requirements = parse_physical_table_with_confidence(table_grid, confidence_threshold=90.0)
+
+    # Must extract 3 variants corresponding to the 3 diameter rows
+    assert len(variants) == 3
+    var_keys = [v["key"] for v in variants]
+    assert "DIA_6" in var_keys
+    assert "DIA_8" in var_keys
+    assert "DIA_32" in var_keys
+
+    # Each variant must have requirements for the parameter columns (Mass/Coil, Linear Density, Breaking Load)
+    assert len(requirements) == 9
+
+    # Check DIA 6 breaking load
+    r_6_bl = next(r for r in requirements if "DIA_6" in r["variant_keys"] and "Breaking" in r["parameter"])
+    assert r_6_bl["spec_value"] == 600.0
+    assert r_6_bl["unit"] == "kgf"
+
+    # Check DIA 32 breaking load
+    r_32_bl = next(r for r in requirements if "DIA_32" in r["variant_keys"] and "Breaking" in r["parameter"])
+    assert r_32_bl["spec_value"] == 13500.0
+    assert r_32_bl["unit"] == "kgf"
+
+    # Check DIA 6 Mass
+    r_6_mass = next(r for r in requirements if "DIA_6" in r["variant_keys"] and "Mass" in r["parameter"])
+    assert r_6_mass["spec_value"] == 3.70
+
+
+def test_word_confidence_with_low_structure_confidence_flag():
+    """
+    Regression test for Fix 2:
+    When cell geometry confidence is low (<70%) but word OCR confidence is high (>=90%),
+    the value must be populated (NOT nullified as LOW_CONFIDENCE), but flagged with
+    LOW_STRUCTURE_CONFIDENCE for human review.
+    """
+    # 3-tuple format: (text, word_conf, cell_geom_conf)
+    table_grid = [
+        [("Parameter", 99.0, 95.0), ("Requirement", 99.0, 95.0)],
+        # Case 1: High word conf (98%), Low cell geometry conf (55%) -> POPULATED + LOW_STRUCTURE_CONFIDENCE
+        [("Breaking Strength", 98.0, 92.0), ("450", 98.0, 55.0)],
+        # Case 2: Both high -> POPULATED + NO FLAG
+        [("Mass", 98.0, 95.0), ("120", 97.0, 94.0)],
+        # Case 3: Low word conf (65%) -> LOW_CONFIDENCE + NULL VALUE
+        [("Thickness", 98.0, 95.0), ("1.2", 65.0, 90.0)],
+    ]
+    variants, requirements = parse_physical_table_with_confidence(table_grid, confidence_threshold=90.0)
+
+    assert len(requirements) == 3
+
+    # Case 1: Breaking Strength
+    bs_req = next(r for r in requirements if r["parameter"] == "Breaking Strength")
+    assert bs_req["spec_value"] == 450.0
+    assert bs_req["confidence_score"] == 98.0
+    assert bs_req["confidence_flag"] == "LOW_STRUCTURE_CONFIDENCE (55.0%)"
+
+    # Case 2: Mass
+    mass_req = next(r for r in requirements if r["parameter"] == "Mass")
+    assert mass_req["spec_value"] == 120.0
+    assert mass_req["confidence_score"] == 97.0
+    assert mass_req["confidence_flag"] is None
+
+    # Case 3: Thickness
+    thick_req = next(r for r in requirements if r["parameter"] == "Thickness")
+    assert thick_req["spec_value"] is None
+    assert thick_req["confidence_score"] == 65.0
+    assert "LOW_CONFIDENCE" in thick_req["confidence_flag"]
+
+
+
+
+
 

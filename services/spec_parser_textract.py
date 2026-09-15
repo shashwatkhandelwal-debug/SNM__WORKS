@@ -14,6 +14,7 @@ Guarantees:
 """
 
 import io
+import json
 import logging
 import os
 import re
@@ -344,7 +345,7 @@ def extract_tables_and_lines_from_textract(response: Dict[str, Any]) -> Tuple[Li
             max_row = max(c.get("RowIndex", 1) for c in cell_blocks)
             max_col = max(c.get("ColumnIndex", 1) for c in cell_blocks)
 
-            grid: List[List[Tuple[str, float]]] = [[("", 100.0) for _ in range(max_col)] for _ in range(max_row)]
+            grid: List[List[Tuple[str, float, float]]] = [[("", 100.0, 100.0) for _ in range(max_col)] for _ in range(max_row)]
 
             for c in cell_blocks:
                 r_idx = c.get("RowIndex", 1) - 1
@@ -352,18 +353,19 @@ def extract_tables_and_lines_from_textract(response: Dict[str, Any]) -> Tuple[Li
                 cell_conf = c.get("Confidence", 100.0)
 
                 words: List[str] = []
-                word_confs: List[float] = [cell_conf]
+                word_confs: List[float] = []
                 for rel in c.get("Relationships", []):
                     if rel.get("Type") == "CHILD":
                         for wid in rel.get("Ids", []):
                             w_block = block_map.get(wid)
                             if w_block and w_block.get("BlockType") == "WORD":
                                 words.append(w_block.get("Text", ""))
-                                word_confs.append(w_block.get("Confidence", cell_conf))
+                                word_confs.append(w_block.get("Confidence", 100.0))
 
                 cell_text = " ".join(words).strip()
-                effective_conf = min(word_confs) if word_confs else cell_conf
-                grid[r_idx][c_idx] = (cell_text, effective_conf)
+                # Word-level OCR confidence if words present; fallback to cell_conf if empty
+                effective_word_conf = min(word_confs) if word_confs else cell_conf
+                grid[r_idx][c_idx] = (cell_text, effective_word_conf, cell_conf)
 
             tables.append(grid)
 
@@ -924,14 +926,17 @@ def parse_physical_table_with_confidence(
         # Test method: "method of test", "test method", "method", "test standard", "procedure"
         elif any(k in h for k in ("method of test", "test method", "test standard", "method", "procedure")):
             method_col_idx = idx
-        # Parameter: "test parameters", "parameter", "property", "particulars", "description", "characteristic"
-        elif any(k in h for k in ("test parameter", "parameter", "property", "particular", "description", "characteristic")):
+        # Parameter: "test parameters", "parameter", "property", "particulars", "description", "characteristic", bounded "test" / "name of test"
+        elif param_col_idx is None and (
+            any(k in h for k in ("test parameter", "parameter", "property", "particular", "description", "characteristic"))
+            or re.search(r"^(?:name\s+of\s+)?tests?$", h.strip())
+        ):
             param_col_idx = idx
         # Unit: "unit", "uom"
         elif "unit" in h or "uom" in h:
             unit_col_idx = idx
-        # Requirement / Value
-        elif any(k in h for k in ("requirement", "specification", "specified", "value", "limit")):
+        # Requirement / Value: "requirement", "specification", "specified", "value", "limit", "passing standards", "standard"
+        elif any(k in h for k in ("requirement", "specification", "specified", "value", "limit", "passing standards", "standard")):
             val_col_idx = idx
         # Multi-variant columns: Type I, Class A, etc.
         elif any(k in h for k in ("type", "class", "grade", "var")):
@@ -950,7 +955,98 @@ def parse_physical_table_with_confidence(
 
     param_sort = 1
 
-    if variant_cols:
+    # Check for Horizontal/Row-Variant Table structure:
+    # Column 0 is a Variant Identifier (e.g. 'DIA (mm)', 'Size', 'Width', 'Variety', 'Vty', 'Dimension') and other columns are parameters
+    # (e.g. 'Breaking Load', 'Linear Density', 'Mass/Coil', 'Thickness')
+    col0_header = header_row[0] if len(header_row) > 0 else ""
+    is_row_variant_table = (
+        not variant_cols
+        and any(k in col0_header for k in ("dia", "size", "width", "variety", "vty", "dimension"))
+        and len(header_row) >= 3
+        and any(any(p in h for p in ("break", "load", "strength", "mass", "density", "weight", "length", "thickness")) for h in header_row[1:])
+    )
+
+    if is_row_variant_table:
+        for r_idx in range(start_data_row, len(table_grid)):
+            row = table_grid[r_idx]
+            if not row or len(row) < 2:
+                continue
+            var_cell_tuple = row[0]
+            var_cell = var_cell_tuple[0]
+            var_conf = var_cell_tuple[1]
+            var_geom_conf = var_cell_tuple[2] if len(var_cell_tuple) > 2 else var_conf
+
+            var_clean = var_cell.strip()
+            if not var_clean or any(re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", var_clean.lower()) for _ in [1]):
+                continue
+            if any(k in var_clean.lower() for k in ("toler", "method", "test", "is:", "is :")):
+                continue
+
+            v_title = f"{col0_header.split()[0].upper()} {var_clean}"
+            v_key = re.sub(r"[^A-Za-z0-9]", "_", v_title).strip("_") or f"V{r_idx}"
+            variants.append({
+                "key": v_key,
+                "designation": v_title,
+                "class": "1",
+                "sort_order": len(variants) + 1,
+            })
+
+            for c_idx in range(1, len(row)):
+                col_name = header_row[c_idx] if c_idx < len(header_row) else f"Param_{c_idx}"
+                val_cell_tuple = row[c_idx]
+                val_cell = val_cell_tuple[0]
+                val_conf = val_cell_tuple[1]
+                val_geom_conf = val_cell_tuple[2] if len(val_cell_tuple) > 2 else val_conf
+
+                if not val_cell.strip() or any(re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", col_name.lower()) for _ in [1]):
+                    continue
+
+                eff_conf = min(var_conf, val_conf)
+                is_low_conf = eff_conf < confidence_threshold
+                min_geom = min(var_geom_conf, val_geom_conf)
+
+                val, tol, upper, l_type = parse_numeric_with_tol(val_cell)
+                text_val = val_cell if l_type == "text" else None
+                is_crit = any(k in col_name.lower() for k in ("break", "strength", "width", "tenacity", "weight", "mass"))
+
+                det_unit = None
+                if "dia" in col_name.lower() or "width" in col_name.lower():
+                    det_unit = "mm"
+                elif "break" in col_name.lower() or "load" in col_name.lower():
+                    det_unit = "kgf" if "kg" in col_name.lower() else ("N" if "n" in col_name.lower() else "lb")
+                elif "mass" in col_name.lower() or "weight" in col_name.lower():
+                    det_unit = "kg" if "kg" in col_name.lower() else ("g/m" if "g/m" in col_name.lower() else "g")
+                elif "density" in col_name.lower():
+                    det_unit = "g/m"
+
+                conf_flag = None
+                if is_low_conf:
+                    conf_flag = f"LOW_CONFIDENCE ({eff_conf:.1f}%)"
+                elif min_geom < 70.0:
+                    conf_flag = f"LOW_STRUCTURE_CONFIDENCE ({min_geom:.1f}%)"
+
+                requirements.append({
+                    "variant_keys": [v_key],
+                    "parameter": col_name.title(),
+                    "unit": det_unit,
+                    "limit_type": "nominal" if is_low_conf else l_type,
+                    "spec_value": None if is_low_conf else val,
+                    "tolerance": None if is_low_conf else tol,
+                    "upper_limit": None if is_low_conf else upper,
+                    "text_value": None if is_low_conf else text_val,
+                    "test_method": None,
+                    "clause_ref": table_name,
+                    "is_critical": is_crit,
+                    "sort_order": param_sort,
+                    "notes": None,
+                    "source": "table",
+                    "confidence_score": round(eff_conf, 1),
+                    "confidence_flag": conf_flag,
+                    "raw_extracted_text": val_cell,
+                })
+                param_sort += 1
+
+    elif variant_cols:
         # Multi-variant table (columns represent variants)
         for col_idx, v_title in variant_cols:
             v_key = re.sub(r"[^A-Za-z0-9]", "_", v_title).strip("_") or f"V{col_idx}"
@@ -965,15 +1061,35 @@ def parse_physical_table_with_confidence(
                 row = table_grid[r_idx]
                 if param_col_idx >= len(row):
                     continue
-                param_cell, p_conf = row[param_col_idx]
+                param_cell_tuple = row[param_col_idx]
+                param_cell = param_cell_tuple[0]
+                p_conf = param_cell_tuple[1]
+                p_geom_conf = param_cell_tuple[2] if len(param_cell_tuple) > 2 else p_conf
+
                 if not param_cell or (sl_col_idx is not None and param_col_idx == sl_col_idx):
                     continue
-                if any(re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", param_cell.strip().lower()) for _ in [1]):
+                p_strip = param_cell.strip()
+                if any(re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", p_strip.lower()) for _ in [1]):
                     continue
 
-                val_cell, v_conf = row[col_idx] if col_idx < len(row) else ("", 0.0)
+                # Guard against bare numbers, parenthetical letters/numbers, and standard citations masquerading as parameter names
+                if re.match(r"^[0-9]+(?:\.[0-9]+)?$", p_strip):
+                    continue
+                if re.match(r"^(?:\([0-9a-zivx]+\)|[0-9a-zivx]+[\.\)])$", p_strip, re.IGNORECASE):
+                    continue
+                if re.match(r"^(?:IS|JSS|BS|DIN|ASTM|MIL|DEF|ADRDE|IND)[\s:\-\.]*\d*", p_strip, re.IGNORECASE):
+                    continue
+                if len(p_strip) <= 2 and p_strip.lower() not in ("ph",):
+                    continue
+
+                val_cell_tuple = row[col_idx] if col_idx < len(row) else ("", 0.0, 0.0)
+                val_cell = val_cell_tuple[0]
+                v_conf = val_cell_tuple[1]
+                v_geom_conf = val_cell_tuple[2] if len(val_cell_tuple) > 2 else v_conf
+
                 eff_conf = min(p_conf, v_conf)
                 is_low_conf = eff_conf < confidence_threshold
+                min_geom = min(p_geom_conf, v_geom_conf)
 
                 val, tol, upper, l_type = parse_numeric_with_tol(val_cell)
                 text_val = None
@@ -998,6 +1114,12 @@ def parse_physical_table_with_confidence(
                 if method_col_idx is not None and method_col_idx < len(row):
                     detected_method = row[method_col_idx][0]
 
+                conf_flag = None
+                if is_low_conf:
+                    conf_flag = f"LOW_CONFIDENCE ({eff_conf:.1f}%)"
+                elif min_geom < 70.0:
+                    conf_flag = f"LOW_STRUCTURE_CONFIDENCE ({min_geom:.1f}%)"
+
                 requirements.append({
                     "variant_keys": [v_key],
                     "parameter": param_cell,
@@ -1014,7 +1136,7 @@ def parse_physical_table_with_confidence(
                     "notes": None,
                     "source": "table",
                     "confidence_score": round(eff_conf, 1),
-                    "confidence_flag": f"LOW_CONFIDENCE ({eff_conf:.1f}%)" if is_low_conf else None,
+                    "confidence_flag": conf_flag,
                     "raw_extracted_text": val_cell,
                 })
                 param_sort += 1
@@ -1040,15 +1162,35 @@ def parse_physical_table_with_confidence(
             row = table_grid[r_idx]
             if param_col_idx >= len(row) or val_col_idx >= len(row):
                 continue
-            param_cell, p_conf = row[param_col_idx]
-            val_cell, v_conf = row[val_col_idx]
+            param_cell_tuple = row[param_col_idx]
+            param_cell = param_cell_tuple[0]
+            p_conf = param_cell_tuple[1]
+            p_geom_conf = param_cell_tuple[2] if len(param_cell_tuple) > 2 else p_conf
+
+            val_cell_tuple = row[val_col_idx]
+            val_cell = val_cell_tuple[0]
+            v_conf = val_cell_tuple[1]
+            v_geom_conf = val_cell_tuple[2] if len(val_cell_tuple) > 2 else v_conf
+
             if not param_cell or not val_cell:
                 continue
-            if re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", param_cell.strip().lower()):
+            p_strip = param_cell.strip()
+            if re.search(r"^(?:sl|si|sr)\.?\s*no\.?$", p_strip.lower()):
+                continue
+
+            # Guard against bare numbers, parenthetical letters/numbers, and standard citations masquerading as parameter names
+            if re.match(r"^[0-9]+(?:\.[0-9]+)?$", p_strip):
+                continue
+            if re.match(r"^(?:\([0-9a-zivx]+\)|[0-9a-zivx]+[\.\)])$", p_strip, re.IGNORECASE):
+                continue
+            if re.match(r"^(?:IS|JSS|BS|DIN|ASTM|MIL|DEF|ADRDE|IND)[\s:\-\.]*\d*", p_strip, re.IGNORECASE):
+                continue
+            if len(p_strip) <= 2 and p_strip.lower() not in ("ph",):
                 continue
 
             eff_conf = min(p_conf, v_conf)
             is_low_conf = eff_conf < confidence_threshold
+            min_geom = min(p_geom_conf, v_geom_conf)
 
             val, tol, upper, l_type = parse_numeric_with_tol(val_cell)
             text_val = None
@@ -1071,6 +1213,12 @@ def parse_physical_table_with_confidence(
             if method_col_idx is not None and method_col_idx < len(row):
                 detected_method = row[method_col_idx][0]
 
+            conf_flag = None
+            if is_low_conf:
+                conf_flag = f"LOW_CONFIDENCE ({eff_conf:.1f}%)"
+            elif min_geom < 70.0:
+                conf_flag = f"LOW_STRUCTURE_CONFIDENCE ({min_geom:.1f}%)"
+
             requirements.append({
                 "variant_keys": [v_key],
                 "parameter": param_cell,
@@ -1087,7 +1235,7 @@ def parse_physical_table_with_confidence(
                 "notes": None,
                 "source": "table",
                 "confidence_score": round(eff_conf, 1),
-                "confidence_flag": f"LOW_CONFIDENCE ({eff_conf:.1f}%)" if is_low_conf else None,
+                "confidence_flag": conf_flag,
                 "raw_extracted_text": val_cell,
             })
             param_sort += 1
@@ -1100,10 +1248,14 @@ def parse_spec_pdf_textract(
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     region: Optional[str] = None,
     client: Any = None,
+    pages_to_process: Optional[List[int]] = None,
+    skip_blank_pages: bool = True,
+    cache_dir: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Extracts specification data from a local PDF using AWS Textract AnalyzeDocument (TABLES).
     Outputs the standard staging JSON schema matching services.spec_loader.
+    If cache_dir is specified, raw Textract responses are cached/loaded per page to avoid redundant OCR calls.
     """
     if client is None:
         client = get_textract_client(region=region)
@@ -1112,22 +1264,67 @@ def parse_spec_pdf_textract(
     pdf_doc = pdfium.PdfDocument(pdf_path)
     total_pages = len(pdf_doc)
 
+    doc_fitz = None
+    if skip_blank_pages:
+        try:
+            import fitz
+            doc_fitz = fitz.open(pdf_path)
+        except Exception:
+            doc_fitz = None
+
     all_lines: List[Tuple[str, float]] = []
     extracted_variants: List[Dict[str, Any]] = []
     extracted_requirements: List[Dict[str, Any]] = []
     extracted_defects: List[Dict[str, Any]] = []
     extracted_sampling: List[Dict[str, Any]] = []
 
-    for page_idx in range(total_pages):
-        jpeg_bytes = render_pdf_page_to_jpeg(pdf_doc, page_idx, scale=2.0)
-        try:
-            resp = client.analyze_document(
-                Document={"Bytes": jpeg_bytes},
-                FeatureTypes=["TABLES"],
-            )
-        except ClientError as exc:
-            logger.error(f"Textract API error on {filename} page {page_idx+1}: {exc}")
-            raise
+    target_pages = pages_to_process if pages_to_process is not None else list(range(total_pages))
+
+    for page_idx in target_pages:
+        if page_idx >= total_pages:
+            continue
+        if skip_blank_pages and doc_fitz is not None:
+            try:
+                p = doc_fitz[page_idx]
+                if len(p.get_text().strip()) == 0 and len(p.get_images()) == 0:
+                    pix = p.get_pixmap(matrix=fitz.Matrix(0.25, 0.25))
+                    if min(pix.samples) == 255:
+                        logger.info(f"Skipping truly blank page {page_idx+1} in {filename}")
+                        continue
+            except Exception:
+                pass
+
+        resp = None
+        cache_path = None
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+            cache_path = os.path.join(cache_dir, f"{filename}_p{page_idx+1}.json")
+            if os.path.exists(cache_path):
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f_c:
+                        resp = json.load(f_c)
+                    logger.info(f"Loaded cached Textract response for {filename} page {page_idx+1}")
+                except Exception as c_err:
+                    logger.warning(f"Failed to load cache {cache_path}: {c_err}")
+                    resp = None
+
+        if resp is None:
+            jpeg_bytes = render_pdf_page_to_jpeg(pdf_doc, page_idx, scale=2.0)
+            try:
+                resp = client.analyze_document(
+                    Document={"Bytes": jpeg_bytes},
+                    FeatureTypes=["TABLES"],
+                )
+            except ClientError as exc:
+                logger.error(f"Textract API error on {filename} page {page_idx+1}: {exc}")
+                raise
+
+            if cache_path:
+                try:
+                    with open(cache_path, "w", encoding="utf-8") as f_c:
+                        json.dump(resp, f_c)
+                except Exception as c_err:
+                    logger.warning(f"Failed to write cache {cache_path}: {c_err}")
 
         tables, lines = extract_tables_and_lines_from_textract(resp)
         all_lines.extend(lines)
@@ -1151,7 +1348,27 @@ def parse_spec_pdf_textract(
                 })
                 continue
 
-            if any(k in t_str for k in ("break", "brak", "width", "weight", "thickness", "type i", "ends", "picks", "yarn", "parameter", "particular", "density")):
+            # Detect if table is a referenced standards / related specifications list
+            is_reference_table = (
+                any(k in t_str for k in (
+                    "reference is made in this specification", "related specifications",
+                    "referenced documents", "list of referred standards", "referenced standards",
+                ))
+                or (
+                    ("method for determination" in t_str or "glossary of terms" in t_str or "methods of physical test" in t_str)
+                    and any(k in t_str for k in ("is :", "is:", "jss:", "jss :", "ind/tc/"))
+                    and not any(k in t_str for k in ("specified", "requirement", "tolerance", "min.", "max."))
+                )
+            )
+
+            if is_reference_table:
+                continue
+
+            if any(k in t_str for k in (
+                "break", "brak", "width", "weight", "thickness", "type i",
+                "ends", "picks", "yarn", "parameter", "particular", "density",
+                "property", "properties", "mass", "gsm", "composition", "characteristics",
+            )):
                 v_list, r_list = parse_physical_table_with_confidence(table_grid, confidence_threshold, table_name=table_title)
                 for v in v_list:
                     if not any(ev["key"] == v["key"] for ev in extracted_variants):
@@ -1195,6 +1412,12 @@ def parse_spec_pdf_textract(
             "description": f"Standard specification {spec_meta.get('spec_no') or filename}",
             "sort_order": 1,
         })
+
+    if doc_fitz is not None:
+        try:
+            doc_fitz.close()
+        except Exception:
+            pass
 
     return {
         "specification": spec_meta,
