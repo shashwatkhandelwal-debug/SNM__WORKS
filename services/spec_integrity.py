@@ -55,7 +55,7 @@ async def verify_upload_integrity(
         """
         SELECT u.*, s.sku_code 
         FROM spec_pdf_uploads u
-        JOIN skus s ON s.id = u.sku_id
+        LEFT JOIN skus s ON s.id = u.sku_id
         WHERE u.id = $1;
         """,
         upload_id,

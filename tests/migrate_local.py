@@ -46,6 +46,7 @@ sql_files = [
     'sql/42_production_parity_audit_and_functions.sql',
     'sql/43_production_parity_policies.sql',
     'sql/44_production_parity_spec_tables.sql',
+    'sql/45_spec_integrity_standalone_uploads.sql',
 ]
 
 async def apply_all():

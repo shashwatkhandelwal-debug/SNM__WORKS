@@ -223,3 +223,57 @@ async def test_verify_spec_pdf_integrity_permission_guard():
         print("\n[PASS] Database permission guard refused unauthorized user with exact exception 'Not authorized to verify spec audit integrity'")
     finally:
         await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_verify_spec_pdf_integrity_standalone_upload():
+    """
+    Verifies that a standalone spec upload (sku_id is NULL) can be verified
+    without errors and returns an integrity result containing a status.
+    """
+    conn = await asyncpg.connect("postgresql://postgres@127.0.0.1:5433/snm_test_db")
+    try:
+        chief_quality_id = uuid.UUID("44444444-4444-4444-4444-444444444444")
+        await conn.execute("INSERT INTO auth.users (id, email) VALUES ($1, 'chief.quality@snmills.com') ON CONFLICT (id) DO NOTHING;", chief_quality_id)
+        await conn.execute("INSERT INTO profiles (id, full_name, role, active) VALUES ($1, 'Chief Quality', 'owner', true) ON CONFLICT (id) DO UPDATE SET active = true;", chief_quality_id)
+        await conn.execute("INSERT INTO user_roles (user_id, role_code, active) VALUES ($1, 'chief_quality', true) ON CONFLICT (user_id, role_code) DO UPDATE SET active = true;", chief_quality_id)
+
+        await conn.execute("SET ROLE authenticated;")
+        await conn.execute(
+            "SELECT set_config('request.jwt.claims', $1, false);",
+            json.dumps({"sub": str(chief_quality_id), "role": "authenticated"}),
+        )
+
+        upload_id = uuid.uuid4()
+        raw_pdf_bytes = b"%PDF-1.4 Mock Standalone Spec PDF."
+        raw_pdf_sha256 = compute_bytes_sha256(raw_pdf_bytes)
+
+        pdf_storage_rel = f"standalone/{upload_id}.pdf"
+        await upload_file_to_storage("spec-docs", pdf_storage_rel, raw_pdf_bytes, "application/pdf")
+
+        # Insert standalone upload with sku_id NULL
+        await conn.execute(
+            """
+            INSERT INTO spec_pdf_uploads (
+                id, sku_id, storage_path, pdf_sha256, source, original_filename,
+                file_size_bytes, status, uploaded_by
+            ) VALUES (
+                $1, NULL, $2, $3, 'web_upload', 'standalone_spec.pdf', $4, 'Uploaded', $5
+            );
+            """,
+            upload_id,
+            f"spec-docs/{pdf_storage_rel}",
+            raw_pdf_sha256,
+            len(raw_pdf_bytes),
+            chief_quality_id,
+        )
+
+        res = await verify_upload_integrity(conn, upload_id)
+        assert res is not None
+        assert "status" in res
+        assert res["status"] in ("VALID", "CORRUPTED")
+        assert res["sku_code"] is None
+        assert res["pdf_match"] is True
+    finally:
+        await conn.close()
+
