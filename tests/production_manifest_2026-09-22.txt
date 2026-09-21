@@ -1,0 +1,75 @@
+en|app_role|8ceb202f
+en|limit_kind|5554371c
+en|spec_upload_status|4269d056
+en|tally_source_type|80aabd1d
+en|tally_sync_status|c61cdb1a
+en|tally_voucher_type|314dfec7
+en|trade_doc_source|3f0ac20b
+en|trade_doc_status|45995828
+en|trade_doc_type|ad5c4bc9
+fn|audit_daily_root(p_day date)|0c436f96
+fn|auth_can(p_module text, p_action text)|3b320035
+fn|chain_audit_row()|cb7b06f9
+fn|check_despatch_qc_hold()|126d76ce
+fn|check_user_role_conflicts()|a03c2e61
+fn|freeze_approved_costing()|bc52f96d
+fn|get_user_role_conflicts(p_user_id uuid)|4fa1e58f
+fn|handle_new_user()|0a2e4e19
+fn|job_on_hold(p_job uuid)|db4f0523
+fn|job_traceability(p_job_id uuid)|0e6212f3
+fn|lab_test_verdict(p_limit_type limit_kind, p_spec_value numeric, p_tolerance numeric, p_upper_limit numeric, p_is_critical boolean, p_specimens numeric[])|7e2fb9aa
+fn|log_change()|643db19c
+fn|my_roles()|441adb3f
+fn|my_tasks()|1f92571f
+fn|on_qc_fail()|58e85baa
+fn|on_test_fail()|b9471c15
+fn|process_job_material_issue()|88210711
+fn|qc_verdict(p_limit limit_kind, p_spec numeric, p_tol numeric, p_upper numeric, p_actual numeric)|653a0555
+fn|security_posture()|b52281c7
+fn|spec_check_plan(p_variant uuid)|efd10c22
+fn|touch_updated_at()|cbcc88a6
+fn|validate_yarn_lot_release()|146b1759
+fn|verify_audit_chain()|aa104d2d
+fn|verify_public_certificate(p_cert_no text, p_hash_fragment text)|b63c89da
+fn|verify_spec_pdf_integrity(p_upload_id uuid, p_actual_pdf_sha256 text, p_actual_parsed_sha256 text, p_actual_corrected_sha256 text)|4907a6e3
+tb|audit_log|c=4dc74cc1|k=f132be3b|i=19978c5a|t=86dc3e83|p=05ccbba7
+tb|campaigns|c=efacb7f3|k=e3f36b94|i=2e4a14ed|t=-|p=cd1396f5
+tb|capa|c=d44be0ad|k=8f35f083|i=144136b8|t=d95bebe3|p=703f84b6
+tb|constructions|c=49cc008f|k=eabb6604|i=fd559f23|t=30de8396|p=87385948
+tb|costing|c=fdd0c772|k=765ab982|i=63922bd9|t=fea82142|p=31312f19
+tb|customers|c=6d00fd63|k=722668f3|i=8b31c04e|t=-|p=26aa402a
+tb|despatch|c=4bd81761|k=e118251e|i=d53f0351|t=2ea0d795|p=adb9a95d
+tb|downtime|c=7eedd094|k=75cfddf2|i=5ae425e8|t=-|p=593d4d8c
+tb|dye_recipes|c=47ccdca4|k=515a53f0|i=a28e6df4|t=-|p=2f4378c2
+tb|functions|c=90170bf4|k=dc81656c|i=3c006758|t=-|p=181a9d75
+tb|grn|c=169e5066|k=a1e015ea|i=41b702eb|t=-|p=960bdde6
+tb|job_material_issues|c=279a03e6|k=b3b29b9f|i=9565c803|t=3edd5ee7|p=94931b0a
+tb|jobs|c=92fb33f4|k=31574683|i=640f43c5|t=8d2f00cc|p=cbafdd70
+tb|kpi_report_snapshots|c=1c02c988|k=22309530|i=680585f0|t=5fc92110|p=6b417df4
+tb|lab_tests|c=f49d5818|k=3f6ccfe1|i=a820c666|t=13d9d668|p=a663a5c1
+tb|masters|c=3cb26671|k=e5f2a0e9|i=b186c27a|t=-|p=50aedafb
+tb|mil_w_4088_types|c=a031489b|k=62e35ea9|i=211ba799|t=-|p=696c2bd8
+tb|param_library|c=8231a62e|k=f132be3b|i=0facc8b0|t=-|p=51052716
+tb|party_ledger_mappings|c=dffe5ddb|k=dd54980c|i=f428e043|t=94a30c93|p=aeaa7c3c
+tb|platform_connections|c=1c14be9f|k=d92a6b40|i=3b79e246|t=-|p=db22c8e0
+tb|profiles|c=f9e53f79|k=d3c42973|i=275af054|t=955fff28|p=d9032708
+tb|qc_checks|c=f0ffff97|k=0566ea62|i=7f08775a|t=3d1f2b2f|p=8a96253f
+tb|role_conflicts|c=8a16ebd7|k=86fce6c2|i=527da507|t=-|p=23b1e2ac
+tb|role_permissions|c=c49efb2c|k=7c31eea1|i=a10ebd88|t=-|p=cda46b37
+tb|roles|c=dde33305|k=844809a9|i=8993af30|t=-|p=00663463
+tb|sku_specifications|c=43165019|k=aa8b72fd|i=2b1a4757|t=1b8a00e3|p=a28c293a
+tb|skus|c=e9e08d84|k=3d18e3f2|i=bfcce0a2|t=f2d1ec3e|p=39c75b2d
+tb|spec_defects|c=dae418f9|k=f38619ed|i=9d58f997|t=-|p=b3680366
+tb|spec_pdf_uploads|c=a89aaa67|k=2703f607|i=ff1bfa6c|t=07226e90|p=69b45b80
+tb|spec_requirements|c=e2a9e142|k=7c088ed5|i=228ce3ee|t=d750a53e|p=d9530f81
+tb|spec_sampling|c=b13a0075|k=9448eb3d|i=47d02d24|t=-|p=2a1a3fb3
+tb|spec_variants|c=8d01457b|k=5c1fd07e|i=29e35362|t=-|p=d9b7665e
+tb|specifications|c=859abfad|k=4aa969ff|i=5e723dd6|t=24e0ef85|p=57108a7d
+tb|suppliers|c=3a51304f|k=0ecce942|i=03e08883|t=-|p=3a53874f
+tb|tally_sync_log|c=a010c1c7|k=ca4dfa99|i=725f6299|t=bb7700bf|p=d3aaf7ba
+tb|tasks|c=ae5c6bea|k=2dd8384f|i=a5b8e29a|t=-|p=0d18ad36
+tb|test_certificates|c=545a26f9|k=470694fb|i=eb302298|t=62c7180b|p=b4f401e2
+tb|trade_document_items|c=15cbd432|k=0de652aa|i=b69f4125|t=623e0654|p=7928e098
+tb|trade_documents|c=c139a758|k=7e7bb9eb|i=58db7144|t=8af99aa2|p=631d11a2
+tb|user_roles|c=acb0f77e|k=bc2698ed|i=1ef11b8c|t=8fe655aa|p=ee72d24d
+tb|yarn_lots|c=04fa1de9|k=bcfefe82|i=7e398753|t=8d66a7a8|p=5d0c196b

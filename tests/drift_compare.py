@@ -17,8 +17,8 @@ import sys
 import asyncpg
 
 HERE = pathlib.Path(__file__).resolve().parent
-PROD_FILE = HERE / "production_manifest_2026-09-21.txt"
-PROD_MD5 = "1a11eb7603ef838718607c9cf01fafa4"  # md5 of the 69 lines joined by "\n", computed by the database
+PROD_FILE = HERE / "production_manifest_2026-09-22.txt"
+PROD_MD5 = "83d6cbfaab1fc2c8c787b36ed0803372"  # md5 of the 75 lines joined by "\n", computed by the database
 SQL_FILE = HERE / "drift_manifest.sql"
 LOCAL_OUT = HERE / "local_manifest.txt"
 DSN = os.environ.get("LOCAL_TEST_DATABASE_URL", "postgresql://postgres@127.0.0.1:5433/snm_test_db")
