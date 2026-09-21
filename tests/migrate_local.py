@@ -33,6 +33,19 @@ sql_files = [
     'sql/29_spec_uploads_standalone_and_source.sql',
     'sql/29_tally_automation.sql',
     'sql/30_kpi_public_verify_analytics.sql',
+    'sql/31_trade_documents.sql',
+    'sql/33_storage_buckets.sql',
+    'sql/34_function_exposure_hardening.sql',
+    'sql/35_table_privilege_hardening.sql',
+    'sql/36_default_maintain_revoke.sql',
+    'sql/37_tasks_read_permission.sql',
+    'sql/38_drop_audit_insert_policy.sql',
+    'sql/39_drop_unused_pg_net.sql',
+    'sql/40_snm_app_noinherit.sql',
+    'sql/41_retire_legacy_and_diagnostics.sql',
+    'sql/42_production_parity_audit_and_functions.sql',
+    'sql/43_production_parity_policies.sql',
+    'sql/44_production_parity_spec_tables.sql',
 ]
 
 async def apply_all():
@@ -42,6 +55,7 @@ async def apply_all():
     await admin.close()
 
     conn = await asyncpg.connect('postgresql://postgres@127.0.0.1:5433/snm_test_db')
+    conn.add_log_listener(lambda c, m: print(f"    NOTICE: {m.message}"))
     
     owner_id = '00000000-0000-0000-0000-000000000001'
     
@@ -60,15 +74,6 @@ async def apply_all():
             
         await conn.execute(content)
         print(f'  SUCCESS: {f} applied cleanly')
-
-    # Grant authenticated privileges across all created tables
-    await conn.execute("""
-        GRANT USAGE ON SCHEMA public TO authenticated, anon;
-        GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO authenticated;
-        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-        GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
-    """)
-
     print('\nAll migrations applied cleanly with zero errors!')
     await conn.close()
 

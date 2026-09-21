@@ -1,0 +1,21 @@
+-- 38_drop_audit_insert_policy.sql        *** HELD: do NOT apply until repo grep G3 is clean ***
+--
+-- audit_insert was  FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL): any signed-in account
+-- (5 today, 2 with no role) could insert arbitrary rows into audit_log. The chain trigger would hash a forged
+-- row validly, so verify_audit_chain() would still say OK.
+--
+-- Evidence it is not needed (production 2026-09-21):
+--   * all 1,337 audit rows have entities that belong to the 17 tables carrying the log_change trigger
+--   * log_change() is SECURITY DEFINER, owned by postgres, which has BYPASSRLS: trigger writes never
+--     depended on this policy
+--   * snm_app deliberately holds only SELECT directly on audit_log
+--
+-- PRECONDITION (Antigravity, G3): no application code path runs  INSERT INTO audit_log  as authenticated.
+-- If one does, do not apply this; instead route it through a SECURITY DEFINER function that takes the actor
+-- from auth.uid() and checks a permission, and change the caller to use it.
+--
+-- After this, an INSERT by authenticated fails with 42501 (new row violates row-level security policy).
+-- Idempotent. ROLLBACK (manual):
+--   CREATE POLICY audit_insert ON public.audit_log FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS audit_insert ON public.audit_log;

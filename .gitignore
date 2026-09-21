@@ -63,3 +63,4 @@ static/uploads/
 # Spec Ingestion & Watcher
 incoming_specs/
 logs/
+tests/local_manifest.txt

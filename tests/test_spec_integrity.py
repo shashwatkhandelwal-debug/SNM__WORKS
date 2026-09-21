@@ -163,14 +163,14 @@ async def test_spec_pdf_integrity_clean_and_corruption():
         # -----------------------------------------------------------------------
         # Temporarily switch to superuser to tamper with an audit_log hash row
         await conn.execute("SET ROLE postgres;")
-        latest_audit = await conn.fetchrow("SELECT id, curr_hash FROM audit_log ORDER BY id DESC LIMIT 1;")
+        latest_audit = await conn.fetchrow("SELECT id, row_hash FROM audit_log ORDER BY id DESC LIMIT 1;")
         assert latest_audit is not None, "audit_log must contain records from previous inserts"
         audit_id = latest_audit["id"]
-        orig_curr_hash = latest_audit["curr_hash"]
+        orig_row_hash = latest_audit["row_hash"]
 
-        # Tamper with the curr_hash directly in audit_log
+        # Tamper with the row_hash directly in audit_log
         tampered_hash = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-        await conn.execute("UPDATE audit_log SET curr_hash = $1 WHERE id = $2;", tampered_hash, audit_id)
+        await conn.execute("UPDATE audit_log SET row_hash = $1 WHERE id = $2;", tampered_hash, audit_id)
 
         # Switch back to authenticated chief_quality identity
         await conn.execute("SET ROLE authenticated;")
@@ -181,14 +181,14 @@ async def test_spec_pdf_integrity_clean_and_corruption():
 
         res_corrupt_audit = await verify_upload_integrity(conn, upload_id)
         print("\n--- [CASE D: AUDIT CHAIN TAMPERING] ---")
-        print(f"Tampered Audit Row ID {audit_id}: Original={orig_curr_hash}, Tampered={tampered_hash}")
+        print(f"Tampered Audit Row ID {audit_id}: Original={orig_row_hash}, Tampered={tampered_hash}")
         print(f"Returned Row: {json.dumps(res_corrupt_audit, default=str, indent=2)}")
         assert res_corrupt_audit["audit_chain_valid"] is False, "Tampered audit chain must return audit_chain_valid=False"
         assert res_corrupt_audit["status"] == "CORRUPTED", "Overall status must be CORRUPTED when audit chain is broken"
 
         # Restore audit row hash
         await conn.execute("SET ROLE postgres;")
-        await conn.execute("UPDATE audit_log SET curr_hash = $1 WHERE id = $2;", orig_curr_hash, audit_id)
+        await conn.execute("UPDATE audit_log SET row_hash = $1 WHERE id = $2;", orig_row_hash, audit_id)
 
     finally:
         await conn.close()
