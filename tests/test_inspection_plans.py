@@ -167,18 +167,20 @@ async def test_job_inspection_plan_with_approved_variant_and_qc_shortcut(
     - Pre-populates 'Record Check ->' button with job_id and parameters.
     """
     # Create and approve variant
+    import uuid
+    unique_desig = f"Type VIII Test {uuid.uuid4().hex[:6]}"
     await qa_client.post(
         "/specifications/MIL-W-4088/variants",
         data={
-            "designation": "Type VIII Class 1",
+            "designation": unique_desig,
             "class": "1",
         },
     )
 
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
-    variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = 'Type VIII Class 1' AND status = 'Approved';")
+    variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = $1 AND status = 'Approved';", unique_desig)
     if not variant_id:
-        variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = 'Type VIII Class 1';")
+        variant_id = await conn.fetchval("SELECT id FROM spec_variants WHERE designation = $1;", unique_desig)
     await conn.close()
 
     # Approve as chief_quality if not already approved

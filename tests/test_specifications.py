@@ -4,6 +4,7 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
+    HTTP_409_CONFLICT,
 )
 
 
@@ -149,3 +150,27 @@ async def test_specifications_not_found_returns_404(tech_client):
     """
     resp = await tech_client.get("/specifications/NON-EXISTENT-SPEC-9999")
     assert resp.status_code == HTTP_404_NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_specification_duplicate_variant_returns_409(qa_client):
+    """
+    Test 10: Posting a duplicate variant (spec MIL-W-4088, designation 'Type VIII Class 1', class '1')
+    returns HTTP 409 Conflict with clear error message.
+    """
+    await qa_client.post(
+        "/specifications/MIL-W-4088/variants",
+        data={
+            "designation": "Type VIII Class 1",
+            "class": "1",
+        },
+    )
+    resp = await qa_client.post(
+        "/specifications/MIL-W-4088/variants",
+        data={
+            "designation": "Type VIII Class 1",
+            "class": "1",
+        },
+    )
+    assert resp.status_code == HTTP_409_CONFLICT
+    assert "A variant with this designation and class already exists for this specification." in resp.json()["detail"]

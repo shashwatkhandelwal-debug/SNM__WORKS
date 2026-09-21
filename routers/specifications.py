@@ -1,5 +1,6 @@
 import logging
 import uuid
+import asyncpg
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
@@ -215,18 +216,24 @@ async def create_specification_variant(
     uid = user.get("id") or user.get("sub") if isinstance(user, dict) else getattr(user, "id", None)
     user_uuid = uuid.UUID(str(uid)) if uid else None
 
-    await conn.execute(
-        """
-        INSERT INTO spec_variants (spec_id, designation, class, description, sort_order, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6);
-        """,
-        spec_uuid,
-        designation.strip(),
-        class_val.strip() if class_val else None,
-        description.strip() if description else None,
-        sort_order,
-        user_uuid,
-    )
+    try:
+        await conn.execute(
+            """
+            INSERT INTO spec_variants (spec_id, designation, class, description, sort_order, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6);
+            """,
+            spec_uuid,
+            designation.strip(),
+            class_val.strip() if class_val else None,
+            description.strip() if description else None,
+            sort_order,
+            user_uuid,
+        )
+    except asyncpg.UniqueViolationError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A variant with this designation and class already exists for this specification."
+        )
 
     return RedirectResponse(url=f"/specifications/{spec_id}", status_code=status.HTTP_303_SEE_OTHER)
 
