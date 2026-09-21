@@ -16,7 +16,7 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("LOCAL_TEST_DATABASE_URL")
     )
-    test_supervisor_email: str = "supervisor.test@snmills.com"
+    test_supervisor_email: str = ""
     test_supervisor_password: str = ""
     environment: str = Field(
         default="development",

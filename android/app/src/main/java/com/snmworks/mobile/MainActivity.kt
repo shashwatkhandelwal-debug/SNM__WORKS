@@ -225,8 +225,8 @@ fun AppRoot() {
 fun LoginScreen(
     onLoginSuccess: (String) -> Unit
 ) {
-    var email by remember { mutableStateOf("test@snmworks.local") }
-    var password by remember { mutableStateOf("TestPassword123!") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
