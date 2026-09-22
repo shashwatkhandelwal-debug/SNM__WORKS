@@ -22,113 +22,29 @@ async def test_lab_test_verdict_computed_by_postgres():
     try:
         user_id = TEST_USERS["lab_analyst"]["id"]
 
-        # 1. Nominal: target 43.65, tol 1.58 (tolerance range [42.07, 45.23])
-        r1 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                tolerance, is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-NOM-PASS', 'Tensile / Breaking Strength', 'Width', 'nominal',
-                43.65, 1.58, false, ARRAY[43.0, 44.0, 43.5], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        # 1. Nominal
+        r1 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, tolerance, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-NOM-PASS', 'Tensile / Breaking Strength', 'Width', 'nominal', 43.65, 1.58, false, ARRAY[43.0, 44.0, 43.5], $1::uuid) RETURNING verdict;", user_id)
         assert r1["verdict"] == "PASS"
 
-        r2 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                tolerance, is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-NOM-FAIL', 'Tensile / Breaking Strength', 'Width', 'nominal',
-                43.65, 1.58, false, ARRAY[46.0, 48.0], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        r2 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, tolerance, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-NOM-FAIL', 'Tensile / Breaking Strength', 'Width', 'nominal', 43.65, 1.58, false, ARRAY[46.0, 48.0], $1::uuid) RETURNING verdict;", user_id)
         assert r2["verdict"] == "FAIL"
 
-        # 2. Maximum: ceiling 49.6 g/m
-        r3 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-MAX-PASS', 'Weight / Linear Density', 'Weight per metre', 'maximum',
-                49.6, false, ARRAY[48.2, 49.0], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        # 2. Maximum
+        r3 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-MAX-PASS', 'Weight / Linear Density', 'Weight per metre', 'maximum', 49.6, false, ARRAY[48.2, 49.0], $1::uuid) RETURNING verdict;", user_id)
         assert r3["verdict"] == "PASS"
 
-        r4 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-MAX-FAIL', 'Weight / Linear Density', 'Weight per metre', 'maximum',
-                49.6, false, ARRAY[48.0, 52.0], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        r4 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-MAX-FAIL', 'Weight / Linear Density', 'Weight per metre', 'maximum', 49.6, false, ARRAY[48.0, 52.0], $1::uuid) RETURNING verdict;", user_id)
         assert r4["verdict"] == "FAIL"
 
-        # 3. Range: 1.016 mm to 1.778 mm
-        r5 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                upper_limit, is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-RNG-PASS', 'Thickness & Width', 'Thickness', 'range',
-                1.016, 1.778, false, ARRAY[1.20, 1.50, 1.65], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        # 3. Range
+        r5 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, upper_limit, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-RNG-PASS', 'Thickness & Width', 'Thickness', 'range', 1.016, 1.778, false, ARRAY[1.20, 1.50, 1.65], $1::uuid) RETURNING verdict;", user_id)
         assert r5["verdict"] == "PASS"
 
-        r6 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                upper_limit, is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-RNG-FAIL', 'Thickness & Width', 'Thickness', 'range',
-                1.016, 1.778, true, ARRAY[0.85, 1.40], $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        r6 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, upper_limit, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-RNG-FAIL', 'Thickness & Width', 'Thickness', 'range', 1.016, 1.778, true, ARRAY[0.85, 1.40], $1::uuid) RETURNING verdict;", user_id)
         assert r6["verdict"] == "FAIL"
 
         # 4. Empty specimens -> 'Pending'
-        r7 = await conn.fetchrow(
-            """
-            INSERT INTO lab_tests (
-                test_id, test_type, parameter, limit_type, spec_value,
-                is_critical, specimens, created_by
-            ) VALUES (
-                'TEST-VERDICT-EMPTY', 'Tensile / Breaking Strength', 'Breaking Strength', 'minimum',
-                1800.0, true, '{}', $1::uuid
-            )
-            RETURNING verdict;
-            """,
-            user_id,
-        )
+        r7 = await conn.fetchrow("INSERT INTO lab_tests (test_id, test_type, parameter, limit_type, spec_value, is_critical, specimens, created_by) VALUES ('TEST-VERDICT-EMPTY', 'Tensile / Breaking Strength', 'Breaking Strength', 'minimum', 1800, false, ARRAY[]::numeric[], $1::uuid) RETURNING verdict;", user_id)
         assert r7["verdict"] == "Pending"
 
     finally:
@@ -357,4 +273,58 @@ async def test_legacy_profile_role_without_user_roles_permission_is_denied():
         await conn.execute("DELETE FROM user_roles WHERE user_id = $1::uuid", legacy_user_id)
         await conn.execute("DELETE FROM profiles WHERE id = $1::uuid", legacy_user_id)
         await conn.execute("DELETE FROM auth.users WHERE id = $1::uuid", legacy_user_id)
+        await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_lab_test_verdict_sql_function_branches():
+    """
+    Test 9: Tests PostgreSQL lab_test_verdict() function branches:
+    - Critical (per-specimen min/max/range/tolerance)
+    - Non-critical (arithmetic average vs spec limit)
+    - Pending states (NULL elements, empty arrays)
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        query = "SELECT lab_test_verdict($1::limit_kind, $2::numeric, $3::numeric, $4::numeric, $5::boolean, $6::numeric[]);"
+
+        # 1. critical=true, minimum, spec_value=90, specimens=[95,105,90] -> PASS (min=90 >= 90)
+        assert await conn.fetchval(query, "minimum", 90, None, None, True, [95, 105, 90]) == "PASS"
+
+        # 2. critical=true, minimum, spec_value=90, specimens=[95,105,89] -> FAIL (min=89 < 90)
+        assert await conn.fetchval(query, "minimum", 90, None, None, True, [95, 105, 89]) == "FAIL"
+
+        # 3. critical=true, maximum, spec_value=100, specimens=[95,98,105] -> FAIL (max=105 > 100)
+        assert await conn.fetchval(query, "maximum", 100, None, None, True, [95, 98, 105]) == "FAIL"
+
+        # 4. critical=true, range, spec_value=90, upper_limit=110, specimens=[91,109,95] -> PASS
+        assert await conn.fetchval(query, "range", 90, None, 110, True, [91, 109, 95]) == "PASS"
+
+        # 5. critical=true, range, spec_value=90, upper_limit=110, specimens=[89,109,95] -> FAIL (min 89 < 90)
+        assert await conn.fetchval(query, "range", 90, None, 110, True, [89, 109, 95]) == "FAIL"
+
+        # 6. critical=true, nominal, spec_value=100, tolerance=5, specimens=[98,103,104] -> PASS
+        assert await conn.fetchval(query, "nominal", 100, 5, None, True, [98, 103, 104]) == "PASS"
+
+        # 7. critical=true, nominal, spec_value=100, tolerance=5, specimens=[98,107,100] -> FAIL (107 exceeds 105)
+        assert await conn.fetchval(query, "nominal", 100, 5, None, True, [98, 107, 100]) == "FAIL"
+
+        # 8. critical=false, minimum, spec_value=90, specimens=[85,95,100] -> PASS
+        # Arithmetic: avg = (85 + 95 + 100) / 3 = 280 / 3 = 93.33 >= 90 (individual min 85 < 90 would fail critical)
+        assert await conn.fetchval(query, "minimum", 90, None, None, False, [85, 95, 100]) == "PASS"
+
+        # 9. critical=false, maximum, spec_value=100, specimens=[90,95,103] -> PASS
+        # Arithmetic: avg = (90 + 95 + 103) / 3 = 288 / 3 = 96.0 <= 100 (individual max 103 > 100 would fail critical)
+        assert await conn.fetchval(query, "maximum", 100, None, None, False, [90, 95, 103]) == "PASS"
+
+        # 10. critical=false, maximum, spec_value=100, specimens=[95,98,110] -> FAIL (avg = 303/3 = 101.0 > 100)
+        assert await conn.fetchval(query, "maximum", 100, None, None, False, [95, 98, 110]) == "FAIL"
+
+        # 11. Specimen array containing NULL -> Pending for both critical=true and critical=false
+        assert await conn.fetchval(query, "minimum", 90, None, None, True, [95, None, 90]) == "Pending"
+        assert await conn.fetchval(query, "minimum", 90, None, None, False, [95, None, 90]) == "Pending"
+
+        # 12. Empty array [] -> Pending
+        assert await conn.fetchval(query, "minimum", 90, None, None, True, []) == "Pending"
+    finally:
         await conn.close()

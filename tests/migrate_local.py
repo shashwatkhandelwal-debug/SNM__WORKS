@@ -33,6 +33,7 @@ sql_files = [
     'sql/29_spec_uploads_standalone_and_source.sql',
     'sql/29_tally_automation.sql',
     'sql/30_kpi_public_verify_analytics.sql',
+    'sql/30_owner_conflict_exemption.sql',
     'sql/31_trade_documents.sql',
     'sql/33_storage_buckets.sql',
     'sql/34_function_exposure_hardening.sql',

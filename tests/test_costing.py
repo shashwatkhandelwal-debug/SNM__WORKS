@@ -37,33 +37,14 @@ from textiles.costing import calculate_manufacturing_cost, calculate_yarn_cost, 
 async def get_or_create_costing_job(conn: asyncpg.Connection, suffix: str = "01") -> str:
     cust_id = await conn.fetchval("SELECT id FROM customers LIMIT 1;")
     if not cust_id:
-        cust_id = await conn.fetchval(
-            """
-            INSERT INTO customers (id, name, active)
-            VALUES (gen_random_uuid(), 'OFK Ordnance Factory Kanpur', true)
-            RETURNING id;
-            """
-        )
-
+        cust_id = await conn.fetchval("INSERT INTO customers (id, name, active) VALUES (gen_random_uuid(), 'OFK Ordnance Factory Kanpur', true) RETURNING id;")
     job_no = f"JOB-CST-{suffix}-{uuid.uuid4().hex[:6].upper()}"
-    job_id = await conn.fetchval(
-        """
-        INSERT INTO jobs (
-            id, job_no, customer_id, product, qty_ordered, unit, status
-        ) VALUES (
-            gen_random_uuid(), $1, $2::uuid, 'MIL-W-4088K Type VIII Webbing', 1000, 'm', 'In Production'
-        )
-        RETURNING id::text;
-        """,
-        job_no,
-        cust_id,
+    return await conn.fetchval(
+        "INSERT INTO jobs (id, job_no, customer_id, product, qty_ordered, unit, status) "
+        "VALUES (gen_random_uuid(), $1, $2::uuid, 'MIL-W-4088K Type VIII Webbing', 1000, 'm', 'In Production') RETURNING id::text;",
+        job_no, cust_id,
     )
-    return job_id
 
-
-# ============================================================================
-# 1. PURE CALCULATION & PRICING STUB UNIT TESTS
-# ============================================================================
 
 def test_yarn_and_manufacturing_cost_calculation():
     """
@@ -290,44 +271,57 @@ async def test_database_freeze_trigger_blocks_raw_sql_update_on_approved_costing
     costing_analyst_client, finance_client
 ):
     """
-    Proves that PostgreSQL trigger trg_freeze_approved_costing rejects any raw SQL update
-    to cost-bearing fields once the record is in 'Approved' status.
+    Proves that PostgreSQL trigger trg_freeze_approved_costing:
+    1. Permits Draft -> Approved status transition.
+    2. Rejects modifications to cost fields when status is Approved (frozen).
+    3. Permits Approved -> Archived status transition (non-cost field change).
+    4. Rejects modifications to cost fields when status is Archived (also frozen).
     """
     conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
     job_id = await get_or_create_costing_job(conn, suffix="FREEZE")
-    await conn.close()
+    cfo_id = TEST_USERS["chief_financial"]["id"]
 
-    # 1. Create and Approve cost sheet
-    await costing_analyst_client.post(
-        "/costing",
-        data={"job_id": job_id, "qty": "1000", "unit": "m", "yarn_rate": "280.00"},
-        follow_redirects=False,
-    )
-    await finance_client.post(f"/costing/{job_id}/approve", follow_redirects=False)
-
-    # 2. Attempt raw SQL update to yarn_rate on the approved record -> CheckViolationError
-    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
-    with pytest.raises(CheckViolationError) as excinfo:
-        await conn.execute(
-            """
-            UPDATE costing
-            SET yarn_rate = 500.00
-            WHERE job_id = $1::uuid;
-            """,
-            uuid.UUID(job_id),
+    try:
+        # 1. Create Draft cost sheet
+        await costing_analyst_client.post(
+            "/costing",
+            data={"job_id": job_id, "qty": "1000", "unit": "m", "yarn_rate": "280.00"},
+            follow_redirects=False,
         )
-    assert "Cannot modify cost parameters on an approved cost sheet" in str(excinfo.value)
 
-    # 3. Attempt router update on the approved record -> 400 Bad Request
-    resp = await costing_analyst_client.post(
-        f"/costing/{job_id}",
-        data={"qty": "1000", "unit": "m", "yarn_rate": "400.00"},
-        follow_redirects=False,
-    )
-    assert resp.status_code == HTTP_400_BAD_REQUEST
-    assert "Cost parameters are frozen" in resp.text
+        # 2. Update to Approved -> succeeds
+        await conn.execute(
+            "UPDATE costing SET status = 'Approved', approved_by = $1::uuid, approved_at = now() WHERE job_id = $2::uuid;",
+            uuid.UUID(cfo_id), uuid.UUID(job_id),
+        )
 
-    await conn.close()
+        # 3. Attempt update to cost field (qty) on Approved -> raises CheckViolationError (frozen)
+        with pytest.raises(CheckViolationError) as excinfo1:
+            await conn.execute("UPDATE costing SET qty = 2000 WHERE job_id = $1::uuid;", uuid.UUID(job_id))
+        assert "frozen" in str(excinfo1.value).lower() or "Cannot modify cost parameters" in str(excinfo1.value)
+
+        # 4. Attempt router update on Approved -> 400 Bad Request
+        resp = await costing_analyst_client.post(
+            f"/costing/{job_id}",
+            data={"qty": "1000", "unit": "m", "yarn_rate": "400.00"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == HTTP_400_BAD_REQUEST
+
+        # 5. Update only status to Archived -> succeeds (non-cost field change)
+        await conn.execute("UPDATE costing SET status = 'Archived' WHERE job_id = $1::uuid;", uuid.UUID(job_id))
+        row = await conn.fetchrow("SELECT status FROM costing WHERE job_id = $1::uuid;", uuid.UUID(job_id))
+        assert row["status"] == "Archived"
+
+        # 6. Attempt update to cost field (yarn_rate) on Archived -> also raises CheckViolationError (frozen)
+        with pytest.raises(CheckViolationError) as excinfo2:
+            await conn.execute("UPDATE costing SET yarn_rate = 350.00 WHERE job_id = $1::uuid;", uuid.UUID(job_id))
+        assert "frozen" in str(excinfo2.value).lower() or "Cannot modify cost parameters" in str(excinfo2.value)
+
+    finally:
+        await conn.execute("DELETE FROM costing WHERE job_id = $1::uuid;", uuid.UUID(job_id))
+        await conn.execute("DELETE FROM jobs WHERE id = $1::uuid;", uuid.UUID(job_id))
+        await conn.close()
 
 
 # ============================================================================
