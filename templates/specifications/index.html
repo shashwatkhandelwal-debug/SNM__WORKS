@@ -20,44 +20,108 @@
       </p>
     </div>
 
-    <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+      <a href="/specifications/queue" class="btn btn-outline btn-sm" style="font-family: var(--font-mono); font-size: 0.85rem;">
+        📋 Review & Approval Queue
+      </a>
+      <a href="/specifications/compare" class="btn btn-outline btn-sm" style="font-family: var(--font-mono); font-size: 0.85rem;">
+        ⚖ Compare Specs
+      </a>
       {% if can_create %}
-      <button type="button" class="btn btn-olive" disabled title="Controlled revision publishing workflow">
+      <button type="button" class="btn btn-olive btn-sm" disabled title="Controlled revision publishing workflow">
         + New Specification
       </button>
       {% endif %}
     </div>
   </div>
 
-  <!-- Search & Filter Form -->
-  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem;">
-    <form method="GET" action="/specifications" style="display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem; align-items: center;">
-      <div>
-        <input 
-          type="text" 
-          name="q" 
-          value="{{ q }}" 
-          placeholder="Search by Spec No (e.g. MIL-W-4088), Title, or Issuing Authority..." 
-          class="form-control"
-          style="width: 100%; font-family: var(--font-body);"
-        >
+  <!-- Advanced Search & Filter Form -->
+  <div class="card" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--snm-paper); border: 1px solid var(--snm-line);">
+    <form method="GET" action="/specifications" style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">SEARCH:</label>
+          <input 
+            type="text" 
+            name="q" 
+            value="{{ q }}" 
+            placeholder="Search Spec No, Title, or Issuing Authority..." 
+            class="form-control"
+            style="width: 100%; font-family: var(--font-body); font-size: 0.85rem;"
+          >
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">ISSUING AUTHORITY:</label>
+          <select name="issuing_body" class="form-control" style="font-size: 0.85rem;">
+            <option value="all" {% if issuing_body == 'all' or not issuing_body %}selected{% endif %}>(All Authorities)</option>
+            {% for b in issuing_bodies %}
+            <option value="{{ b }}" {% if issuing_body == b %}selected{% endif %}>{{ b }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">SPEC STATUS:</label>
+          <select name="active" class="form-control" style="font-size: 0.85rem;">
+            <option value="all" {% if active == 'all' %}selected{% endif %}>All Statuses</option>
+            <option value="active" {% if active == 'active' %}selected{% endif %}>Active Only</option>
+            <option value="inactive" {% if active == 'inactive' %}selected{% endif %}>Inactive Only</option>
+          </select>
+        </div>
       </div>
 
-      <div>
-        <select name="status_filter" class="form-control" style="font-family: var(--font-mono); font-size: 0.9rem;">
-          <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
-          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
-          <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
-        </select>
-      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: flex-end;">
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">HAS VARIANT IN STATUS:</label>
+          <select name="variant_status" class="form-control" style="font-size: 0.85rem;">
+            <option value="all" {% if variant_status == 'all' or not variant_status %}selected{% endif %}>(Any Variant Status)</option>
+            <option value="Draft" {% if variant_status == 'Draft' %}selected{% endif %}>Draft Variants</option>
+            <option value="Approved" {% if variant_status == 'Approved' %}selected{% endif %}>Approved Variants</option>
+            <option value="Archived" {% if variant_status == 'Archived' %}selected{% endif %}>Archived Variants</option>
+          </select>
+        </div>
 
-      <div style="display: flex; gap: 0.5rem;">
-        <button type="submit" class="btn btn-olive">Filter</button>
-        {% if q or status_filter != 'all' %}
-        <a href="/specifications" class="btn btn-outline">Clear</a>
-        {% endif %}
+        <div>
+          <label class="mono" style="font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">SORT BY:</label>
+          <select name="sort" class="form-control" style="font-size: 0.85rem;">
+            <option value="spec_no_asc" {% if sort == 'spec_no_asc' %}selected{% endif %}>Spec No (A-Z)</option>
+            <option value="spec_no_desc" {% if sort == 'spec_no_desc' %}selected{% endif %}>Spec No (Z-A)</option>
+            <option value="title_asc" {% if sort == 'title_asc' %}selected{% endif %}>Title (A-Z)</option>
+            <option value="title_desc" {% if sort == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
+            <option value="issued_on_desc" {% if sort == 'issued_on_desc' %}selected{% endif %}>Issue Date (Newest First)</option>
+            <option value="issued_on_asc" {% if sort == 'issued_on_asc' %}selected{% endif %}>Issue Date (Oldest First)</option>
+            <option value="created_at_desc" {% if sort == 'created_at_desc' %}selected{% endif %}>Recently Created</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.4rem; padding-bottom: 0.4rem;">
+          <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" name="has_pdf" value="true" {% if has_pdf == 'true' or has_pdf == '1' %}checked{% endif %}>
+            <span>Has PDF Attached</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn btn-olive btn-sm">Filter</button>
+          {% if q or (issuing_body and issuing_body != 'all') or active != 'all' or (variant_status and variant_status != 'all') or has_pdf or sort != 'spec_no_asc' %}
+          <a href="/specifications" class="btn btn-outline btn-sm">Reset</a>
+          {% endif %}
+        </div>
       </div>
     </form>
+  </div>
+
+  <!-- Register Summary & Total Count -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: #666; font-family: var(--font-mono);">
+    <div>
+      Showing <strong>{{ specs|length }}</strong> of <strong>{{ total_count }}</strong> specification{% if total_count != 1 %}s{% endif %}
+    </div>
+    {% if total_pages > 1 %}
+    <div>
+      Page {{ page }} of {{ total_pages }}
+    </div>
+    {% endif %}
   </div>
 
   <!-- Specifications Register Table -->
@@ -82,11 +146,18 @@
         {% for s in specs %}
         <tr style="border-bottom: 1px solid var(--snm-line); transition: background 0.15s ease;" onmouseover="this.style.background='var(--snm-greige-light)'" onmouseout="this.style.background='transparent'">
           
-          <!-- Spec Number -->
+          <!-- Spec Number & PDF badge -->
           <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700; color: var(--snm-machine-black);">
-            <a href="/specifications/{{ s.id }}" style="color: var(--snm-olive); text-decoration: none;">
-              {{ s.spec_no }}
-            </a>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <a href="/specifications/{{ s.id }}" style="color: var(--snm-olive); text-decoration: none;">
+                {{ s.spec_no }}
+              </a>
+              {% if s.pdf_count and s.pdf_count > 0 %}
+              <span class="badge badge-pass" style="font-size: 0.65rem; padding: 0.15rem 0.35rem;" title="{{ s.pdf_count }} source PDF(s) attached">
+                PDF
+              </span>
+              {% endif %}
+            </div>
           </td>
 
           <!-- Revision -->
@@ -163,6 +234,27 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Pagination Links -->
+  {% if total_pages > 1 %}
+  <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+    {% if page > 1 %}
+    <a href="/specifications?page={{ page - 1 }}&page_size={{ page_size }}&q={{ q }}&issuing_body={{ issuing_body }}&active={{ active }}&variant_status={{ variant_status }}&has_pdf={{ has_pdf }}&sort={{ sort }}" class="btn btn-outline btn-sm">
+      ← Previous
+    </a>
+    {% endif %}
+
+    <span style="font-family: var(--font-mono); font-size: 0.85rem; color: #555; padding: 0 0.5rem;">
+      Page {{ page }} of {{ total_pages }}
+    </span>
+
+    {% if page < total_pages %}
+    <a href="/specifications?page={{ page + 1 }}&page_size={{ page_size }}&q={{ q }}&issuing_body={{ issuing_body }}&active={{ active }}&variant_status={{ variant_status }}&has_pdf={{ has_pdf }}&sort={{ sort }}" class="btn btn-outline btn-sm">
+      Next →
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

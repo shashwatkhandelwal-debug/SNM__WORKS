@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Specifications Review & Approval Queue — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1200px; margin: 0 auto; padding: 1.5rem;">
+  
+  <!-- Breadcrumb & Header -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; color: #666; margin-bottom: 0.75rem;">
+    <a href="/specifications" style="color: var(--snm-olive); text-decoration: none;">Specifications</a>
+    <span>/</span>
+    <span style="color: var(--snm-machine-black); font-weight: 600;">Queue</span>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2rem; margin: 0; line-height: 1.1; font-family: var(--font-heading); color: var(--snm-machine-black);">
+        SPECIFICATIONS REVIEW & APPROVAL QUEUE
+      </h1>
+      <p style="margin: 0.25rem 0 0; color: #555; font-size: 0.95rem;">
+        Pending draft variant approvals (4-eyes governance) and ingested PDF document review items.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <a href="/specifications" class="btn btn-outline btn-sm">← Back to Masterbase</a>
+    </div>
+  </div>
+
+  <!-- SECTION 1: DRAFT VARIANTS PENDING 4-EYES APPROVAL -->
+  <div class="card" style="margin-bottom: 2rem; padding: 0; overflow: hidden; border-left: 4px solid var(--snm-olive);">
+    <div style="padding: 1rem 1.25rem; background: var(--snm-paper); border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="font-size: 1.15rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black);">
+          1. DRAFT SPECIFICATION VARIANTS PENDING 4-EYES APPROVAL ({{ draft_variants|length }})
+        </h2>
+        <span style="font-size: 0.8rem; color: #666;">
+          Segregation of duties: Variants created by you cannot be approved by your account.
+        </span>
+      </div>
+    </div>
+
+    {% if draft_variants %}
+    <div style="overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.8rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem;">SPEC NUMBER & REV</th>
+            <th style="padding: 0.75rem 1rem;">VARIANT DESIGNATION</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">CLASS</th>
+            <th style="padding: 0.75rem 1rem;">CREATED BY</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in draft_variants %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-weight: 700;">
+              <a href="/specifications/{{ v.spec_id }}" style="color: var(--snm-olive); text-decoration: none;">
+                {{ v.spec_no }} (Rev {{ v.revision }})
+              </a>
+              <div style="font-size: 0.75rem; color: #666; font-family: var(--font-body); font-weight: normal;">
+                {{ v.spec_title }}
+              </div>
+            </td>
+            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--snm-machine-black);">
+              {{ v.designation }}
+            </td>
+            <td style="padding: 0.85rem 0.75rem; text-align: center; font-family: var(--font-mono); font-size: 0.85rem;">
+              {{ v.class or '—' }}
+            </td>
+            <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #444;">
+              <div>{{ v.creator_name or 'System / Initial' }}</div>
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: right;">
+              <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
+                {% if can_approve and v.created_by != user_uuid %}
+                <form method="POST" action="/specifications/variants/{{ v.variant_id }}/approve" style="display: inline;">
+                  <button type="submit" class="btn btn-olive btn-sm" onclick="return confirm('Release and approve this variant for production inspection plans?');">
+                    ✓ Approve Variant
+                  </button>
+                </form>
+                {% elif can_approve and v.created_by == user_uuid %}
+                <span class="badge badge-gray" title="Segregation of Duties: Creator cannot approve own variant">
+                  Creator (4-Eyes)
+                </span>
+                {% else %}
+                <span class="badge badge-gray">Read Only</span>
+                {% endif %}
+                <a href="/specifications/{{ v.spec_id }}" class="btn btn-outline btn-sm">
+                  View Spec →
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding: 2.5rem 1rem; text-align: center; color: #666;">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.25rem;">NO DRAFT VARIANTS IN QUEUE</div>
+      <div style="font-size: 0.85rem;">All specification variants are currently approved.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- SECTION 2: INGESTION QUEUE (PDFs NOT LOADED) -->
+  <div class="card" style="padding: 0; overflow: hidden; border-left: 4px solid #D4A373;">
+    <div style="padding: 1rem 1.25rem; background: var(--snm-paper); border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+      <div>
+        <h2 style="font-size: 1.15rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black);">
+          2. SPECIFICATION PDF INGESTION & REVIEW QUEUE ({{ pending_uploads|length }})
+        </h2>
+        <span style="font-size: 0.8rem; color: #666;">
+          PDF uploads awaiting human interactive review and database loading.
+        </span>
+      </div>
+
+      <div style="display: flex; gap: 0.4rem; align-items: center;">
+        <span class="mono" style="font-size: 0.75rem; color: #666;">FILTER:</span>
+        <a href="/specifications/queue?upload_status=all" class="btn btn-sm {% if upload_status == 'all' %}btn-olive{% else %}btn-outline{% endif %}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">All</a>
+        <a href="/specifications/queue?upload_status=Uploaded" class="btn btn-sm {% if upload_status == 'Uploaded' %}btn-olive{% else %}btn-outline{% endif %}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Uploaded</a>
+        <a href="/specifications/queue?upload_status=Parsed" class="btn btn-sm {% if upload_status == 'Parsed' %}btn-olive{% else %}btn-outline{% endif %}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Parsed</a>
+        <a href="/specifications/queue?upload_status=Reviewed" class="btn btn-sm {% if upload_status == 'Reviewed' %}btn-olive{% else %}btn-outline{% endif %}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Reviewed</a>
+        <a href="/specifications/queue?upload_status=Error" class="btn btn-sm {% if upload_status == 'Error' %}btn-olive{% else %}btn-outline{% endif %}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Error</a>
+      </div>
+    </div>
+
+    {% if pending_uploads %}
+    <div style="overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.8rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem;">SOURCE & FILENAME</th>
+            <th style="padding: 0.75rem 1rem;">LINKED SKU / SPEC</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
+            <th style="padding: 0.75rem 1rem;">UPLOADED</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in pending_uploads %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.85rem 1rem;">
+              <div style="font-weight: 600; color: var(--snm-machine-black); font-size: 0.9rem;">
+                {{ u.original_filename }}
+              </div>
+              <div style="font-size: 0.75rem; color: #666; font-family: var(--font-mono); margin-top: 0.15rem;">
+                Source: {{ u.source }} • {{ (u.file_size_bytes / 1024)|round(1) }} KB
+              </div>
+            </td>
+
+            <td style="padding: 0.85rem 1rem; font-size: 0.85rem;">
+              {% if u.sku_code %}
+              <div class="mono" style="font-weight: 600; color: var(--snm-machine-black);">SKU: {{ u.sku_code }}</div>
+              <div style="font-size: 0.75rem; color: #666;">{{ u.sku_title }}</div>
+              {% elif u.spec_no %}
+              <div class="mono" style="font-weight: 600; color: var(--snm-olive);">Spec: {{ u.spec_no }}</div>
+              {% else %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">Standalone / Unlinked</span>
+              {% endif %}
+            </td>
+
+            <td style="padding: 0.85rem 0.75rem; text-align: center;">
+              {% if u.status == 'Parsed' %}
+                <span class="badge badge-olive" style="font-size: 0.75rem;">PARSED</span>
+              {% elif u.status == 'Reviewed' %}
+                <span class="badge" style="background: #2B6CB0; color: #fff; font-size: 0.75rem;">REVIEWED</span>
+              {% elif u.status == 'Error' %}
+                <span class="badge badge-fail" style="font-size: 0.75rem;" title="{{ u.error_message }}">ERROR</span>
+              {% else %}
+                <span class="badge badge-gray" style="font-size: 0.75rem;">{{ u.status }}</span>
+              {% endif %}
+            </td>
+
+            <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #555;">
+              <div>{{ u.uploader_name or 'System' }}</div>
+              <div class="mono" style="font-size: 0.75rem; color: #888;">{{ u.uploaded_at }}</div>
+            </td>
+
+            <td style="padding: 0.85rem 1rem; text-align: right;">
+              <a href="/skus/{{ u.sku_id or 'standalone' }}/spec-review/{{ u.upload_id }}" class="btn btn-olive btn-sm">
+                Review & Correct →
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding: 2.5rem 1rem; text-align: center; color: #666;">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.25rem;">NO PENDING INGESTION ITEMS</div>
+      <div style="font-size: 0.85rem;">All uploaded PDF specifications have been reviewed and loaded into the database.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

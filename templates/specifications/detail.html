@@ -115,6 +115,15 @@
     >
       Sampling Plan ({{ sampling_plans|length }})
     </button>
+    <button 
+      type="button" 
+      class="btn btn-sm" 
+      :class="tab === 'source_pdfs' ? 'btn-olive' : 'btn-outline'" 
+      @click="tab = 'source_pdfs'"
+      style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+    >
+      Source PDFs ({{ source_pdfs|length }})
+    </button>
     {% if ref_types %}
     <button 
       type="button" 
@@ -131,10 +140,21 @@
   <!-- TAB 1: REQUIREMENTS -->
   <div x-show="tab === 'requirements'">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-      <div style="font-size: 0.9rem; color: #555;">
-        Technical parameters, limits, and testing clauses.
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span class="mono" style="font-size: 0.8rem; color: #555;">FILTER BY VARIANT:</span>
+        <form method="GET" action="/specifications/{{ spec.id }}" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+          <select name="variant_id" class="form-control" style="font-size: 0.85rem; padding: 0.25rem 0.5rem;" onchange="this.form.submit()">
+            <option value="" {% if not selected_variant_id %}selected{% endif %}>(All Variants & Generic Reqs)</option>
+            {% for v in variants %}
+            <option value="{{ v.id }}" {% if selected_variant_id == v.id|string %}selected{% endif %}>
+              {{ v.designation }}{% if v.class %} [{{ v.class }}]{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
       </div>
+
       {% if can_create or can_update %}
       <button type="button" class="btn btn-sm btn-olive" @click="showAddReq = !showAddReq">
         <span x-text="showAddReq ? '− Cancel' : '+ Add Requirement'"></span>
@@ -220,7 +240,7 @@
         <thead>
           <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
             <th style="padding: 0.75rem 1rem; width: 80px;">CLAUSE</th>
-            <th style="padding: 0.75rem 1rem;">PARAMETER & DESCRIPTION</th>
+            <th style="padding: 0.75rem 1rem;">PARAMETER & SCOPE</th>
             <th style="padding: 0.75rem 0.75rem; text-align: center;">LIMIT KIND</th>
             <th style="padding: 0.75rem 1rem;">SPECIFIED TARGET / LIMIT</th>
             <th style="padding: 0.75rem 0.75rem; text-align: center;">UNIT</th>
@@ -238,7 +258,7 @@
               {{ r.clause_ref or '—' }}
             </td>
 
-            <!-- Parameter -->
+            <!-- Parameter & Scope Indicator -->
             <td style="padding: 0.85rem 1rem;">
               <div style="font-weight: 600; color: var(--snm-machine-black); font-size: 0.95rem;">
                 {{ r.parameter }}
@@ -251,6 +271,10 @@
               {% if r.variant_designation %}
               <div style="font-size: 0.75rem; color: var(--snm-olive); font-family: var(--font-mono); margin-top: 0.2rem;">
                 Variant: {{ r.variant_designation }}{% if r.variant_class %} [{{ r.variant_class }}]{% endif %}
+              </div>
+              {% else %}
+              <div style="font-size: 0.75rem; color: #666; font-family: var(--font-mono); margin-top: 0.2rem;">
+                <span class="badge badge-gray" style="font-size: 0.65rem;">Spec-wide (Applies to all)</span>
               </div>
               {% endif %}
             </td>
@@ -315,7 +339,7 @@
           {% else %}
           <tr>
             <td colspan="7" style="padding: 2.5rem; text-align: center; color: #666;">
-              No requirements configured for this specification.
+              No requirements match the current filter criteria.
             </td>
           </tr>
           {% endif %}
@@ -394,7 +418,9 @@
               {% if v.status == 'Approved' %}
                 <span class="badge badge-pass" style="font-size: 0.75rem;">APPROVED</span>
               {% else %}
-                <span class="badge badge-gray" style="font-size: 0.75rem;">DRAFT</span>
+                <span class="badge badge-gray" style="font-size: 0.75rem;" title="Draft: not usable for QC yet">
+                  Draft: not usable for QC yet
+                </span>
               {% endif %}
             </td>
             <td style="padding: 0.85rem 1rem; font-size: 0.9rem; color: #555;">
@@ -420,7 +446,6 @@
       </table>
     </div>
     {% else %}
-    <!-- Honest Empty State -->
     <div class="card" style="padding: 3rem 1.5rem; text-align: center; background: var(--snm-paper); border: 1px dashed var(--snm-line);">
       <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
         NO TYPE VARIANTS DEFINED YET
@@ -534,7 +559,69 @@
     </div>
   </div>
 
-  <!-- TAB 5: PHYSICAL TYPES REFERENCE TABLE -->
+  <!-- TAB 5: SOURCE PDFS -->
+  <div x-show="tab === 'source_pdfs'">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <div style="font-size: 0.9rem; color: #555;">
+        Original specification PDFs uploaded or ingested from watcher / Textract.
+      </div>
+    </div>
+
+    {% if source_pdfs %}
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); font-size: 0.85rem; color: var(--snm-machine-black);">
+            <th style="padding: 0.75rem 1rem;">ORIGINAL FILENAME</th>
+            <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
+            <th style="padding: 0.75rem 1rem;">SOURCE</th>
+            <th style="padding: 0.75rem 1rem;">SHA-256 HASH (PREFIX)</th>
+            <th style="padding: 0.75rem 1rem;">UPLOADED</th>
+            <th style="padding: 0.75rem 1rem; text-align: right;">ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in source_pdfs %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--snm-machine-black);">
+              {{ p.original_filename }}
+            </td>
+            <td style="padding: 0.85rem 0.75rem; text-align: center;">
+              <span class="badge badge-pass" style="font-size: 0.75rem;">{{ p.status }}</span>
+            </td>
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #555;">
+              {{ p.source }}
+            </td>
+            <td style="padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--snm-olive);">
+              {{ p.pdf_sha256[:12] if p.pdf_sha256 else '—' }}…
+            </td>
+            <td style="padding: 0.85rem 1rem; font-size: 0.85rem; color: #666;">
+              <div>{{ p.uploader_name or 'System' }}</div>
+              <div class="mono" style="font-size: 0.75rem; color: #888;">{{ p.uploaded_at }}</div>
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: right;">
+              <a href="/specifications/{{ spec.spec_no }}/source/{{ p.id }}" class="btn btn-outline btn-sm" style="font-size: 0.8rem;">
+                View Side-by-Side →
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card" style="padding: 2.5rem 1.5rem; text-align: center; background: var(--snm-paper); border: 1px dashed var(--snm-line);">
+      <div style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--snm-machine-black); margin-bottom: 0.5rem;">
+        NO SOURCE PDFS ATTACHED
+      </div>
+      <p style="color: #666; font-size: 0.85rem; max-width: 500px; margin: 0 auto;">
+        No original standard PDF documents have been uploaded or linked to this specification yet.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- TAB 6: PHYSICAL TYPES REFERENCE TABLE -->
   {% if ref_types %}
   <div x-show="tab === 'ref_types'">
     <div style="margin-bottom: 0.75rem; font-size: 0.85rem; color: #666;">
