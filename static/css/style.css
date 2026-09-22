@@ -386,7 +386,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .function-card:hover {
   border-color: var(--snm-olive);
-  box-shadow: 0 2px 8px rgba(76, 92, 51, 0.1);
+  box-shadow: 0 2px 8px rgba(71, 75, 47, 0.1);
 }
 
 .function-card-header {
