@@ -48,6 +48,7 @@ sql_files = [
     'sql/43_production_parity_policies.sql',
     'sql/44_production_parity_spec_tables.sql',
     'sql/45_spec_integrity_standalone_uploads.sql',
+    'sql/46_jobs_variant_link.sql',
 ]
 
 async def apply_all():

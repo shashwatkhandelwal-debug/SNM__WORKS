@@ -81,7 +81,12 @@
           ({{ variant.spec_no }} Rev {{ variant.revision }} • {{ variant.name }})
         </span>
       </div>
-      <span class="badge badge-olive">{{ plan_items|length }} CHECKPOINTS</span>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge {% if checked_count == plan_items|length and plan_items|length > 0 %}badge-pass{% elif checked_count > 0 %}badge-olive{% else %}badge-gray{% endif %}" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700;">
+          {{ checked_count }} OF {{ plan_items|length }} CHECKPOINTS RECORDED
+        </span>
+        <span class="badge badge-olive">{{ plan_items|length }} CHECKPOINTS</span>
+      </div>
     </div>
 
     <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -94,6 +99,7 @@
           <th style="padding: 0.75rem 0.75rem; text-align: center;">UNIT</th>
           <th style="padding: 0.75rem 1rem;">TEST METHOD</th>
           <th style="padding: 0.75rem 0.75rem; text-align: center;">CRITICALITY</th>
+          <th style="padding: 0.75rem 0.75rem; text-align: center;">STATUS</th>
           <th style="padding: 0.75rem 1rem; text-align: right;">SHOP FLOOR ACTION</th>
         </tr>
       </thead>
@@ -163,6 +169,21 @@
               <span class="badge badge-fail" style="font-size: 0.75rem; font-weight: 700;">CRITICAL</span>
             {% else %}
               <span class="badge badge-gray" style="font-size: 0.75rem;">STANDARD</span>
+            {% endif %}
+          </td>
+
+          <!-- Status -->
+          <td style="padding: 0.85rem 0.75rem; text-align: center;">
+            {% if item.is_checked %}
+              {% if item.latest_verdict == 'PASS' %}
+                <span class="badge badge-pass" style="font-size: 0.75rem; font-weight: 700;">✓ CHECKED (PASS)</span>
+              {% elif item.latest_verdict == 'FAIL' %}
+                <span class="badge badge-fail" style="font-size: 0.75rem; font-weight: 700;">✗ CHECKED (FAIL)</span>
+              {% else %}
+                <span class="badge badge-olive" style="font-size: 0.75rem; font-weight: 700;">✓ CHECKED ({{ item.latest_verdict or 'RECORDED' }})</span>
+              {% endif %}
+            {% else %}
+              <span class="badge badge-gray" style="font-size: 0.75rem;">⏳ NOT YET CHECKED</span>
             {% endif %}
           </td>
 

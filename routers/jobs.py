@@ -820,6 +820,7 @@ async def get_job_inspection_plan(
                             j.po_ref,
                             j.product,
                             j.spec,
+                            j.variant_id::text as variant_id,
                             j.width_mm,
                             j.colour,
                             j.qty_ordered,
@@ -860,10 +861,32 @@ async def get_job_inspection_plan(
                     )
                     available_variants = [dict(r) for r in v_rows]
 
-                    # 3. If variant_id is provided, call spec_check_plan
+                    # 3. Resolve target variant_id and persist if explicitly submitted
+                    target_variant_id: Optional[str] = None
                     if variant_id and variant_id.strip():
+                        target_variant_id = variant_id.strip()
+                        if job_data:
+                            try:
+                                v_uuid = uuid.UUID(target_variant_id)
+                                j_uuid = uuid.UUID(job_data["id"])
+                                if job_data.get("variant_id") != target_variant_id:
+                                    can_update = await conn.fetchval("SELECT auth_can('jobs', 'update');")
+                                    if can_update:
+                                        await conn.execute(
+                                            "UPDATE jobs SET variant_id = $1, updated_at = now() WHERE id = $2;",
+                                            v_uuid,
+                                            j_uuid,
+                                        )
+                                        job_data["variant_id"] = target_variant_id
+                            except Exception as update_err:
+                                logger.warning(f"Could not persist variant_id to job: {update_err}")
+                    elif job_data and job_data.get("variant_id"):
+                        target_variant_id = job_data["variant_id"]
+
+                    # 4. If target variant is resolved, call spec_check_plan and match checks
+                    if target_variant_id:
                         try:
-                            var_uuid = uuid.UUID(variant_id.strip())
+                            var_uuid = uuid.UUID(target_variant_id)
                             v_row = await conn.fetchrow(
                                 """
                                 SELECT 
@@ -892,7 +915,49 @@ async def get_job_inspection_plan(
                                     "SELECT * FROM spec_check_plan($1::uuid);",
                                     var_uuid,
                                 )
-                                plan_items = [dict(r) for r in plan_rows]
+
+                                # Query qc_checks and lab_tests for completion tracking
+                                actual_job_uuid = uuid.UUID(job_data["id"])
+                                qc_checks_raw = await conn.fetch(
+                                    """
+                                    SELECT 
+                                        id::text as id, check_no, checked_on, parameter, actual::text as actual,
+                                        verdict, 'qc_checks' as source, created_at
+                                    FROM qc_checks
+                                    WHERE job_id = $1
+                                    ORDER BY checked_on DESC, created_at DESC;
+                                    """,
+                                    actual_job_uuid,
+                                )
+                                lab_tests_raw = await conn.fetch(
+                                    """
+                                    SELECT 
+                                        id::text as id, test_id as check_no, tested_on as checked_on, parameter,
+                                        result as actual, verdict, 'lab_tests' as source, created_at
+                                    FROM lab_tests
+                                    WHERE job_id = $1
+                                    ORDER BY tested_on DESC, created_at DESC;
+                                    """,
+                                    actual_job_uuid,
+                                )
+                                all_checks = [dict(r) for r in qc_checks_raw] + [dict(r) for r in lab_tests_raw]
+
+                                plan_items = []
+                                for pr in plan_rows:
+                                    item_dict = dict(pr)
+                                    req_param = (item_dict.get("parameter") or "").strip().lower()
+                                    matches = [
+                                        c for c in all_checks
+                                        if (c.get("parameter") or "").strip().lower() == req_param
+                                    ]
+                                    matches.sort(
+                                        key=lambda x: (str(x.get("checked_on") or ""), str(x.get("created_at") or "")),
+                                        reverse=True,
+                                    )
+                                    item_dict["matched_checks"] = matches
+                                    item_dict["is_checked"] = len(matches) > 0
+                                    item_dict["latest_verdict"] = matches[0]["verdict"].upper() if matches and matches[0].get("verdict") else None
+                                    plan_items.append(item_dict)
                         except ValueError:
                             pass
         except Exception as e:
@@ -901,6 +966,8 @@ async def get_job_inspection_plan(
     if not job_data:
         raise HTTPException(HTTP_404_NOT_FOUND, f"Job '{job_id}' not found")
 
+    checked_count = sum(1 for item in plan_items if item.get("is_checked"))
+
     return templates.TemplateResponse(
         request=request,
         name="jobs/inspection_plan.html",
@@ -908,9 +975,10 @@ async def get_job_inspection_plan(
             "user": user_info,
             "job": job_data,
             "available_variants": available_variants,
-            "selected_variant_id": variant_id or "",
+            "selected_variant_id": target_variant_id or "",
             "variant": selected_variant,
             "plan_items": plan_items,
+            "checked_count": checked_count,
             "current_page": "jobs",
             "current_func": "OPS",
         },

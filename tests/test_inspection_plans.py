@@ -217,3 +217,157 @@ async def test_specification_approval_permission_gating(
 
     auth_resp = await chief_quality_client.post("/specifications/MIL-W-4088/approve")
     assert auth_resp.status_code == HTTP_303_SEE_OTHER
+
+
+@pytest.mark.asyncio
+async def test_job_inspection_plan_persists_variant_and_skips_reselection(
+    production_client, chief_quality_client
+):
+    """
+    Test 7 (Stage 12):
+    (a) Submitting a variant_id query parameter persists jobs.variant_id in the database.
+    (b) Subsequent GET to /jobs/{job_id}/inspection-plan without variant_id query param
+        automatically uses jobs.variant_id and renders the confirmed checkpoints directly.
+    """
+    import uuid
+    uid = uuid.uuid4().hex[:6].upper()
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    
+    # 1. Ensure an approved spec variant exists
+    spec_id = await conn.fetchval("SELECT id FROM specifications LIMIT 1;")
+    var_id = await conn.fetchval(
+        """
+        INSERT INTO spec_variants (id, spec_id, designation, class, status)
+        VALUES (gen_random_uuid(), $1, $2, '1', 'Approved')
+        RETURNING id;
+        """,
+        spec_id,
+        f"Type Test-{uid}",
+    )
+    # Add a requirement to this variant
+    await conn.execute(
+        """
+        INSERT INTO spec_requirements (id, spec_id, variant_id, parameter, limit_type, spec_value, unit)
+        VALUES (gen_random_uuid(), $1, $2, 'Width', 'nominal', 44.0, 'mm');
+        """,
+        spec_id,
+        var_id,
+    )
+
+    # 2. Create a job without variant_id initially
+    job_id = await conn.fetchval(
+        """
+        INSERT INTO jobs (id, job_no, product, qty_ordered, unit, status, raised_on)
+        VALUES (gen_random_uuid(), $1, 'Inspection Plan Test Webbing', 1000, 'm', 'In progress', CURRENT_DATE)
+        RETURNING id;
+        """,
+        f"JOB-PLAN-{uid}",
+    )
+    await conn.close()
+
+    # 3. GET /jobs/{job_id}/inspection-plan?variant_id={var_id} -> persists variant_id to jobs
+    resp1 = await production_client.get(f"/jobs/{job_id}/inspection-plan?variant_id={var_id}")
+    assert resp1.status_code == HTTP_200_OK
+    assert "CONFIRMED INSPECTION CHECKPOINTS" in resp1.text
+
+    # 4. Verify in DB that jobs.variant_id was updated
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    db_var_id = await conn.fetchval("SELECT variant_id FROM jobs WHERE id = $1;", job_id)
+    assert db_var_id == var_id
+
+    # 5. GET /jobs/{job_id}/inspection-plan WITHOUT query param -> directly loads plan
+    resp2 = await production_client.get(f"/jobs/{job_id}/inspection-plan")
+    assert resp2.status_code == HTTP_200_OK
+    assert "CONFIRMED INSPECTION CHECKPOINTS" in resp2.text
+    assert f"Type Test-{uid}" in resp2.text
+    await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_job_inspection_plan_completion_tracking_and_case_insensitive_matching(
+    production_client
+):
+    """
+    Test 8 (Stage 12): Completion tracking against the inspection plan:
+    (a) Plan item matching a PASS qc_check shows as checked/PASS.
+    (b) Plan item with no check shows as not-yet-checked.
+    (c) Parameter matching is case-insensitive and trims whitespace (e.g. '  width  ' matches 'Width').
+    (d) Progress badge shows 'X OF Y CHECKPOINTS RECORDED'.
+    """
+    import uuid
+    uid = uuid.uuid4().hex[:6].upper()
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    
+    # 1. Create an isolated spec and variant with exactly 2 distinct requirements
+    spec_id = await conn.fetchval(
+        """
+        INSERT INTO specifications (id, spec_no, revision, title, issuing_body, active)
+        VALUES (gen_random_uuid(), $1, 'A', 'Testing Spec', 'SNM Standards', true)
+        RETURNING id;
+        """,
+        f"SNM-SPEC-{uid}",
+    )
+    var_id = await conn.fetchval(
+        """
+        INSERT INTO spec_variants (id, spec_id, designation, class, status)
+        VALUES (gen_random_uuid(), $1, $2, '1', 'Approved')
+        RETURNING id;
+        """,
+        spec_id,
+        f"Type Track-{uid}",
+    )
+    # Requirement 1: 'Width'
+    await conn.execute(
+        """
+        INSERT INTO spec_requirements (id, spec_id, variant_id, parameter, limit_type, spec_value, unit, sort_order)
+        VALUES (gen_random_uuid(), $1, $2, 'Width', 'nominal', 44.0, 'mm', 1);
+        """,
+        spec_id,
+        var_id,
+    )
+    # Requirement 2: 'Breaking Strength'
+    await conn.execute(
+        """
+        INSERT INTO spec_requirements (id, spec_id, variant_id, parameter, limit_type, spec_value, unit, sort_order)
+        VALUES (gen_random_uuid(), $1, $2, 'Breaking Strength', 'minimum', 4000.0, 'lbf', 2);
+        """,
+        spec_id,
+        var_id,
+    )
+
+    # 2. Create Job already bound to this variant
+    job_id = await conn.fetchval(
+        """
+        INSERT INTO jobs (id, job_no, product, variant_id, qty_ordered, unit, status, raised_on)
+        VALUES (gen_random_uuid(), $1, 'Tracked Plan Webbing', $2, 1000, 'm', 'In progress', CURRENT_DATE)
+        RETURNING id;
+        """,
+        f"JOB-TRACK-{uid}",
+        var_id,
+    )
+
+    # 3. Add a matching QC check for 'width' (lowercase + whitespace test) with PASS verdict
+    await conn.execute(
+        """
+        INSERT INTO qc_checks (id, job_id, check_no, stage, parameter, unit, limit_type, spec_value, tolerance, actual, checked_on)
+        VALUES (gen_random_uuid(), $1, $2, 'Weaving Line', '  width  ', 'mm', 'nominal', 44.0, 1.0, 44.1, CURRENT_DATE);
+        """,
+        job_id,
+        f"QC-TRK-{uid}",
+    )
+    await conn.close()
+
+    # 4. Request the job inspection plan
+    resp = await production_client.get(f"/jobs/{job_id}/inspection-plan")
+    assert resp.status_code == HTTP_200_OK
+    text = resp.text
+
+    # (a) Checkpoint progress badge
+    assert "1 OF 2 CHECKPOINTS RECORDED" in text
+
+    # (b) Width requirement shows PASS badge
+    assert "✓ CHECKED (PASS)" in text
+
+    # (c) Breaking Strength requirement shows not-yet-checked badge
+    assert "⏳ NOT YET CHECKED" in text
+
