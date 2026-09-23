@@ -490,3 +490,46 @@ async def test_concurrent_material_issues_load_and_serialization(store_client):
     issue_count = await conn.fetchval("SELECT COUNT(*) FROM job_material_issues WHERE yarn_lot_id = $1;", lot_id)
     assert issue_count == 4
     await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_materials_yarn_lots_pagination(store_client):
+    """
+    Pagination Test: Creates 30 yarn lots, asserts page 1 returns 25 rows and total_count=30,
+    and page 2 returns 5 rows. Cleans up after test.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"LOT-PAG-{uid}"
+    try:
+        for i in range(1, 31):
+            await conn.execute(
+                """
+                INSERT INTO yarn_lots (
+                    lot_no, supplier_name, yarn_type, denier, qty_received, qty_issued, qc_status, received_date
+                ) VALUES (
+                    $1, $2, 'Nylon 6,6', 840, 100.0, 0.0, 'Approved', CURRENT_DATE
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated Supplier {uid}",
+            )
+
+        # Page 1 (default page_size=25)
+        resp1 = await store_client.get(f"/materials?tab=lots&search={uid}&page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "Showing <strong>25</strong> of <strong>30</strong> yarn lots" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2 (remainder 5 rows)
+        resp2 = await store_client.get(f"/materials?tab=lots&search={uid}&page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert "Showing <strong>5</strong> of <strong>30</strong> yarn lots" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 5
+    finally:
+        await conn.execute("DELETE FROM yarn_lots WHERE lot_no LIKE $1", f"{prefix}%")
+        await conn.close()
+
+

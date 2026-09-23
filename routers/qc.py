@@ -1,6 +1,7 @@
 from datetime import date, datetime
 import logging
 from typing import Any, Dict, List, Optional
+import math
 import uuid
 import asyncpg
 from starlette.status import (
@@ -9,7 +10,7 @@ from starlette.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -74,11 +75,13 @@ async def list_qc_checks(
     job_no: Optional[str] = None,
     verdict: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("qc", "read")),
 ):
     """
-    GET /qc -- list all checks, filterable by job_no and verdict.
+    GET /qc -- list all checks, filterable by job_no and verdict, with DB pagination.
     Enforces auth_can('qc', 'read') and RLS.
     Verdict is retrieved strictly from the database generated column.
     """
@@ -110,7 +113,8 @@ async def list_qc_checks(
             qc.action_taken,
             qc.verdict,
             p.full_name as inspector_name,
-            qc.created_at
+            qc.created_at,
+            COUNT(*) OVER() AS total_count
         FROM qc_checks qc
         LEFT JOIN jobs j ON j.id = qc.job_id
         LEFT JOIN profiles p ON p.id = qc.inspector_id
@@ -138,10 +142,14 @@ async def list_qc_checks(
         params.append(search_term)
         idx += 1
 
-    query += " ORDER BY qc.checked_on DESC, qc.created_at DESC"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY qc.checked_on DESC, qc.created_at DESC LIMIT ${idx} OFFSET ${idx + 1}"
+    params.extend([page_size, offset])
 
     rows = await conn.fetch(query, *params)
     checks_list = [dict(r) for r in rows]
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     return templates.TemplateResponse(
         request=request,
@@ -152,6 +160,10 @@ async def list_qc_checks(
             "job_no_filter": job_no or "",
             "verdict_filter": verdict or "all",
             "q": q or "",
+            "page": page,
+            "page_size": page_size,
+            "total_count": total_count,
+            "total_pages": total_pages,
             "current_page": "qc",
             "current_func": "QUA",
         }

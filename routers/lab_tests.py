@@ -1,6 +1,7 @@
 from datetime import date, datetime
 import logging
 from typing import Any, Dict, List, Optional
+import math
 import uuid
 import asyncpg
 from starlette.status import (
@@ -9,7 +10,7 @@ from starlette.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -96,11 +97,13 @@ async def list_lab_tests(
     verdict: Optional[str] = None,
     test_type: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("tests", "read")),
 ):
     """
-    GET /lab-tests -- list all lab tests with status filters.
+    GET /lab-tests -- list all lab tests with status filters and DB pagination.
     """
     user_info = {
         "id": user.get("id"),
@@ -132,7 +135,8 @@ async def list_lab_tests(
             lt.report_filed,
             p_creator.full_name as creator_name,
             p_approver.full_name as approver_name,
-            lt.created_at
+            lt.created_at,
+            COUNT(*) OVER() AS total_count
         FROM lab_tests lt
         LEFT JOIN jobs j ON j.id = lt.job_id
         LEFT JOIN profiles p_creator ON p_creator.id = lt.created_by
@@ -166,10 +170,14 @@ async def list_lab_tests(
         params.append(search_term)
         idx += 1
 
-    query += " ORDER BY lt.tested_on DESC, lt.created_at DESC"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY lt.tested_on DESC, lt.created_at DESC LIMIT ${idx} OFFSET ${idx + 1}"
+    params.extend([page_size, offset])
 
     rows = await conn.fetch(query, *params)
     tests_list = [dict(r) for r in rows]
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     return templates.TemplateResponse(
         request=request,
@@ -182,6 +190,10 @@ async def list_lab_tests(
             "test_type_filter": test_type or "all",
             "test_types": TEST_TYPES,
             "q": q or "",
+            "page": page,
+            "page_size": page_size,
+            "total_count": total_count,
+            "total_pages": total_pages,
             "current_page": "lab-tests",
             "current_func": "QUA",
         }

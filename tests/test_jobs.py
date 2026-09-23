@@ -125,3 +125,48 @@ async def test_inline_status_update_permitted_role_updates_database(production_c
             await conn.execute("DELETE FROM jobs WHERE id::text = $1", job_id)
         await conn.close()
 
+
+@pytest.mark.asyncio
+async def test_jobs_list_pagination(production_client):
+    """
+    Pagination Test: Creates 30 jobs, asserts page 1 returns 25 rows and total_count=30,
+    and page 2 returns 5 rows. Cleans up after test.
+    """
+    import uuid
+    import asyncpg
+    from tests.conftest import LOCAL_TEST_DATABASE_URL
+
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"SNM/PAG-{uid}"
+    try:
+        # Insert 30 test jobs
+        for i in range(1, 31):
+            await conn.execute(
+                """
+                INSERT INTO jobs (id, job_no, product, qty_ordered, unit, status, raised_on)
+                VALUES (gen_random_uuid(), $1, $2, 100, 'm', 'Planned', CURRENT_DATE);
+                """,
+                f"{prefix}/{i:02d}",
+                f"Paginated Test Product {uid}",
+            )
+
+        # Page 1 (default page_size=25)
+        resp1 = await production_client.get(f"/jobs?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "Showing <strong>25</strong> of <strong>30</strong> job cards" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2 (remainder 5 rows)
+        resp2 = await production_client.get(f"/jobs?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert "Showing <strong>5</strong> of <strong>30</strong> job cards" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 5
+    finally:
+        await conn.execute("DELETE FROM jobs WHERE job_no LIKE $1", f"{prefix}%")
+        await conn.close()
+
+
+

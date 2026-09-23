@@ -117,3 +117,51 @@ async def test_qc_routes_reject_unauthenticated(anonymous_client):
     resp = await anonymous_client.get("/qc")
     assert resp.status_code == 401
     assert "Authentication required" in resp.json().get("detail", "")
+
+
+@pytest.mark.asyncio
+async def test_qc_checks_list_pagination(inspector_client):
+    """
+    Pagination Test: Creates 30 QC checks, asserts page 1 returns 25 rows and total_count=30,
+    and page 2 returns 5 rows. Cleans up after test.
+    """
+    import asyncpg
+    from tests.conftest import LOCAL_TEST_DATABASE_URL
+
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"Q-PAG-{uid}"
+    try:
+        for i in range(1, 31):
+            await conn.execute(
+                """
+                INSERT INTO qc_checks (
+                    id, check_no, stage, parameter, limit_type,
+                    spec_value, tolerance, actual, checked_on
+                ) VALUES (
+                    gen_random_uuid(), $1, 'On-Loom Inspection', $2, 'nominal'::limit_kind,
+                    44.0, 1.0, 44.2, CURRENT_DATE
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated QC Param {uid}",
+            )
+
+        # Page 1 (default page_size=25)
+        resp1 = await inspector_client.get(f"/qc?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "Showing <strong>25</strong> of <strong>30</strong> QC checks" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2 (remainder 5 rows)
+        resp2 = await inspector_client.get(f"/qc?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert "Showing <strong>5</strong> of <strong>30</strong> QC checks" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 5
+    finally:
+        await conn.execute("DELETE FROM qc_checks WHERE check_no LIKE $1", f"{prefix}%")
+        await conn.close()
+
+

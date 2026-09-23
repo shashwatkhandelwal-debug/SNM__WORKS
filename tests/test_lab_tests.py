@@ -328,3 +328,50 @@ async def test_lab_test_verdict_sql_function_branches():
         assert await conn.fetchval(query, "minimum", 90, None, None, True, []) == "Pending"
     finally:
         await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_lab_tests_list_pagination(analyst_client):
+    """
+    Pagination Test: Creates 30 lab tests, asserts page 1 returns 25 rows and total_count=30,
+    and page 2 returns 5 rows. Cleans up after test.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"LT-PAG-{uid}"
+    user_id = TEST_USERS["lab_analyst"]["id"]
+    try:
+        for i in range(1, 31):
+            await conn.execute(
+                """
+                INSERT INTO lab_tests (
+                    test_id, test_type, parameter, limit_type, spec_value,
+                    tolerance, is_critical, specimens, created_by, tested_on
+                ) VALUES (
+                    $1, 'Tensile / Breaking Strength', $2, 'minimum', 100.0,
+                    NULL, false, ARRAY[105.0, 110.0], $3::uuid, CURRENT_DATE
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated Param {uid}",
+                user_id,
+            )
+
+        # Page 1 (default page_size=25)
+        resp1 = await analyst_client.get(f"/lab-tests?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "Showing <strong>25</strong> of <strong>30</strong> laboratory tests" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2 (remainder 5 rows)
+        resp2 = await analyst_client.get(f"/lab-tests?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert "Showing <strong>5</strong> of <strong>30</strong> laboratory tests" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 5
+    finally:
+        await conn.execute("DELETE FROM lab_tests WHERE test_id LIKE $1", f"{prefix}%")
+        await conn.close()
+
+

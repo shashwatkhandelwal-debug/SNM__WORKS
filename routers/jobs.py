@@ -2,6 +2,7 @@
 from datetime import date, datetime
 import logging
 from typing import Any, Dict, List, Optional
+import math
 import uuid
 import asyncpg
 from starlette.status import (
@@ -12,7 +13,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import database
@@ -166,11 +167,13 @@ async def list_jobs(
     request: Request,
     status_filter: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("jobs", "read")),
 ):
     """
-    GET /jobs -- List all jobs from the jobs table ordered by raised_on descending.
+    GET /jobs -- List all jobs from the jobs table ordered by raised_on descending with DB pagination.
     """
     user_info = {
         "id": user.get("id"),
@@ -179,6 +182,8 @@ async def list_jobs(
     }
 
     jobs_list: List[Dict[str, Any]] = []
+    total_count = 0
+    total_pages = 1
     today = date.today()
 
     try:
@@ -205,7 +210,8 @@ async def list_jobs(
                 j.created_at,
                 j.updated_at,
                 COALESCE(qc_fail.fail_count, 0) as qc_fail_count,
-                COALESCE(lab_fail.fail_count, 0) as lab_fail_count
+                COALESCE(lab_fail.fail_count, 0) as lab_fail_count,
+                COUNT(*) OVER() AS total_count
             FROM jobs j
             LEFT JOIN customers c ON c.id = j.customer_id
             LEFT JOIN (
@@ -236,9 +242,15 @@ async def list_jobs(
             params.append(search_term)
             idx += 1
 
-        query += " ORDER BY j.raised_on DESC, j.job_no DESC"
+        offset = (page - 1) * page_size
+        query += f" ORDER BY j.raised_on DESC, j.job_no DESC LIMIT ${idx} OFFSET ${idx + 1}"
+        params.extend([page_size, offset])
 
         rows = await conn.fetch(query, *params)
+        if rows:
+            total_count = int(rows[0]["total_count"])
+            total_pages = max(1, math.ceil(total_count / page_size))
+
         for r in rows:
             item = dict(r)
             item["has_hold"] = (item.get("qc_fail_count", 0) > 0) or (item.get("lab_fail_count", 0) > 0)
@@ -258,40 +270,43 @@ async def list_jobs(
     except Exception as exc:
         logger.warning(f"Could not load jobs from database: {exc}")
 
-    # Fallback / merge in-memory jobs for local development
-    for m_id, m_job in MEM_JOBS.items():
-        if not any(j.get("id") == m_id or j.get("job_no") == m_job.get("job_no") for j in jobs_list):
-            item = dict(m_job)
-            item.setdefault("qty_ordered", 0)
-            item.setdefault("qty_produced", 0)
-            item.setdefault("unit", "m")
-            item.setdefault("product", "")
-            item.setdefault("customer_name", "")
-            item.setdefault("status", "Planned")
-            item["balance"] = float(item.get("qty_ordered", 0)) - float(item.get("qty_produced", 0))
-            item["has_hold"] = item.get("has_hold", False)
-            deliv = item.get("delivery_due")
-            item["is_overdue"] = False
-            if deliv:
-                if isinstance(deliv, str):
-                    try:
-                        deliv = datetime.strptime(deliv[:10], "%Y-%m-%d").date()
-                    except Exception:
-                        deliv = None
-                if deliv and deliv < today and item.get("status") not in ("Complete", "Despatched", "Cancelled"):
-                    item["is_overdue"] = True
+    # Fallback / merge in-memory jobs for local development (dev-only scaffolding; merge is approximate on later pages)
+    if page == 1:
+        for m_id, m_job in MEM_JOBS.items():
+            if not any(j.get("id") == m_id or j.get("job_no") == m_job.get("job_no") for j in jobs_list):
+                item = dict(m_job)
+                item.setdefault("qty_ordered", 0)
+                item.setdefault("qty_produced", 0)
+                item.setdefault("unit", "m")
+                item.setdefault("product", "")
+                item.setdefault("customer_name", "")
+                item.setdefault("status", "Planned")
+                item["balance"] = float(item.get("qty_ordered", 0)) - float(item.get("qty_produced", 0))
+                item["has_hold"] = item.get("has_hold", False)
+                deliv = item.get("delivery_due")
+                item["is_overdue"] = False
+                if deliv:
+                    if isinstance(deliv, str):
+                        try:
+                            deliv = datetime.strptime(deliv[:10], "%Y-%m-%d").date()
+                        except Exception:
+                            deliv = None
+                    if deliv and deliv < today and item.get("status") not in ("Complete", "Despatched", "Cancelled"):
+                        item["is_overdue"] = True
 
-            if status_filter and status_filter.strip() and status_filter.lower() != "all":
-                if item.get("status") != status_filter.strip():
-                    continue
-            if q and q.strip():
-                q_lower = q.strip().lower()
-                if (q_lower not in item.get("job_no", "").lower() and
-                    q_lower not in item.get("product", "").lower() and
-                    q_lower not in (item.get("customer_name") or "").lower()):
-                    continue
+                if status_filter and status_filter.strip() and status_filter.lower() != "all":
+                    if item.get("status") != status_filter.strip():
+                        continue
+                if q and q.strip():
+                    q_lower = q.strip().lower()
+                    if (q_lower not in item.get("job_no", "").lower() and
+                        q_lower not in item.get("product", "").lower() and
+                        q_lower not in (item.get("customer_name") or "").lower()):
+                        continue
 
-            jobs_list.insert(0, item)
+                jobs_list.insert(0, item)
+                total_count += 1
+                total_pages = max(1, math.ceil(total_count / page_size))
 
     return templates.TemplateResponse(
         request=request,
@@ -302,6 +317,10 @@ async def list_jobs(
             "status_filter": status_filter or "all",
             "q": q or "",
             "status_stages": STATUS_STAGES,
+            "page": page,
+            "page_size": page_size,
+            "total_count": total_count,
+            "total_pages": total_pages,
             "current_page": "jobs",
             "current_func": "OPS",
         }

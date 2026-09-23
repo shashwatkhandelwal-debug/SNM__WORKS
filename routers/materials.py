@@ -1,5 +1,6 @@
 from datetime import date, datetime
 import logging
+import math
 from typing import Any, Dict, List, Optional
 import uuid
 
@@ -48,10 +49,12 @@ async def materials_dashboard(
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = Query(None),
     tab: str = Query("lots"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
 ):
     """
     GET /materials -- Materials & Inventory Dashboard.
-    Shows inventory metrics, yarn lots register, recent GRNs, and material issues.
+    Shows inventory metrics, yarn lots register (paginated), recent GRNs, and material issues.
     """
     try:
         claims = await get_user_claims(request)
@@ -74,6 +77,8 @@ async def materials_dashboard(
     yarn_lots: List[Dict[str, Any]] = []
     grn_list: List[Dict[str, Any]] = []
     issues_list: List[Dict[str, Any]] = []
+    total_count = 0
+    total_pages = 1
 
     if database.pool is not None:
         try:
@@ -121,7 +126,8 @@ async def materials_dashboard(
                             y.tested_by::text as tested_by,
                             y.released_by::text as released_by,
                             y.created_by::text as created_by,
-                            g.grn_no
+                            g.grn_no,
+                            COUNT(*) OVER() AS total_count
                         FROM yarn_lots y
                         LEFT JOIN grn g ON g.id = y.grn_id
                         WHERE 1=1
@@ -138,9 +144,15 @@ async def materials_dashboard(
                         params.append(s)
                         idx += 1
 
-                    query += " ORDER BY y.created_at DESC;"
+                    offset = (page - 1) * page_size
+                    query += f" ORDER BY y.created_at DESC LIMIT ${idx} OFFSET ${idx + 1};"
+                    params.extend([page_size, offset])
+
                     lot_rows = await conn.fetch(query, *params)
                     yarn_lots = [dict(r) for r in lot_rows]
+                    if lot_rows:
+                        total_count = int(lot_rows[0]["total_count"])
+                        total_pages = max(1, math.ceil(total_count / page_size))
 
                     # 3. GRN Register
                     g_rows = await conn.fetch(
@@ -204,6 +216,10 @@ async def materials_dashboard(
             "status_filter": status_filter or "all",
             "search": search or "",
             "tab": tab,
+            "page": page,
+            "page_size": page_size,
+            "total_count": total_count,
+            "total_pages": total_pages,
             "current_page": "materials",
             "current_func": "SCM",
         },
