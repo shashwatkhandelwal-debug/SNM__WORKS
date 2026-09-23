@@ -67,17 +67,90 @@
             >
           </div>
 
-          <!-- Job Association -->
-          <div class="form-group" style="margin-bottom: 0;">
+          <!-- Job Association (Searchable Client-Side Dropdown) -->
+          <div 
+            class="form-group" 
+            style="margin-bottom: 0; position: relative;"
+            x-data="{
+              open: false,
+              search: '',
+              selectedId: '{% if selected_job_id %}{{ selected_job_id }}{% elif check and check.job_id %}{{ check.job_id }}{% endif %}',
+              selectedLabel: '-- General / No Linked Job --',
+              jobs: [
+                { id: '', label: '-- General / No Linked Job --', searchStr: 'general no linked job' },
+                {% for j in jobs %}
+                { 
+                  id: '{{ j.id }}', 
+                  label: {{ (j.job_no ~ ' — ' ~ j.product ~ ' (' ~ j.status ~ ')')|tojson }},
+                  searchStr: {{ (j.job_no ~ ' ' ~ j.product ~ ' ' ~ j.status)|lower|tojson }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+              ],
+              init() {
+                const match = this.jobs.find(j => j.id === this.selectedId);
+                this.selectedLabel = match ? match.label : '-- General / No Linked Job --';
+              },
+              get filteredJobs() {
+                if (!this.search.trim()) return this.jobs;
+                const s = this.search.toLowerCase();
+                return this.jobs.filter(j => j.searchStr.includes(s));
+              },
+              selectJob(job) {
+                this.selectedId = job.id;
+                this.selectedLabel = job.label;
+                this.open = false;
+                this.search = '';
+              }
+            }"
+            @click.outside="open = false"
+          >
             <label class="form-label" for="job_id">Linked Job Card</label>
-            <select id="job_id" name="job_id" class="form-input">
-              <option value="">-- General / No Linked Job --</option>
-              {% for j in jobs %}
-                <option value="{{ j.id }}" {% if (selected_job_id and selected_job_id == j.id) or (check.job_id and check.job_id == j.id) %}selected{% endif %}>
-                  {{ j.job_no }} — {{ j.product }} ({{ j.status }})
-                </option>
-              {% endfor %}
-            </select>
+            <input type="hidden" id="job_id" name="job_id" :value="selectedId">
+            
+            <div 
+              @click="open = !open; if (open) $nextTick(() => $refs.searchInput.focus())" 
+              class="form-input mono" 
+              style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: #fff; user-select: none; min-height: 38px;"
+            >
+              <span x-text="selectedLabel || '-- General / No Linked Job --'" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; font-weight: 500;"></span>
+              <span style="font-size: 0.75rem; color: #777; margin-left: 0.5rem;">▾</span>
+            </div>
+
+            <div 
+              x-show="open" 
+              x-cloak
+              style="position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: white; border: 1px solid var(--snm-line); border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 2px; max-height: 240px; display: flex; flex-direction: column;"
+            >
+              <div style="padding: 6px; border-bottom: 1px solid var(--snm-line); background: #faf9f5;">
+                <input 
+                  type="text" 
+                  x-ref="searchInput"
+                  x-model="search" 
+                  placeholder="Type to filter Job # or Product..." 
+                  class="form-input" 
+                  style="width: 100%; min-height: 30px; height: 30px; padding: 2px 8px; font-size: 0.8rem;"
+                  @click.stop
+                  @keydown.escape="open = false"
+                >
+              </div>
+              <div style="overflow-y: auto; max-height: 190px;">
+                <template x-for="j in filteredJobs" :key="j.id">
+                  <div 
+                    @click="selectJob(j)" 
+                    class="mono" 
+                    style="padding: 6px 10px; font-size: 0.8rem; cursor: pointer; border-bottom: 1px solid #f0eee6;"
+                    :style="selectedId === j.id ? 'background: #e8f0e4; font-weight: 700; color: var(--snm-olive-dark);' : 'background: white;'"
+                    onmouseover="if (this.style.backgroundColor !== 'rgb(232, 240, 228)') this.style.backgroundColor='#f7f6f0'" 
+                    onmouseout="if (this.style.backgroundColor !== 'rgb(232, 240, 228)') this.style.backgroundColor='white'"
+                  >
+                    <span x-text="j.label"></span>
+                  </div>
+                </template>
+                <div x-show="filteredJobs.length === 0" style="padding: 10px; font-size: 0.8rem; color: #888; text-align: center;">
+                  No matching jobs found
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Inspection Date -->

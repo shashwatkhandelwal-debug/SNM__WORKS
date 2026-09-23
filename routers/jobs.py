@@ -10,6 +10,7 @@ from starlette.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -1243,55 +1244,73 @@ async def update_job_status_inline(
     request: Request,
     job_id: str,
     status: str = Form(...),
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("jobs", "update")),
 ):
     """
     HTMX endpoint for inline status update directly from table rows or detail view.
-    Validates forward-only state machine. Returns updated badge / selector.
+    Validates forward-only state machine. Enforces require('jobs', 'update') permission.
+    Returns updated badge / selector or error badge on failure.
     """
-    try:
-        claims = await get_user_claims(request)
-    except HTTPException:
-        return Response(content="Unauthorized", status_code=HTTP_401_UNAUTHORIZED)
-
     new_status = status.strip()
     current_status = "Planned"
     actual_uuid = job_id
 
-    if database.pool is not None:
+    if conn is not None:
         try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, claims)
-                    curr_row = await conn.fetchrow(
-                        "SELECT id::text, status FROM jobs WHERE id::text = $1 OR job_no = $1",
-                        job_id,
-                    )
-                    if curr_row:
-                        actual_uuid = curr_row["id"]
-                        current_status = curr_row["status"]
+            curr_row = await conn.fetchrow(
+                "SELECT id::text, status FROM jobs WHERE id::text = $1 OR job_no = $1",
+                job_id,
+            )
+            if not curr_row:
+                return HTMLResponse(
+                    '<div class="badge badge-fail" title="Job not found.">Not Found</div>',
+                    status_code=HTTP_404_NOT_FOUND,
+                )
 
-                    is_valid, err_msg = validate_status_transition(current_status, new_status)
-                    if not is_valid:
-                        return HTMLResponse(
-                            f'<div class="badge badge-fail" title="{err_msg}">{current_status} (Err)</div>',
-                            status_code=HTTP_400_BAD_REQUEST,
-                        )
+            actual_uuid = curr_row["id"]
+            current_status = curr_row["status"]
 
-                    await conn.execute(
-                        "UPDATE jobs SET status = $1, updated_at = now() WHERE id::text = $2",
-                        new_status,
-                        actual_uuid,
-                    )
-                    current_status = new_status
+            is_valid, err_msg = validate_status_transition(current_status, new_status)
+            if not is_valid:
+                return HTMLResponse(
+                    f'<div class="badge badge-fail" title="{err_msg}">{current_status} (Err)</div>',
+                    status_code=HTTP_400_BAD_REQUEST,
+                )
+
+            res = await conn.execute(
+                "UPDATE jobs SET status = $1, updated_at = now() WHERE id::text = $2",
+                new_status,
+                actual_uuid,
+            )
+            if res == "UPDATE 0":
+                return HTMLResponse(
+                    f'<div class="badge badge-fail" title="Update failed: zero rows affected (permission or constraint failure).">{current_status} (Err)</div>',
+                    status_code=HTTP_400_BAD_REQUEST,
+                )
+            current_status = new_status
         except Exception as exc:
-            logger.warning(f"Error in inline status update: {exc}")
-
-    if actual_uuid in MEM_JOBS:
-        curr_status = MEM_JOBS[actual_uuid].get("status", "Planned")
-        is_valid, _ = validate_status_transition(curr_status, new_status)
-        if is_valid:
+            logger.error(f"Error in inline status update: {exc}")
+            return HTMLResponse(
+                f'<div class="badge badge-fail" title="Server error updating status: {exc}">{current_status} (Err)</div>',
+                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+    else:
+        if actual_uuid in MEM_JOBS:
+            curr_status = MEM_JOBS[actual_uuid].get("status", "Planned")
+            is_valid, err_msg = validate_status_transition(curr_status, new_status)
+            if not is_valid:
+                return HTMLResponse(
+                    f'<div class="badge badge-fail" title="{err_msg}">{curr_status} (Err)</div>',
+                    status_code=HTTP_400_BAD_REQUEST,
+                )
             MEM_JOBS[actual_uuid]["status"] = new_status
             current_status = new_status
+        else:
+            return HTMLResponse(
+                '<div class="badge badge-fail" title="Job not found.">Not Found</div>',
+                status_code=HTTP_404_NOT_FOUND,
+            )
 
     badge_class = "badge-gray"
     if current_status == "Planned":

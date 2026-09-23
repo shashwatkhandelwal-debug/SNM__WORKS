@@ -213,8 +213,8 @@
                     hx-post="/jobs/{{ job.id }}/status" 
                     hx-target="#status-badge-{{ job.id }}" 
                     hx-swap="outerHTML"
+                    hx-trigger="change"
                     @blur="editing = false"
-                    @change="editing = false"
                   >
                     {% for st in status_stages %}
                       <option value="{{ st }}" {% if job.status == st %}selected{% endif %}>{{ st }}</option>
