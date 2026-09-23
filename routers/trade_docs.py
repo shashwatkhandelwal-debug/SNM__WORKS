@@ -72,7 +72,7 @@ class TradeDocUpdatePayload(BaseModel):
 async def list_trade_documents(
     request: Request,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "read")),
 ):
     rows = await conn.fetch(
         """
@@ -97,8 +97,9 @@ async def list_trade_documents(
     )
     docs = [dict(r) for r in rows]
     return templates.TemplateResponse(
-        "trade_docs/documents_list.html",
-        {"request": request, "user": user, "documents": docs, "current_page": "trade_docs"}
+        request=request,
+        name="trade_docs/documents_list.html",
+        context={"user": user, "documents": docs, "current_page": "trade_docs"},
     )
 
 
@@ -107,7 +108,7 @@ async def review_trade_document(
     doc_id: str,
     request: Request,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "read")),
 ):
     try:
         u_doc_id = uuid.UUID(doc_id)
@@ -190,15 +191,78 @@ async def review_trade_document(
     )
     doc_dict["items"] = [dict(r) for r in item_rows]
 
+    # Fetch audit log history for this document
+    audit_rows = await conn.fetch(
+        """
+        SELECT actor_name, action, before, after, at
+        FROM audit_log
+        WHERE entity = 'trade_documents' AND entity_ref = $1::text
+        ORDER BY at DESC
+        """,
+        str(u_doc_id)
+    )
+
+    audit_history = []
+    for r in audit_rows:
+        b_data = r["before"]
+        a_data = r["after"]
+        if isinstance(b_data, str):
+            try:
+                b_data = json.loads(b_data)
+            except Exception:
+                b_data = {}
+        elif not isinstance(b_data, dict):
+            b_data = {}
+
+        if isinstance(a_data, str):
+            try:
+                a_data = json.loads(a_data)
+            except Exception:
+                a_data = {}
+        elif not isinstance(a_data, dict):
+            a_data = {}
+
+        field_diffs = []
+        if r["action"] == "UPDATE":
+            all_keys = set(b_data.keys()) | set(a_data.keys())
+            for k in sorted(all_keys):
+                if k in ("updated_at", "created_at"):
+                    continue
+                v_before = b_data.get(k)
+                v_after = a_data.get(k)
+                if str(v_before) != str(v_after):
+                    field_diffs.append({
+                        "field": k,
+                        "before": v_before,
+                        "after": v_after
+                    })
+        elif r["action"] == "INSERT":
+            for k in sorted(a_data.keys()):
+                if k in ("updated_at", "created_at") or a_data[k] is None:
+                    continue
+                field_diffs.append({
+                    "field": k,
+                    "before": None,
+                    "after": a_data[k]
+                })
+
+        audit_history.append({
+            "actor_name": r["actor_name"] or "System",
+            "action": r["action"],
+            "at": r["at"],
+            "field_diffs": field_diffs
+        })
+
     return templates.TemplateResponse(
-        "trade_docs/document_review.html",
-        {
-            "request": request,
+        request=request,
+        name="trade_docs/document_review.html",
+        context={
             "user": user,
             "doc": doc_dict,
             "doc_json": json.dumps(doc_dict),
+            "audit_history": audit_history,
             "current_page": "trade_docs"
-        }
+        },
     )
 
 
@@ -207,7 +271,7 @@ async def save_trade_document(
     doc_id: str,
     payload: TradeDocUpdatePayload,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "update")),
 ):
     try:
         u_doc_id = uuid.UUID(doc_id)
@@ -301,7 +365,7 @@ async def confirm_trade_document(
     doc_id: str,
     payload: TradeDocUpdatePayload,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "approve")),
 ):
     try:
         u_doc_id = uuid.UUID(doc_id)
@@ -358,7 +422,7 @@ async def confirm_trade_document(
 async def export_trade_document_to_tally(
     doc_id: str,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "create")),
 ):
     try:
         u_doc_id = uuid.UUID(doc_id)
@@ -429,7 +493,7 @@ async def export_trade_document_to_tally(
 async def stream_trade_doc_pdf(
     doc_id: str,
     conn=Depends(get_db),
-    user: Dict[str, Any] = Depends(current_user),
+    user: Dict[str, Any] = Depends(require("tally", "read")),
 ):
     try:
         u_doc_id = uuid.UUID(doc_id)

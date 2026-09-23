@@ -33,6 +33,16 @@
     </div>
   </div>
 
+  <!-- Approved Document Edit Warning Banner -->
+  {% if doc.status == 'Confirmed' or doc.status == 'SyncedToTally' %}
+  <div style="background: #FFFBEB; border: 1px solid #F59E0B; border-left: 4px solid #D97706; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem; color: #92400E; display: flex; align-items: center; gap: 0.5rem;">
+    <span style="font-size: 1.1rem;">⚠️</span>
+    <div>
+      <strong>Editing an approved document:</strong> This document is currently marked as <strong>{{ doc.status }}</strong>. Any saved corrections will be permanently recorded in the audit trail.
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Document Header Bar -->
   <div class="card" style="margin-bottom: 1rem; padding: 0.75rem 1rem; border-left: 4px solid var(--snm-olive); background: var(--snm-paper);">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -235,6 +245,60 @@
         </div>
       </div>
 
+      <!-- Section 5: Audit Trail / Change History -->
+      <div style="margin-top: 1.5rem; border-top: 2px solid var(--snm-line); padding-top: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; cursor: pointer;" @click="showAudit = !showAudit">
+          <h4 style="font-size: 0.95rem; margin: 0; font-family: var(--font-heading); color: var(--snm-machine-black); display: flex; align-items: center; gap: 0.5rem;">
+            📜 AUDIT TRAIL & CHANGE HISTORY (<span style="font-family: var(--font-mono);">{{ audit_history|length }}</span>)
+          </h4>
+          <span style="font-size: 0.8rem; color: var(--snm-olive); font-family: var(--font-heading); text-transform: uppercase;" x-text="showAudit ? 'Collapse ▲' : 'Expand ▼'"></span>
+        </div>
+
+        <div x-show="showAudit" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% if audit_history %}
+            {% for entry in audit_history %}
+            <div style="background: var(--snm-paper); border: 1px solid var(--snm-line); border-left: 3px solid var(--snm-olive); border-radius: 4px; padding: 0.75rem 1rem; font-size: 0.82rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                  <span class="badge {% if entry.action == 'INSERT' %}badge-pass{% elif entry.action == 'UPDATE' %}badge-olive{% else %}badge-gray{% endif %}" style="font-size: 0.7rem; font-family: var(--font-mono);">{{ entry.action }}</span>
+                  <strong style="margin-left: 0.35rem;">{{ entry.actor_name }}</strong>
+                </div>
+                <span style="font-family: var(--font-mono); color: #666; font-size: 0.75rem;">
+                  {{ entry.at.strftime('%Y-%m-%d %H:%M:%S') if entry.at else '' }}
+                </span>
+              </div>
+              {% if entry.field_diffs %}
+              <table style="width: 100%; border-collapse: collapse; margin-top: 0.35rem; font-size: 0.78rem;">
+                <thead>
+                  <tr style="color: #666; border-bottom: 1px solid var(--snm-line); text-align: left;">
+                    <th style="padding: 2px 4px; width: 30%;">Field</th>
+                    <th style="padding: 2px 4px; width: 35%;">Before</th>
+                    <th style="padding: 2px 4px; width: 35%;">After</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for diff in entry.field_diffs %}
+                  <tr style="border-bottom: 1px dotted var(--snm-line);">
+                    <td class="mono" style="padding: 2px 4px; font-weight: 600; color: #444;">{{ diff.field }}</td>
+                    <td class="mono" style="padding: 2px 4px; color: var(--snm-fail); word-break: break-all;">{{ diff.before if diff.before is not none else '—' }}</td>
+                    <td class="mono" style="padding: 2px 4px; color: var(--snm-pass); word-break: break-all;">{{ diff.after if diff.after is not none else '—' }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div style="color: #777; font-style: italic;">No specific field changes recorded.</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="padding: 1rem; text-align: center; color: #888; background: var(--snm-paper); border: 1px dashed var(--snm-line); border-radius: 4px; font-size: 0.85rem;">
+              No prior edits recorded in audit_log for this document.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -244,6 +308,7 @@
 function tradeDocReviewApp() {
   return {
     doc: {{ doc_json|safe }},
+    showAudit: true,
     
     init() {
       if (!this.doc.items || this.doc.items.length === 0) {
@@ -328,7 +393,12 @@ function tradeDocReviewApp() {
         });
         const res = await resp.json();
         if (resp.ok) {
-          alert("Document saved successfully!");
+          const isApproved = this.doc.status === 'Confirmed' || this.doc.status === 'SyncedToTally';
+          const msg = isApproved 
+            ? "Document saved successfully! (Correction recorded in audit trail)" 
+            : "Document saved successfully!";
+          alert(msg);
+          window.location.reload();
         } else {
           alert("Error: " + (res.detail || "Failed to save document."));
         }

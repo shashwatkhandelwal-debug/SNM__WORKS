@@ -16,7 +16,10 @@
       Decoupled XML voucher generation, master mapping registry, and simulated local sync logs.
     </div>
   </div>
-  <div style="display: flex; gap: 0.5rem;">
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="/trade-docs" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
+      📄 Trade Documents Queue
+    </a>
     <a href="/tally/mappings" class="btn btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
       ⚙ Master Mappings
     </a>
@@ -34,7 +37,39 @@
   <strong>Notice — Development & Testing Environment:</strong> The Tally integration is running with <code>StubTallyGatewayClient</code>. All generated XML payloads are stored and validated with status <span class="badge badge-gray">Stubbed</span>. No live financial entries are posted to remote Tally Prime servers.
 </div>
 
-<!-- Summary Metrics Ribbon -->
+<!-- Trade Documents & Pipeline Metrics Ribbon -->
+<div style="margin-bottom: 0.5rem;">
+  <span style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; letter-spacing: 0.05em;">Trade Documents & Invoices</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Documents</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ doc_stats.total_docs or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Pending Review</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: {% if (doc_stats.docs_draft or 0) + (doc_stats.docs_parsed or 0) > 0 %}var(--snm-hold){% else %}#666{% endif %};">
+      {{ (doc_stats.docs_draft or 0) + (doc_stats.docs_parsed or 0) }}
+    </div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Confirmed</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-olive);">{{ doc_stats.docs_confirmed or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Synced To Tally</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-pass);">{{ doc_stats.docs_synced or 0 }}</div>
+  </div>
+  <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
+    <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Party Mappings</div>
+    <div style="font-size: 1.5rem; font-family: var(--font-mono); font-weight: bold; color: var(--snm-machine-black);">{{ party_mappings_count or 0 }}</div>
+  </div>
+</div>
+
+<!-- Tally Sync Metrics Ribbon -->
+<div style="margin-bottom: 0.5rem;">
+  <span style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666; letter-spacing: 0.05em;">Voucher Sync Activity</span>
+</div>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
   <div class="card" style="background: white; border: 1px solid var(--snm-line); border-radius: 4px; padding: 1rem;">
     <div style="font-size: 0.75rem; font-family: var(--font-heading); text-transform: uppercase; color: #666;">Total Sync Events</div>
@@ -73,6 +108,66 @@
   <a href="/tally/mappings" class="btn btn-sm btn-outline" style="font-family: var(--font-heading); text-transform: uppercase;">
     Resolve Mappings →
   </a>
+</div>
+{% endif %}
+
+<!-- Pending Trade Documents Section -->
+{% if pending_docs %}
+<div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; margin-bottom: 1.5rem;">
+  <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase; letter-spacing: 0.04em;">
+      Trade Documents Requiring Review
+    </h2>
+    <a href="/trade-docs" style="font-size: 0.85rem; color: var(--snm-olive); text-decoration: underline;">
+      View all {{ doc_stats.total_docs or 0 }} trade documents →
+    </a>
+  </div>
+  <div style="overflow-x: auto;">
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">Type</th>
+          <th style="padding: 0.75rem 1rem;">Party Name</th>
+          <th style="padding: 0.75rem 1rem;">Doc Number</th>
+          <th style="padding: 0.75rem 1rem;">Date</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Net Payable</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Status</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in pending_docs %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem;">
+            <span class="badge {% if doc.doc_type == 'purchase_bill' %}badge-olive{% elif doc.doc_type == 'sales_invoice' %}badge-pass{% else %}badge-gray{% endif %}" style="font-size: 0.75rem; text-transform: uppercase;">
+              {{ doc.doc_type|replace('_', ' ') }}
+            </span>
+          </td>
+          <td style="padding: 0.75rem 1rem; font-weight: bold;">
+            {{ doc.party_name }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono);">
+            {{ doc.doc_number }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); color: #666;">
+            {{ doc.doc_date }}
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: var(--font-mono); text-align: right; font-weight: bold;">
+            ₹{{ "{:,.2f}".format(doc.net_payable) if doc.net_payable is not none else '0.00' }}
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            <span class="badge badge-hold">{{ doc.status }}</span>
+          </td>
+          <td style="padding: 0.75rem 1rem; text-align: center;">
+            <a href="/trade-docs/{{ doc.id }}/review" class="btn btn-xs btn-primary" style="font-family: var(--font-heading);">
+              Review & Map →
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endif %}
 

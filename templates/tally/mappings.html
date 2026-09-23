@@ -24,11 +24,11 @@
   </div>
 </div>
 
-<div x-data="{ tab: 'customers' }">
+<div x-data="{ tab: new URLSearchParams(window.location.search).get('tab') || 'customers' }">
   <!-- Tab Navigation -->
-  <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--snm-line); margin-bottom: 1.5rem;">
+  <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--snm-line); margin-bottom: 1.5rem; flex-wrap: wrap;">
     <button 
-      type="button"
+      type="button" 
       @click="tab = 'customers'" 
       :class="{ 'btn-primary': tab === 'customers', 'btn-outline': tab !== 'customers' }" 
       class="btn btn-sm" 
@@ -36,7 +36,7 @@
       Customers (Ledgers)
     </button>
     <button 
-      type="button"
+      type="button" 
       @click="tab = 'skus'" 
       :class="{ 'btn-primary': tab === 'skus', 'btn-outline': tab !== 'skus' }" 
       class="btn btn-sm" 
@@ -44,12 +44,20 @@
       SKUs (Stock Items & HSN)
     </button>
     <button 
-      type="button"
+      type="button" 
       @click="tab = 'suppliers'" 
       :class="{ 'btn-primary': tab === 'suppliers', 'btn-outline': tab !== 'suppliers' }" 
       class="btn btn-sm" 
       style="font-family: var(--font-heading); text-transform: uppercase; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
       Suppliers (Purchase Ledgers)
+    </button>
+    <button 
+      type="button" 
+      @click="tab = 'party_ledgers'" 
+      :class="{ 'btn-primary': tab === 'party_ledgers', 'btn-outline': tab !== 'party_ledgers' }" 
+      class="btn btn-sm" 
+      style="font-family: var(--font-heading); text-transform: uppercase; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+      Party Ledger Mappings ({{ party_ledgers|length }})
     </button>
   </div>
 
@@ -242,6 +250,89 @@
           </form>
         </tr>
         {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TAB 4: PARTY LEDGERS (EXTRACTED) -->
+  <div x-show="tab === 'party_ledgers'" class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; background: white; overflow-x: auto; display: none;">
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <h2 style="font-family: var(--font-heading); font-size: 1.1rem; margin: 0; color: var(--snm-machine-black); text-transform: uppercase;">
+        OCR Extracted Party → Tally Ledger Mappings
+      </h2>
+      <p style="font-size: 0.8rem; color: #666; margin: 0.2rem 0 0;">
+        Mappings generated when trade bills/invoices are confirmed. Edit here to correct or update default ledger links.
+      </p>
+    </div>
+    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 2px solid var(--snm-line); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.05em; color: #444;">
+          <th style="padding: 0.75rem 1rem;">Extracted Party Name</th>
+          <th style="padding: 0.75rem 1rem;">Tally Ledger Name</th>
+          <th style="padding: 0.75rem 1rem;">Party Type</th>
+          <th style="padding: 0.75rem 1rem;">GST State</th>
+          <th style="padding: 0.75rem 1rem;">GSTIN</th>
+          <th style="padding: 0.75rem 1rem;">Confirmed By</th>
+          <th style="padding: 0.75rem 1rem; text-align: center;">Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if party_ledgers %}
+          {% for p in party_ledgers %}
+          <tr style="border-bottom: 1px solid var(--snm-line);">
+            <td style="padding: 0.75rem 1rem; font-weight: bold;">
+              {{ p.extracted_name }}
+            </td>
+            <form method="POST" action="/tally/mappings/party-ledger/{{ p.id }}">
+              <td style="padding: 0.5rem 1rem;">
+                <input 
+                  type="text" 
+                  name="tally_ledger_name" 
+                  value="{{ p.tally_ledger_name or '' }}" 
+                  placeholder="e.g. {{ p.extracted_name }}" 
+                  style="width: 100%; min-width: 180px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+              </td>
+              <td style="padding: 0.5rem 1rem;">
+                <select name="party_type" style="padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px; background: white;">
+                  <option value="supplier" {% if p.party_type == 'supplier' %}selected{% endif %}>Supplier</option>
+                  <option value="customer" {% if p.party_type == 'customer' %}selected{% endif %}>Customer</option>
+                </select>
+              </td>
+              <td style="padding: 0.5rem 1rem;">
+                <input 
+                  type="text" 
+                  name="gst_state" 
+                  value="{{ p.gst_state or '' }}" 
+                  placeholder="e.g. Uttar Pradesh" 
+                  style="width: 100%; min-width: 130px; padding: 0.35rem 0.5rem; font-family: var(--font-body); border: 1px solid var(--snm-line); border-radius: 4px;">
+              </td>
+              <td style="padding: 0.5rem 1rem;">
+                <input 
+                  type="text" 
+                  name="gstin" 
+                  value="{{ p.gstin or '' }}" 
+                  placeholder="09AAAAA0000A1Z5" 
+                  style="width: 100%; min-width: 150px; padding: 0.35rem 0.5rem; font-family: var(--font-mono); border: 1px solid var(--snm-line); border-radius: 4px;">
+              </td>
+              <td style="padding: 0.75rem 1rem; color: #666; font-size: 0.8rem;">
+                <div>{{ p.confirmed_by_name or 'System' }}</div>
+                <div class="mono" style="font-size: 0.72rem; color: #999;">{{ p.updated_at.strftime('%Y-%m-%d') if p.updated_at else '' }}</div>
+              </td>
+              <td style="padding: 0.5rem 1rem; text-align: center;">
+                <button type="submit" class="btn btn-xs btn-primary" style="font-family: var(--font-heading);">
+                  Save
+                </button>
+              </td>
+            </form>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">
+              No OCR party ledger mappings created yet. Mappings will appear automatically when trade documents are confirmed.
+            </td>
+          </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>

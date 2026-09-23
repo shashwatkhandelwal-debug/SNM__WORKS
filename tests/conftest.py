@@ -134,6 +134,18 @@ TEST_USERS = {
         "role_code": "chief_supply_chain",
         "name": "Chief Supply Chain Officer",
     },
+    "chief_executive": {
+        "id": "60606060-6060-6060-6060-606060606060",
+        "email": "chief.exec@snmills.com",
+        "role_code": "chief_executive",
+        "name": "Chief Executive Officer",
+    },
+    "accounts_officer": {
+        "id": "70707070-7070-7070-7070-707070707070",
+        "email": "accounts.officer@snmills.com",
+        "role_code": "accounts_officer",
+        "name": "Accounts Officer",
+    },
 }
 
 
@@ -161,6 +173,7 @@ async def db_lifespan():
     if pool is not None:
         async with pool.acquire() as conn:
             LEGACY_ROLE_MAP = {
+                "chief_executive": "owner",
                 "chief_quality": "owner",
                 "chief_technical": "owner",
                 "chief_supply_chain": "owner",
@@ -181,6 +194,7 @@ async def db_lifespan():
                 "chief_information": "owner",
                 "chief_financial": "owner",
                 "costing_analyst": "owner",
+                "accounts_officer": "operator",
             }
             # Seed test users and roles
             for key, u in TEST_USERS.items():

@@ -54,11 +54,34 @@ async def tally_dashboard(
         FROM tally_sync_log;
         """
     )
+    doc_stats_row = await conn.fetchrow(
+        """
+        SELECT
+          COUNT(*) AS total_docs,
+          COUNT(*) FILTER (WHERE status = 'Draft') AS docs_draft,
+          COUNT(*) FILTER (WHERE status = 'Parsed') AS docs_parsed,
+          COUNT(*) FILTER (WHERE status = 'Confirmed') AS docs_confirmed,
+          COUNT(*) FILTER (WHERE status = 'SyncedToTally') AS docs_synced,
+          COUNT(*) FILTER (WHERE status = 'Rejected') AS docs_rejected
+        FROM trade_documents;
+        """
+    )
+    party_mappings_count = await conn.fetchval("SELECT COUNT(*) FROM party_ledger_mappings;")
     unmapped_cust = await conn.fetchval(
         "SELECT COUNT(*) FROM customers WHERE active = true AND (tally_ledger_name IS NULL OR gst_state IS NULL);"
     )
     unmapped_skus = await conn.fetchval(
         "SELECT COUNT(*) FROM skus WHERE tally_stock_item_name IS NULL;"
+    )
+    pending_docs = await conn.fetch(
+        """
+        SELECT id::text, doc_type::text, source::text, status::text,
+               party_name, doc_number, doc_date::text, net_payable::float, created_at
+        FROM trade_documents
+        WHERE status IN ('Draft', 'Parsed')
+        ORDER BY created_at DESC
+        LIMIT 5;
+        """
     )
     recent_logs = await conn.fetch(
         """
@@ -75,8 +98,11 @@ async def tally_dashboard(
         context={
             "user": user_info,
             "stats": dict(stats_row) if stats_row else {},
+            "doc_stats": dict(doc_stats_row) if doc_stats_row else {},
+            "party_mappings_count": party_mappings_count or 0,
             "unmapped_customers": unmapped_cust or 0,
             "unmapped_skus": unmapped_skus or 0,
+            "pending_docs": [dict(r) for r in pending_docs],
             "recent_logs": [dict(r) for r in recent_logs],
         },
     )
@@ -209,7 +235,7 @@ async def list_mappings(
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("tally", "read")),
 ):
-    """Renders master mapping interface for Customers, SKUs, and Suppliers."""
+    """Renders master mapping interface for Customers, SKUs, Suppliers, and Extracted Party Ledgers."""
     user_info = {
         "email": user.get("email"),
         "full_name": user.get("claims", {}).get("user_metadata", {}).get("full_name") or user.get("email"),
@@ -217,6 +243,14 @@ async def list_mappings(
     customers = await conn.fetch("SELECT * FROM customers ORDER BY name ASC;")
     skus = await conn.fetch("SELECT * FROM skus ORDER BY sku_code ASC;")
     suppliers = await conn.fetch("SELECT * FROM suppliers ORDER BY name ASC;")
+    party_ledgers = await conn.fetch(
+        """
+        SELECT m.*, p.full_name AS confirmed_by_name
+        FROM party_ledger_mappings m
+        LEFT JOIN profiles p ON p.id = m.confirmed_by
+        ORDER BY m.updated_at DESC;
+        """
+    )
 
     return templates.TemplateResponse(
         request=request,
@@ -226,6 +260,7 @@ async def list_mappings(
             "customers": [dict(r) for r in customers],
             "skus": [dict(r) for r in skus],
             "suppliers": [dict(r) for r in suppliers],
+            "party_ledgers": [dict(r) for r in party_ledgers],
         },
     )
 
@@ -307,6 +342,40 @@ async def update_supplier_mapping(
         gst_state.strip(),
         gstin.strip(),
         supp_uuid,
+    )
+    return RedirectResponse(url="/tally/mappings", status_code=HTTP_303_SEE_OTHER)
+
+
+@router.post("/mappings/party-ledger/{mapping_id}")
+async def update_party_ledger_mapping(
+    mapping_id: str,
+    tally_ledger_name: str = Form(""),
+    gst_state: str = Form(""),
+    gstin: str = Form(""),
+    party_type: str = Form("supplier"),
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("tally", "update")),
+):
+    """Updates OCR extracted party to Tally ledger master mapping."""
+    plm_uuid = uuid.UUID(mapping_id)
+    clean_party_type = party_type.strip().lower()
+    if clean_party_type not in ("supplier", "customer"):
+        clean_party_type = "supplier"
+    await conn.execute(
+        """
+        UPDATE party_ledger_mappings 
+        SET tally_ledger_name = $1,
+            gst_state = NULLIF($2, ''),
+            gstin = NULLIF($3, ''),
+            party_type = $4,
+            updated_at = now()
+        WHERE id = $5;
+        """,
+        tally_ledger_name.strip(),
+        gst_state.strip(),
+        gstin.strip(),
+        clean_party_type,
+        plm_uuid,
     )
     return RedirectResponse(url="/tally/mappings", status_code=HTTP_303_SEE_OTHER)
 

@@ -199,3 +199,236 @@ async def test_tally_reconciliation_view(auth_headers):
         assert resp.status_code == HTTP_200_OK
         assert "OPERATIONAL & FINANCIAL RECONCILIATION" in resp.text
         assert "Honest System Posture" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_tally_dashboard_unified_metrics(auth_headers):
+    doc_id = uuid.uuid4()
+    suffix = uuid.uuid4().hex[:6].upper()
+    doc_no = f"BILL-MET-{suffix}"
+    party = f"Metals Supplier {suffix}"
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        await conn.execute(
+            """
+            INSERT INTO trade_documents (
+                id, doc_type, source, status, party_name, tally_ledger_name,
+                doc_number, doc_date, net_payable
+            ) VALUES (
+                $1, 'purchase_bill', 'manual', 'Parsed', $2,
+                $2, $3, '2026-09-15', 75000.0
+            );
+            """,
+            doc_id,
+            party,
+            doc_no,
+        )
+    finally:
+        await conn.close()
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/tally", headers=auth_headers("chief_financial"))
+        assert resp.status_code == HTTP_200_OK
+        assert "Trade Documents & Invoices" in resp.text
+        assert "Total Documents" in resp.text
+        assert "Pending Review" in resp.text
+        assert "Trade Documents Requiring Review" in resp.text
+        assert doc_no in resp.text
+
+
+@pytest.mark.asyncio
+async def test_party_ledger_mapping_crud_endpoint(auth_headers):
+    plm_id = uuid.uuid4()
+    extracted_name = f"Extracted Party {uuid.uuid4().hex[:6]}"
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        await conn.execute(
+            """
+            INSERT INTO party_ledger_mappings (
+                id, extracted_name, tally_ledger_name, party_type, gst_state, gstin
+            ) VALUES (
+                $1, $2, 'Initial Ledger Name', 'supplier', 'Uttar Pradesh', '09AAABC1234F1Z5'
+            );
+            """,
+            plm_id,
+            extracted_name,
+        )
+    finally:
+        await conn.close()
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Check mapping renders in GET /tally/mappings
+        get_res = await client.get("/tally/mappings", headers=auth_headers("chief_financial"))
+        assert get_res.status_code == HTTP_200_OK
+        assert extracted_name in get_res.text
+
+        # 2. Update mapping via POST /tally/mappings/party-ledger/{id}
+        update_res = await client.post(
+            f"/tally/mappings/party-ledger/{plm_id}",
+            data={
+                "tally_ledger_name": "Updated Tally Master Ledger",
+                "party_type": "supplier",
+                "gst_state": "Delhi",
+                "gstin": "07AAABC1234F1Z2",
+            },
+            headers=auth_headers("chief_financial"),
+            follow_redirects=False,
+        )
+        assert update_res.status_code == HTTP_303_SEE_OTHER
+
+    # Verify update in database
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        row = await conn.fetchrow("SELECT * FROM party_ledger_mappings WHERE id = $1;", plm_id)
+        assert row["tally_ledger_name"] == "Updated Tally Master Ledger"
+        assert row["gst_state"] == "Delhi"
+        assert row["gstin"] == "07AAABC1234F1Z2"
+    finally:
+        await conn.close()
+
+
+@pytest.mark.asyncio
+async def test_trade_docs_rbac_gating_and_approval_gate(auth_headers):
+    doc_id = uuid.uuid4()
+    doc_number = f"RBAC-DOC-{uuid.uuid4().hex[:6]}"
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        await conn.execute(
+            """
+            INSERT INTO trade_documents (
+                id, doc_type, source, status, party_name, tally_ledger_name,
+                doc_number, doc_date, total_taxable_value, net_payable
+            ) VALUES (
+                $1, 'purchase_bill', 'manual', 'Draft', 'RBAC Steel Co',
+                'RBAC Steel Co', $2, '2026-09-15', 5000.0, 5900.0
+            );
+            """,
+            doc_id,
+            doc_number,
+        )
+        await conn.execute(
+            """
+            INSERT INTO trade_document_items (
+                trade_doc_id, line_no, description, qty, unit, rate, taxable_value, line_total
+            ) VALUES (
+                $1, 1, 'Steel Eyelet', 100.0, 'PCS', 50.0, 5000.0, 5900.0
+            );
+            """,
+            doc_id,
+        )
+    finally:
+        await conn.close()
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        # A. Unauthorized role (hr_officer) gets 403 on all trade-docs endpoints
+        hr_headers = auth_headers("hr_officer")
+        assert (await client.get("/trade-docs", headers=hr_headers)).status_code == HTTP_403_FORBIDDEN
+        assert (await client.get(f"/trade-docs/{doc_id}/review", headers=hr_headers)).status_code == HTTP_403_FORBIDDEN
+        assert (await client.post(f"/trade-docs/{doc_id}/save", json={"id": str(doc_id), "doc_type": "purchase_bill", "party_name": "RBAC", "doc_number": doc_number, "doc_date": "2026-09-15"}, headers=hr_headers)).status_code == HTTP_403_FORBIDDEN
+        assert (await client.post(f"/trade-docs/{doc_id}/confirm", json={"id": str(doc_id), "doc_type": "purchase_bill", "party_name": "RBAC", "tally_ledger_name": "RBAC", "doc_number": doc_number, "doc_date": "2026-09-15"}, headers=hr_headers)).status_code == HTTP_403_FORBIDDEN
+        assert (await client.post(f"/trade-docs/{doc_id}/export-tally", headers=hr_headers)).status_code == HTTP_403_FORBIDDEN
+
+        # B. accounts_officer (read, create, update, but NOT approve)
+        acct_headers = auth_headers("accounts_officer")
+        # Can list
+        assert (await client.get("/trade-docs", headers=acct_headers)).status_code == HTTP_200_OK
+        # Can review
+        assert (await client.get(f"/trade-docs/{doc_id}/review", headers=acct_headers)).status_code == HTTP_200_OK
+        # Can save updates
+        save_payload = {
+            "id": str(doc_id),
+            "doc_type": "purchase_bill",
+            "party_name": "RBAC Steel Co",
+            "tally_ledger_name": "RBAC Steel Co",
+            "doc_number": doc_number,
+            "doc_date": "2026-09-15",
+            "total_taxable_value": 5000.0,
+            "net_payable": 5900.0,
+            "items": [{"line_no": 1, "description": "Steel Eyelet Revised", "qty": 100.0, "rate": 50.0, "taxable_value": 5000.0, "line_total": 5900.0}]
+        }
+        save_res = await client.post(f"/trade-docs/{doc_id}/save", json=save_payload, headers=acct_headers)
+        assert save_res.status_code == HTTP_200_OK
+
+        # CANNOT confirm (requires tally.approve -> 403 Forbidden)
+        confirm_payload = dict(save_payload)
+        conf_res = await client.post(f"/trade-docs/{doc_id}/confirm", json=confirm_payload, headers=acct_headers)
+        assert conf_res.status_code == HTTP_403_FORBIDDEN
+
+        # C. chief_financial (holds tally.approve) CAN confirm
+        cfo_headers = auth_headers("chief_financial")
+        cfo_conf_res = await client.post(f"/trade-docs/{doc_id}/confirm", json=confirm_payload, headers=cfo_headers)
+        assert cfo_conf_res.status_code == HTTP_200_OK
+        assert cfo_conf_res.json()["status"] == "success"
+
+        # D. accounts_officer CAN export once confirmed (holds tally.create)
+        export_res = await client.post(f"/trade-docs/{doc_id}/export-tally", headers=acct_headers)
+        assert export_res.status_code == HTTP_200_OK
+        assert export_res.json()["status"] == "Stubbed"
+
+
+@pytest.mark.asyncio
+async def test_trade_docs_audit_trail_surfacing(auth_headers):
+    doc_id = uuid.uuid4()
+    doc_number = f"AUDIT-DOC-{uuid.uuid4().hex[:6]}"
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    try:
+        await conn.execute(
+            """
+            INSERT INTO trade_documents (
+                id, doc_type, source, status, party_name, tally_ledger_name,
+                doc_number, doc_date, total_taxable_value, net_payable
+            ) VALUES (
+                $1, 'purchase_bill', 'manual', 'Confirmed', 'Audit Fasteners Corp',
+                'Audit Fasteners Corp', $2, '2026-09-15', 12000.0, 14160.0
+            );
+            """,
+            doc_id,
+            doc_number,
+        )
+        await conn.execute(
+            """
+            INSERT INTO trade_document_items (
+                trade_doc_id, line_no, description, qty, unit, rate, taxable_value, line_total
+            ) VALUES (
+                $1, 1, 'Hex Nut M10', 200.0, 'PCS', 60.0, 12000.0, 14160.0
+            );
+            """,
+            doc_id,
+        )
+    finally:
+        await conn.close()
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = auth_headers("chief_financial")
+
+        # 1. Check that review page warns when document is Confirmed
+        rev1 = await client.get(f"/trade-docs/{doc_id}/review", headers=headers)
+        assert rev1.status_code == HTTP_200_OK
+        assert "Editing an approved document" in rev1.text
+        assert "AUDIT TRAIL & CHANGE HISTORY" in rev1.text
+
+        # 2. Make an edit to the confirmed document
+        edit_payload = {
+            "id": str(doc_id),
+            "doc_type": "purchase_bill",
+            "party_name": "Audit Fasteners Corp Kanpur",  # Changed party name
+            "tally_ledger_name": "Audit Fasteners Corp",
+            "doc_number": doc_number,
+            "doc_date": "2026-09-15",
+            "total_taxable_value": 12000.0,
+            "net_payable": 14160.0,
+            "notes": "Correction applied for branch",
+            "items": [{"line_no": 1, "description": "Hex Nut M10", "qty": 200.0, "rate": 60.0, "taxable_value": 12000.0, "line_total": 14160.0}]
+        }
+        save_res = await client.post(f"/trade-docs/{doc_id}/save", json=edit_payload, headers=headers)
+        assert save_res.status_code == HTTP_200_OK
+
+        # 3. Verify that the review page now displays the audit trail entry
+        rev2 = await client.get(f"/trade-docs/{doc_id}/review", headers=headers)
+        assert rev2.status_code == HTTP_200_OK
+        assert "Audit Fasteners Corp Kanpur" in rev2.text
+        assert "party_name" in rev2.text or "notes" in rev2.text
