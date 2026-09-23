@@ -17,6 +17,7 @@ Non-Negotiable Rule 6 (Segregation of Duties):
 """
 
 import asyncio
+import math
 import re
 import uuid
 from typing import Any, Dict, List, Optional
@@ -131,7 +132,10 @@ async def list_recipes(
     request: Request,
     status_filter: Optional[str] = "all",
     substrate_filter: Optional[str] = "all",
+    search: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("recipes", "read")),
 ):
@@ -164,7 +168,8 @@ async def list_recipes(
             u_cr.full_name as creator_name,
             r.approved_by::text,
             u_ap.full_name as approver_name,
-            r.created_at
+            r.created_at,
+            COUNT(*) OVER() AS total_count
         FROM dye_recipes r
         LEFT JOIN jobs j ON r.job_id = j.id
         LEFT JOIN profiles u_cr ON r.created_by = u_cr.id
@@ -184,13 +189,16 @@ async def list_recipes(
         params.append(substrate_filter)
         param_idx += 1
 
-    if q and q.strip():
-        search = f"%{q.strip()}%"
+    search_term = (search or q or "").strip()
+    if search_term:
+        search_pattern = f"%{search_term}%"
         query += f" AND (r.recipe_no ILIKE ${param_idx} OR r.target_shade ILIKE ${param_idx} OR r.substrate ILIKE ${param_idx})"
-        params.append(search)
+        params.append(search_pattern)
         param_idx += 1
 
-    query += " ORDER BY r.created_at DESC"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY r.created_at DESC LIMIT ${param_idx} OFFSET ${param_idx + 1}"
+    params.extend([page_size, offset])
 
     rows = await conn.fetch(query, *params)
     recipes = []
@@ -198,6 +206,9 @@ async def list_recipes(
         item = dict(r)
         item["math"] = compute_recipe_math(item)
         recipes.append(item)
+
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     user_info = {
         "id": user.get("id"),
@@ -211,6 +222,10 @@ async def list_recipes(
         context={
             "user": user_info,
             "recipes": recipes,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "selected_status": status_filter,
             "selected_substrate": substrate_filter,
             "search_query": q or "",

@@ -21,10 +21,11 @@ Database QC Hold Gate:
 
 import asyncio
 import datetime
-import re
 import logging
-import uuid
+import math
+import re
 from typing import Any, Dict, List, Optional
+import uuid
 import asyncpg
 from asyncpg.exceptions import CheckViolationError, UniqueViolationError
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
@@ -84,13 +85,50 @@ async def list_despatches(
     request: Request,
     status_filter: Optional[str] = "all",
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("despatch", "read")),
 ):
     """
     GET /despatch -- Register of shipments, dispatch notes, and transport tracking.
     """
-    query = """
+    where_clauses = ["1=1"]
+    params = []
+    param_idx = 1
+
+    if status_filter and status_filter != "all":
+        where_clauses.append(f"d.status = ${param_idx}")
+        params.append(status_filter)
+        param_idx += 1
+
+    if q and q.strip():
+        search = f"%{q.strip()}%"
+        where_clauses.append(f"(d.despatch_no ILIKE ${param_idx} OR d.invoice_no ILIKE ${param_idx} OR d.eway_bill ILIKE ${param_idx} OR d.destination ILIKE ${param_idx} OR j.job_no ILIKE ${param_idx} OR c.name ILIKE ${param_idx})")
+        params.append(search)
+        param_idx += 1
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 1. Separate full-dataset aggregation query (Rule: Do NOT compute totals from paginated slice)
+    agg_query = f"""
+        SELECT 
+            COALESCE(SUM(d.qty), 0.0)::float AS total_qty,
+            COALESCE(SUM(d.rolls), 0)::int AS total_rolls,
+            COUNT(*) FILTER (WHERE d.status IN ('Packed', 'Ready for Dispatch'))::int AS pending_release_count
+        FROM despatch d
+        JOIN jobs j ON d.job_id = j.id
+        LEFT JOIN customers c ON j.customer_id = c.id
+        WHERE {where_sql}
+    """
+    agg_row = await conn.fetchrow(agg_query, *params)
+    total_qty = float(agg_row["total_qty"]) if agg_row else 0.0
+    total_rolls = int(agg_row["total_rolls"]) if agg_row else 0
+    pending_release_count = int(agg_row["pending_release_count"]) if agg_row else 0
+
+    # 2. Paginated row query with windowed total_count
+    offset = (page - 1) * page_size
+    query = f"""
         SELECT 
             d.id::text,
             d.despatch_no,
@@ -115,44 +153,23 @@ async def list_despatches(
             u_cr.full_name as creator_name,
             d.approved_by::text,
             u_ap.full_name as approver_name,
-            d.created_at
+            d.created_at,
+            COUNT(*) OVER() AS total_count
         FROM despatch d
         JOIN jobs j ON d.job_id = j.id
         LEFT JOIN customers c ON j.customer_id = c.id
         LEFT JOIN profiles u_cr ON d.created_by = u_cr.id
         LEFT JOIN profiles u_ap ON d.approved_by = u_ap.id
-        WHERE 1=1
+        WHERE {where_sql}
+        ORDER BY d.despatched_on DESC, d.created_at DESC
+        LIMIT ${param_idx} OFFSET ${param_idx + 1}
     """
-    params = []
-    param_idx = 1
+    row_params = list(params) + [page_size, offset]
+    rows = await conn.fetch(query, *row_params)
 
-    if status_filter and status_filter != "all":
-        query += f" AND d.status = ${param_idx}"
-        params.append(status_filter)
-        param_idx += 1
-
-    if q and q.strip():
-        search = f"%{q.strip()}%"
-        query += f" AND (d.despatch_no ILIKE ${param_idx} OR d.invoice_no ILIKE ${param_idx} OR d.eway_bill ILIKE ${param_idx} OR d.destination ILIKE ${param_idx} OR j.job_no ILIKE ${param_idx} OR c.name ILIKE ${param_idx})"
-        params.append(search)
-        param_idx += 1
-
-    query += " ORDER BY d.despatched_on DESC, d.created_at DESC"
-
-    rows = await conn.fetch(query, *params)
-    entries = []
-    total_qty = 0.0
-    total_rolls = 0
-    pending_release_count = 0
-
-    for r in rows:
-        item = dict(r)
-        q_val = float(item["qty"] or 0.0)
-        total_qty += q_val
-        total_rolls += int(item["rolls"] or 0)
-        if item["status"] in ("Packed", "Ready for Dispatch"):
-            pending_release_count += 1
-        entries.append(item)
+    entries = [dict(r) for r in rows]
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     user_info = {
         "id": user.get("id"),
@@ -166,7 +183,10 @@ async def list_despatches(
         context={
             "user": user_info,
             "entries": entries,
-            "total_count": len(entries),
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "total_qty": round(total_qty, 1),
             "total_rolls": total_rolls,
             "pending_release_count": pending_release_count,

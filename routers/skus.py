@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 import json
 import logging
@@ -12,7 +13,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_503_SERVICE_UNAVAILABLE,
 )
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -53,6 +54,8 @@ async def get_user_claims(request: Request) -> Dict[str, Any]:
 @router.get("/", response_class=HTMLResponse)
 async def list_skus(
     request: Request,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("skus", "read")),
 ):
@@ -61,16 +64,24 @@ async def list_skus(
         "full_name": user.get("claims", {}).get("user_metadata", {}).get("full_name") or user.get("email"),
     }
     skus_list: List[Dict[str, Any]] = []
+    total_count = 0
+    offset = (page - 1) * page_size
 
     try:
         rows = await conn.fetch(
             """
-            SELECT s.*, c.weave, c.width_mm
+            SELECT s.*, c.weave, c.width_mm,
+                   COUNT(*) OVER() AS total_count
             FROM skus s
             LEFT JOIN constructions c ON c.id = s.construction_id
             ORDER BY s.created_on DESC, s.sku_code ASC
-            """
+            LIMIT $1 OFFSET $2
+            """,
+            page_size,
+            offset,
         )
+        if rows:
+            total_count = int(rows[0]["total_count"])
         for r in rows:
             row_dict = dict(r)
             if isinstance(row_dict.get("post_draft"), str):
@@ -82,10 +93,14 @@ async def list_skus(
     except Exception as exc:
         logger.warning(f"Could not load SKUs from database: {exc}")
 
-    # Merge in-memory SKUs
-    for m_id, m_sku in MEM_SKUS.items():
-        if not any(s.get("id") == m_id or s.get("sku_code") == m_sku.get("sku_code") for s in skus_list):
-            skus_list.insert(0, m_sku)
+    # Merge in-memory SKUs on page 1 only
+    if page == 1:
+        for m_id, m_sku in MEM_SKUS.items():
+            if not any(s.get("id") == m_id or s.get("sku_code") == m_sku.get("sku_code") for s in skus_list):
+                skus_list.insert(0, m_sku)
+                total_count += 1
+
+    total_pages = max(1, math.ceil(total_count / page_size)) if total_count > 0 else 1
 
     return templates.TemplateResponse(
         request=request,
@@ -93,6 +108,10 @@ async def list_skus(
         context={
             "user": user_info,
             "skus": skus_list,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
         }
     )
 

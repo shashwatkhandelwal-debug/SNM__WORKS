@@ -50,11 +50,14 @@ async def materials_dashboard(
     search: Optional[str] = Query(None),
     tab: str = Query("lots"),
     page: int = Query(1, ge=1),
+    lots_page: Optional[int] = Query(None, ge=1),
+    grn_page: Optional[int] = Query(None, ge=1),
+    issues_page: Optional[int] = Query(None, ge=1),
     page_size: int = Query(25, ge=1, le=100),
 ):
     """
     GET /materials -- Materials & Inventory Dashboard.
-    Shows inventory metrics, yarn lots register (paginated), recent GRNs, and material issues.
+    Shows inventory metrics, yarn lots register (paginated), recent GRNs (paginated), and material issues (paginated).
     """
     try:
         claims = await get_user_claims(request)
@@ -65,6 +68,10 @@ async def materials_dashboard(
         }
     except HTTPException:
         return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+    l_page = lots_page if lots_page is not None else (page if tab == "lots" else 1)
+    g_page = grn_page if grn_page is not None else (page if tab == "grn" else 1)
+    iss_page = issues_page if issues_page is not None else (page if tab == "issues" else 1)
 
     metrics = {
         "total_stock_kg": 0.0,
@@ -79,6 +86,10 @@ async def materials_dashboard(
     issues_list: List[Dict[str, Any]] = []
     total_count = 0
     total_pages = 1
+    grn_total_count = 0
+    grn_total_pages = 1
+    issues_total_count = 0
+    issues_total_pages = 1
 
     if database.pool is not None:
         try:
@@ -144,7 +155,7 @@ async def materials_dashboard(
                         params.append(s)
                         idx += 1
 
-                    offset = (page - 1) * page_size
+                    offset = (l_page - 1) * page_size
                     query += f" ORDER BY y.created_at DESC LIMIT ${idx} OFFSET ${idx + 1};"
                     params.extend([page_size, offset])
 
@@ -155,6 +166,7 @@ async def materials_dashboard(
                         total_pages = max(1, math.ceil(total_count / page_size))
 
                     # 3. GRN Register
+                    g_offset = (g_page - 1) * page_size
                     g_rows = await conn.fetch(
                         """
                         SELECT 
@@ -167,16 +179,24 @@ async def materials_dashboard(
                             g.invoice_no,
                             g.remarks,
                             COUNT(y.id)::int as lots_count,
-                            COALESCE(SUM(y.qty_received), 0)::float as total_qty_received
+                            COALESCE(SUM(y.qty_received), 0)::float as total_qty_received,
+                            COUNT(*) OVER() AS total_count
                         FROM grn g
                         LEFT JOIN yarn_lots y ON y.grn_id = g.id
                         GROUP BY g.id, g.grn_no, g.received_date, g.po_ref, g.supplier_name, g.carrier_vehicle, g.invoice_no, g.remarks
-                        ORDER BY g.received_date DESC, g.created_at DESC;
-                        """
+                        ORDER BY g.received_date DESC, g.created_at DESC
+                        LIMIT $1 OFFSET $2;
+                        """,
+                        page_size,
+                        g_offset,
                     )
                     grn_list = [dict(r) for r in g_rows]
+                    if g_rows:
+                        grn_total_count = int(g_rows[0]["total_count"])
+                        grn_total_pages = max(1, math.ceil(grn_total_count / page_size))
 
                     # 4. Material Issues
+                    iss_offset = (iss_page - 1) * page_size
                     iss_rows = await conn.fetch(
                         """
                         SELECT 
@@ -191,15 +211,22 @@ async def materials_dashboard(
                             y.lot_no,
                             y.yarn_type,
                             y.denier,
-                            p.full_name as issued_by_email
+                            p.full_name as issued_by_email,
+                            COUNT(*) OVER() AS total_count
                         FROM job_material_issues i
                         JOIN jobs j ON j.id = i.job_id
                         JOIN yarn_lots y ON y.id = i.yarn_lot_id
                         LEFT JOIN profiles p ON p.id = i.issued_by
-                        ORDER BY i.issued_date DESC, i.created_at DESC;
-                        """
+                        ORDER BY i.issued_date DESC, i.created_at DESC
+                        LIMIT $1 OFFSET $2;
+                        """,
+                        page_size,
+                        iss_offset,
                     )
                     issues_list = [dict(r) for r in iss_rows]
+                    if iss_rows:
+                        issues_total_count = int(iss_rows[0]["total_count"])
+                        issues_total_pages = max(1, math.ceil(issues_total_count / page_size))
 
         except Exception as e:
             logger.error(f"Error loading materials dashboard: {e}")
@@ -216,10 +243,17 @@ async def materials_dashboard(
             "status_filter": status_filter or "all",
             "search": search or "",
             "tab": tab,
-            "page": page,
+            "page": l_page,
+            "lots_page": l_page,
+            "grn_page": g_page,
+            "issues_page": iss_page,
             "page_size": page_size,
             "total_count": total_count,
             "total_pages": total_pages,
+            "grn_total_count": grn_total_count,
+            "grn_total_pages": grn_total_pages,
+            "issues_total_count": issues_total_count,
+            "issues_total_pages": issues_total_pages,
             "current_page": "materials",
             "current_func": "SCM",
         },

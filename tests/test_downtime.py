@@ -297,3 +297,56 @@ async def test_downtime_routes_reject_unauthenticated(anonymous_client):
         data={"machine": "Loom 01", "reason": "Breakdown", "minutes": "30"},
     )
     assert resp_create.status_code == HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_downtime_pagination(operator_client):
+    """
+    Pagination Test: Seeds 28 downtime records, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    3. Separate SQL aggregates (total_minutes, top_reason, top_machine) reflect the FULL dataset.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"DT-PAG-{uid}"
+    op_user_id = TEST_USERS["machine_operator"]["id"]
+
+    try:
+        await conn.execute("DELETE FROM downtime WHERE log_no LIKE $1;", f"{prefix}%")
+        for i in range(1, 29):
+            await conn.execute(
+                """
+                INSERT INTO downtime (
+                    id, log_no, shift, machine, reason, minutes, remarks, operator_id, logged_on
+                ) VALUES (
+                    gen_random_uuid(), $1, 'Shift A', 'Loom 01 (Needle Loom 4-Space)', 'Mechanical Breakdown', 30.0, $2, $3::uuid, CURRENT_DATE
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated downtime remarks {uid}",
+                uuid.UUID(op_user_id),
+            )
+
+        # Page 1
+        resp1 = await operator_client.get(f"/downtime?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == HTTP_200_OK
+        assert "Showing <strong>25</strong> of <strong>28</strong> downtime event" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+        # Total minutes across all 28 rows: 28 * 30 = 840 mins = 14.0 hrs
+        assert "14.0" in resp1.text
+        assert "Mechanical Breakdown" in resp1.text
+
+        # Page 2
+        resp2 = await operator_client.get(f"/downtime?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == HTTP_200_OK
+        assert "Showing <strong>3</strong> of <strong>28</strong> downtime event" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 3
+        assert "14.0" in resp2.text
+    finally:
+        await conn.execute("DELETE FROM downtime WHERE log_no LIKE $1;", f"{prefix}%")
+        await conn.close()
+

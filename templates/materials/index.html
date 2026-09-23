@@ -85,7 +85,7 @@
       @click="activeTab = 'lots'"
       style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
     >
-      Yarn Lots Register ({{ yarn_lots|length }})
+      Yarn Lots Register ({{ total_count }})
     </button>
     <button 
       type="button" 
@@ -94,7 +94,7 @@
       @click="activeTab = 'grn'"
       style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
     >
-      GRN Receipts ({{ grn_list|length }})
+      GRN Receipts ({{ grn_total_count }})
     </button>
     <button 
       type="button" 
@@ -103,7 +103,7 @@
       @click="activeTab = 'issues'"
       style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
     >
-      Job Issue History ({{ issues_list|length }})
+      Job Issue History ({{ issues_total_count }})
     </button>
   </div>
 
@@ -255,6 +255,18 @@
 
   <!-- TAB 2: GRN REGISTER -->
   <div x-show="activeTab === 'grn'">
+    <!-- Register Summary & Total Count -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: #666; font-family: var(--font-mono);">
+      <div>
+        Showing <strong>{{ grn_list|length }}</strong> of <strong>{{ grn_total_count }}</strong> GRN receipt{% if grn_total_count != 1 %}s{% endif %}
+      </div>
+      {% if grn_total_pages > 1 %}
+      <div>
+        Page {{ grn_page }} of {{ grn_total_pages }}
+      </div>
+      {% endif %}
+    </div>
+
     <div class="card" style="padding: 0; overflow-x: auto;">
       <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
         <thead>
@@ -305,10 +317,43 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination Links -->
+    {% if grn_total_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+      {% if grn_page > 1 %}
+      <a href="/materials?tab=grn&grn_page={{ grn_page - 1 }}&page_size={{ page_size }}" class="btn btn-outline btn-sm">
+        ← Previous
+      </a>
+      {% endif %}
+
+      <span style="font-family: var(--font-mono); font-size: 0.85rem; color: #555; padding: 0 0.5rem;">
+        Page {{ grn_page }} of {{ grn_total_pages }}
+      </span>
+
+      {% if grn_page < grn_total_pages %}
+      <a href="/materials?tab=grn&grn_page={{ grn_page + 1 }}&page_size={{ page_size }}" class="btn btn-outline btn-sm">
+        Next →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 
   <!-- TAB 3: MATERIAL ISSUES -->
   <div x-show="activeTab === 'issues'">
+    <!-- Register Summary & Total Count -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: #666; font-family: var(--font-mono);">
+      <div>
+        Showing <strong>{{ issues_list|length }}</strong> of <strong>{{ issues_total_count }}</strong> material issue{% if issues_total_count != 1 %}s{% endif %}
+      </div>
+      {% if issues_total_pages > 1 %}
+      <div>
+        Page {{ issues_page }} of {{ issues_total_pages }}
+      </div>
+      {% endif %}
+    </div>
+
     <div class="card" style="padding: 0; overflow-x: auto;">
       <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
         <thead>
@@ -361,6 +406,27 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination Links -->
+    {% if issues_total_pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+      {% if issues_page > 1 %}
+      <a href="/materials?tab=issues&issues_page={{ issues_page - 1 }}&page_size={{ page_size }}" class="btn btn-outline btn-sm">
+        ← Previous
+      </a>
+      {% endif %}
+
+      <span style="font-family: var(--font-mono); font-size: 0.85rem; color: #555; padding: 0 0.5rem;">
+        Page {{ issues_page }} of {{ issues_total_pages }}
+      </span>
+
+      {% if issues_page < issues_total_pages %}
+      <a href="/materials?tab=issues&issues_page={{ issues_page + 1 }}&page_size={{ page_size }}" class="btn btn-outline btn-sm">
+        Next →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 
 </div>

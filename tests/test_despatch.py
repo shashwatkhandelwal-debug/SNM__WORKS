@@ -436,3 +436,62 @@ async def test_despatch_routes_reject_unauthenticated(anonymous_client):
         data={"qty": "100"},
     )
     assert resp_create.status_code == HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_despatch_pagination(store_client):
+    """
+    Pagination Test: Seeds 28 despatch notes, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    3. Separate SQL aggregates (total_qty, total_rolls, pending_release_count) reflect the FULL dataset.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"DSP-PAG-{uid}"
+    user_id = TEST_USERS["store_keeper"]["id"]
+
+    try:
+        await conn.execute("DELETE FROM despatch WHERE despatch_no LIKE $1;", f"{prefix}%")
+        job_id = await get_or_create_job(conn, suffix=f"XJOB-{uid}", fail_qc=False)
+        for i in range(1, 29):
+            await conn.execute(
+                """
+                INSERT INTO despatch (
+                    id, despatch_no, job_id, qty, unit, rolls, status, destination, created_by, despatched_on
+                ) VALUES (
+                    gen_random_uuid(), $1, $2::uuid, 100.0, 'm', 2, $3, $4, $5::uuid, CURRENT_DATE
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                uuid.UUID(job_id),
+                "Packed" if i <= 10 else "Dispatched",
+                f"Destination {uid}",
+                uuid.UUID(user_id),
+            )
+
+        # Page 1
+        resp1 = await store_client.get(f"/despatch?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == HTTP_200_OK
+        assert "Showing <strong>25</strong> of <strong>28</strong> despatch note" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+        # Cross-page total_qty across all 28 rows: 28 * 100 = 2,800 m
+        assert "2,800.0" in resp1.text
+        # Total rolls: 28 * 2 = 56
+        assert "56" in resp1.text
+        # Pending release count: 10
+        assert "10" in resp1.text
+
+        # Page 2
+        resp2 = await store_client.get(f"/despatch?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == HTTP_200_OK
+        assert "Showing <strong>3</strong> of <strong>28</strong> despatch note" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 3
+        assert "2,800.0" in resp2.text
+    finally:
+        await conn.execute("DELETE FROM despatch WHERE despatch_no LIKE $1;", f"{prefix}%")
+        await conn.close()
+

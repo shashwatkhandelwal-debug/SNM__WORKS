@@ -385,3 +385,83 @@ async def test_costing_routes_reject_unauthenticated(anonymous_client):
     """
     resp = await anonymous_client.get("/costing")
     assert resp.status_code == HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_costing_pagination(costing_analyst_client):
+    """
+    Pagination Test: Seeds 28 costing sheets with linked jobs, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    3. Separate SQL aggregates (total_approved, total_draft, total_mfg_cost_sum) compute full totals across all pages.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    user_id = TEST_USERS["costing_analyst"]["id"]
+    job_ids = []
+
+    try:
+        cust_id = await conn.fetchval("SELECT id FROM customers LIMIT 1;")
+        if not cust_id:
+            cust_id = await conn.fetchval("INSERT INTO customers (id, name, active) VALUES (gen_random_uuid(), 'Test Customer', true) RETURNING id;")
+
+        for i in range(1, 29):
+            job_id = await conn.fetchval(
+                """
+                INSERT INTO jobs (id, job_no, customer_id, product, qty_ordered, unit, status)
+                VALUES (gen_random_uuid(), $1, $2::uuid, $3, 1000, 'm', 'In Production')
+                RETURNING id::text;
+                """,
+                f"JOB-PAG-{uid}-{i:02d}",
+                cust_id,
+                f"Costing Product {uid} #{i:02d}",
+            )
+            job_ids.append(job_id)
+
+            await conn.execute(
+                """
+                INSERT INTO costing (
+                    job_id, qty, unit, yarn_rate, yarn_consumption, wastage_pct,
+                    dyeing, coating, labour, overhead, packing, freight, margin_pct,
+                    status, created_by
+                ) VALUES (
+                    $1::uuid, 1000, 'm', 280.0, 45.0, 5.0,
+                    2.50, 1.20, 3.80, 1.50, 0.80, 0.60, 15.0,
+                    $2, $3::uuid
+                );
+                """,
+                uuid.UUID(job_id),
+                "Draft" if i <= 18 else "Approved",
+                uuid.UUID(user_id),
+            )
+
+        # Page 1
+        resp1 = await costing_analyst_client.get(f"/costing?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == HTTP_200_OK
+        assert "Showing <strong>25</strong> of <strong>28</strong> cost sheet" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(f"JOB-PAG-{uid}") == 25
+        # Total draft: 18, Total approved: 10
+        assert ">18</div>" in resp1.text
+        assert ">10</div>" in resp1.text
+        # Cumulative manufacturing cost across all 28 sheets:
+        # Unit cost = (45/1000 * 280 * 1.05) + (2.50 + 1.20 + 3.80) + (1.50 + 0.80 + 0.60) = 13.23 + 7.50 + 2.90 = 23.63
+        # Per sheet = 23.63 * 1000 = 23,630.00
+        # Total across 28 sheets = 28 * 23,630.00 = 661,640.00
+        assert "661640" in resp1.text or "661,640" in resp1.text
+
+        # Page 2
+        resp2 = await costing_analyst_client.get(f"/costing?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == HTTP_200_OK
+        assert "Showing <strong>3</strong> of <strong>28</strong> cost sheet" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(f"JOB-PAG-{uid}") == 3
+        assert ">18</div>" in resp2.text
+        assert "661640" in resp2.text or "661,640" in resp2.text
+    finally:
+        for j_id in job_ids:
+            await conn.execute("DELETE FROM costing WHERE job_id = $1::uuid;", uuid.UUID(j_id))
+            await conn.execute("DELETE FROM jobs WHERE id = $1::uuid;", uuid.UUID(j_id))
+        await conn.close()
+

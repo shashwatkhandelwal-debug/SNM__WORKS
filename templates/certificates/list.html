@@ -55,6 +55,18 @@
   </form>
 </div>
 
+<!-- Register Summary & Total Count -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: #666; font-family: var(--font-mono);">
+  <div>
+    Showing <strong>{{ certificates|length }}</strong> of <strong>{{ total_count }}</strong> test certificate{% if total_count != 1 %}s{% endif %}
+  </div>
+  {% if total_pages > 1 %}
+  <div>
+    Page {{ page }} of {{ total_pages }}
+  </div>
+  {% endif %}
+</div>
+
 <!-- Certificates Table -->
 <div class="card" style="border: 1px solid var(--snm-line); border-radius: 4px; overflow-x: auto; background: white;">
   <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
@@ -117,4 +129,25 @@
     </tbody>
   </table>
 </div>
+
+<!-- Pagination Links -->
+{% if total_pages > 1 %}
+<div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+  {% if page > 1 %}
+  <a href="/certificates?page={{ page - 1 }}&page_size={{ page_size }}{% if search %}&search={{ search }}{% endif %}" class="btn btn-outline btn-sm">
+    ← Previous
+  </a>
+  {% endif %}
+
+  <span style="font-family: var(--font-mono); font-size: 0.85rem; color: #555; padding: 0 0.5rem;">
+    Page {{ page }} of {{ total_pages }}
+  </span>
+
+  {% if page < total_pages %}
+  <a href="/certificates?page={{ page + 1 }}&page_size={{ page_size }}{% if search %}&search={{ search }}{% endif %}" class="btn btn-outline btn-sm">
+    Next →
+  </a>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

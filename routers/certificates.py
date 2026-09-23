@@ -21,6 +21,8 @@ import asyncio
 from datetime import datetime
 import hashlib
 import io
+import logging
+import math
 from typing import Any, Dict, List, Optional
 import uuid
 import asyncpg
@@ -222,6 +224,9 @@ async def fetch_certificate_dataset(
 async def list_certificates(
     request: Request,
     search: Optional[str] = None,
+    q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(current_user),
 ):
@@ -250,7 +255,8 @@ async def list_certificates(
             tc.sha256_hash,
             tc.total_qc_checks,
             tc.total_lab_tests,
-            tc.status
+            tc.status,
+            COUNT(*) OVER() AS total_count
         FROM test_certificates tc
         JOIN jobs j ON tc.job_id = j.id
         LEFT JOIN customers cust ON j.customer_id = cust.id
@@ -259,12 +265,20 @@ async def list_certificates(
         WHERE 1=1
     """
     params = []
-    if search:
-        query += " AND (tc.cert_no ILIKE $1 OR j.job_no ILIKE $1 OR j.product ILIKE $1 OR cust.name ILIKE $1)"
-        params.append(f"%{search.strip()}%")
+    param_idx = 1
+    search_term = (search or q or "").strip()
+    if search_term:
+        query += f" AND (tc.cert_no ILIKE ${param_idx} OR j.job_no ILIKE ${param_idx} OR j.product ILIKE ${param_idx} OR cust.name ILIKE ${param_idx})"
+        params.append(f"%{search_term}%")
+        param_idx += 1
 
-    query += " ORDER BY tc.issued_at DESC;"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY tc.issued_at DESC LIMIT ${param_idx} OFFSET ${param_idx + 1};"
+    params.extend([page_size, offset])
     rows = await conn.fetch(query, *params)
+
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     # 2. Fetch jobs ready for certificate issuance (passing QC + Lab tests)
     ready_jobs = await conn.fetch(
@@ -307,7 +321,10 @@ async def list_certificates(
             "user": user_info,
             "certificates": [dict(r) for r in rows],
             "ready_jobs": [dict(rj) for rj in ready_jobs],
-            "total_count": len(rows),
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "search": search or "",
             "can_issue": bool(can_issue),
             "current_page": "certificates",

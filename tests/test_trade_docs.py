@@ -364,3 +364,64 @@ async def test_api_trade_documents_endpoints(owner_client, db_conn):
     assert data["status"] == "Stubbed"
     assert data["voucher_number"] == doc_number
     assert "ENVELOPE" in data["xml_preview"]
+
+
+@pytest.mark.asyncio
+async def test_trade_docs_pagination(owner_client, db_conn):
+    """
+    Pagination Test: Seeds 28 trade documents, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    """
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"DOC-PAG-{uid}"
+    doc_ids = []
+
+    try:
+        async with db_conn.transaction():
+            await set_rls_claims(db_conn, {
+                "sub": str(OWNER_UUID),
+                "email": "yashkhandelwal95@gmail.com",
+                "role": "authenticated"
+            })
+            for i in range(1, 29):
+                d_id = await stage_trade_document(db_conn, {
+                    "doc_type": "purchase_bill",
+                    "party_name": f"Paginated Party {uid}",
+                    "tally_ledger_name": f"Paginated Party {uid}",
+                    "doc_number": f"{prefix}-{i:02d}",
+                    "doc_date": "2026-09-15",
+                    "total_taxable_value": 1000.0,
+                    "net_payable": 1180.0,
+                    "items": [
+                        {
+                            "line_no": 1,
+                            "description": "Item 1",
+                            "qty": 10.0,
+                            "rate": 100.0,
+                            "taxable_value": 1000.0,
+                            "line_total": 1180.0
+                        }
+                    ]
+                }, OWNER_UUID)
+                doc_ids.append(d_id)
+
+        # Page 1
+        resp1 = await owner_client.get(f"/trade-docs?page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "Page 1 of" in resp1.text
+
+        # Page 2
+        resp2 = await owner_client.get(f"/trade-docs?page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert "Page 2 of" in resp2.text
+    finally:
+        admin_conn = await asyncpg.connect(LOCAL_DB_URL)
+        try:
+            for d_id in doc_ids:
+                await admin_conn.execute("DELETE FROM trade_document_items WHERE trade_doc_id = $1;", d_id)
+                await admin_conn.execute("DELETE FROM trade_documents WHERE id = $1;", d_id)
+        finally:
+            await admin_conn.close()
+

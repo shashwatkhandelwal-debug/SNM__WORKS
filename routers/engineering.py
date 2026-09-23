@@ -16,7 +16,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_503_SERVICE_UNAVAILABLE,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -219,6 +219,8 @@ async def list_constructions(
     family: Optional[str] = None,
     status_filter: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("constructions", "read")),
 ):
@@ -256,7 +258,8 @@ async def list_constructions(
             p_cr.full_name as creator_name,
             c.approved_by::text as approved_by,
             p_ap.full_name as approver_name,
-            cust.name as customer_name
+            cust.name as customer_name,
+            COUNT(*) OVER() AS total_count
         FROM constructions c
         LEFT JOIN profiles p_cr ON c.created_by = p_cr.id
         LEFT JOIN profiles p_ap ON c.approved_by = p_ap.id
@@ -281,7 +284,9 @@ async def list_constructions(
         params.append(f"%{q.strip()}%")
         idx += 1
 
-    query += " ORDER BY c.created_on DESC, c.spec_no DESC LIMIT 100;"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY c.created_on DESC, c.spec_no DESC LIMIT ${idx} OFFSET ${idx + 1};"
+    params.extend([page_size, offset])
 
     rows = await conn.fetch(query, *params)
     items = []
@@ -290,6 +295,9 @@ async def list_constructions(
         metrics = compute_construction_metrics(item_dict)
         item_dict["metrics"] = metrics
         items.append(item_dict)
+
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     user_info = {
         "id": user.get("id"),
@@ -303,6 +311,10 @@ async def list_constructions(
         context={
             "user": user_info,
             "constructions": items,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "families": FAMILIES,
             "statuses": STATUSES,
             "selected_family": family or "all",

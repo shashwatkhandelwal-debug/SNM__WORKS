@@ -1,6 +1,7 @@
 import asyncio
 from datetime import date, datetime
 import logging
+import math
 from typing import Any, Dict, List, Optional
 import uuid
 import asyncpg
@@ -13,7 +14,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_503_SERVICE_UNAVAILABLE,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -69,6 +70,8 @@ async def list_capas(
     status_filter: Optional[str] = None,
     source_filter: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("capa", "read")),
 ):
@@ -105,7 +108,8 @@ async def list_capas(
             p_verifier.full_name as verifier_name,
             c.verified_at,
             c.closed_at,
-            c.created_at
+            c.created_at,
+            COUNT(*) OVER() AS total_count
         FROM capa c
         LEFT JOIN jobs j ON j.id = c.job_id
         LEFT JOIN profiles p_owner ON p_owner.id = c.owner_id
@@ -132,7 +136,9 @@ async def list_capas(
         params.append(search_term)
         idx += 1
 
-    query += " ORDER BY c.raised_on DESC, c.capa_no DESC"
+    offset = (page - 1) * page_size
+    query += f" ORDER BY c.raised_on DESC, c.capa_no DESC LIMIT ${idx} OFFSET ${idx + 1}"
+    params.extend([page_size, offset])
 
     rows = await conn.fetch(query, *params)
     today = date.today()
@@ -145,12 +151,19 @@ async def list_capas(
             item["is_overdue"] = True
         capa_list.append(item)
 
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
+
     return templates.TemplateResponse(
         request=request,
         name="capa/list.html",
         context={
             "user": user_info,
             "capas": capa_list,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "status_filter": status_filter or "all",
             "source_filter": source_filter or "all",
             "q": q or "",

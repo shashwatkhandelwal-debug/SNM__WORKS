@@ -11,9 +11,10 @@ Permissions (role_permissions):
 """
 
 import asyncio
+import math
 import re
-import uuid
 from typing import Any, Dict, List, Optional
+import uuid
 import asyncpg
 from asyncpg.exceptions import CheckViolationError, UniqueViolationError
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
@@ -95,14 +96,83 @@ async def list_downtime(
     machine_filter: Optional[str] = "all",
     shift_filter: Optional[str] = "all",
     reason_filter: Optional[str] = "all",
+    search: Optional[str] = None,
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("downtime", "read")),
 ):
     """
     GET /downtime -- Register of shop-floor machine stoppages and telemetry metrics.
     """
-    query = """
+    where_clauses = ["1=1"]
+    params = []
+    param_idx = 1
+
+    if machine_filter and machine_filter != "all":
+        where_clauses.append(f"d.machine = ${param_idx}")
+        params.append(machine_filter)
+        param_idx += 1
+
+    if shift_filter and shift_filter != "all":
+        where_clauses.append(f"d.shift = ${param_idx}")
+        params.append(shift_filter)
+        param_idx += 1
+
+    if reason_filter and reason_filter != "all":
+        where_clauses.append(f"d.reason = ${param_idx}")
+        params.append(reason_filter)
+        param_idx += 1
+
+    search_term = (search or q or "").strip()
+    if search_term:
+        search_pattern = f"%{search_term}%"
+        where_clauses.append(f"(d.log_no ILIKE ${param_idx} OR d.machine ILIKE ${param_idx} OR d.reason ILIKE ${param_idx} OR d.remarks ILIKE ${param_idx} OR j.job_no ILIKE ${param_idx})")
+        params.append(search_pattern)
+        param_idx += 1
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 1. Total minutes across full dataset (Rule: Do NOT compute totals from paginated slice)
+    agg_query = f"""
+        SELECT COALESCE(SUM(d.minutes), 0.0)::float AS total_minutes
+        FROM downtime d
+        LEFT JOIN jobs j ON d.job_id = j.id
+        WHERE {where_sql}
+    """
+    total_minutes_val = await conn.fetchval(agg_query, *params)
+    total_minutes = float(total_minutes_val or 0.0)
+
+    # Top reason across full dataset
+    top_reason_query = f"""
+        SELECT d.reason, COUNT(*) as cnt
+        FROM downtime d
+        LEFT JOIN jobs j ON d.job_id = j.id
+        WHERE {where_sql}
+        GROUP BY d.reason
+        ORDER BY cnt DESC, d.reason ASC
+        LIMIT 1
+    """
+    top_reason_row = await conn.fetchrow(top_reason_query, *params)
+    top_reason = top_reason_row["reason"] if top_reason_row else "--"
+
+    # Top machine across full dataset
+    top_machine_query = f"""
+        SELECT d.machine, SUM(d.minutes) as tot_mins
+        FROM downtime d
+        LEFT JOIN jobs j ON d.job_id = j.id
+        WHERE {where_sql}
+        GROUP BY d.machine
+        ORDER BY tot_mins DESC, d.machine ASC
+        LIMIT 1
+    """
+    top_machine_row = await conn.fetchrow(top_machine_query, *params)
+    top_machine = top_machine_row["machine"] if top_machine_row else "--"
+
+    # 2. Paginated row query with windowed total_count
+    offset = (page - 1) * page_size
+    query = f"""
         SELECT 
             d.id::text,
             d.log_no,
@@ -117,64 +187,31 @@ async def list_downtime(
             d.operator_id::text,
             p.full_name as operator_name,
             d.remarks,
-            d.created_at
+            d.created_at,
+            COUNT(*) OVER() AS total_count
         FROM downtime d
         LEFT JOIN jobs j ON d.job_id = j.id
         LEFT JOIN profiles p ON d.operator_id = p.id
-        WHERE 1=1
+        WHERE {where_sql}
+        ORDER BY d.logged_on DESC, d.created_at DESC
+        LIMIT ${param_idx} OFFSET ${param_idx + 1}
     """
-    params = []
-    param_idx = 1
+    row_params = list(params) + [page_size, offset]
+    rows = await conn.fetch(query, *row_params)
 
-    if machine_filter and machine_filter != "all":
-        query += f" AND d.machine = ${param_idx}"
-        params.append(machine_filter)
-        param_idx += 1
-
-    if shift_filter and shift_filter != "all":
-        query += f" AND d.shift = ${param_idx}"
-        params.append(shift_filter)
-        param_idx += 1
-
-    if reason_filter and reason_filter != "all":
-        query += f" AND d.reason = ${param_idx}"
-        params.append(reason_filter)
-        param_idx += 1
-
-    if q and q.strip():
-        search = f"%{q.strip()}%"
-        query += f" AND (d.log_no ILIKE ${param_idx} OR d.machine ILIKE ${param_idx} OR d.reason ILIKE ${param_idx} OR j.job_no ILIKE ${param_idx})"
-        params.append(search)
-        param_idx += 1
-
-    query += " ORDER BY d.logged_on DESC, d.created_at DESC"
-
-    rows = await conn.fetch(query, *params)
     entries = []
-    total_minutes = 0.0
-    reason_counts: Dict[str, int] = {}
-    machine_counts: Dict[str, float] = {}
-
     for r in rows:
         item = dict(r)
         mins = float(item["minutes"] or 0.0)
         item["formatted_duration"] = format_duration(mins)
-        total_minutes += mins
         entries.append(item)
 
-        # Aggregate stats
-        r_name = item["reason"]
-        reason_counts[r_name] = reason_counts.get(r_name, 0) + 1
-
-        m_name = item["machine"]
-        machine_counts[m_name] = machine_counts.get(m_name, 0.0) + mins
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     # Fetch machines from masters
     machine_rows = await conn.fetch("SELECT value FROM masters WHERE list_name = 'machines' ORDER BY sort_order;")
     machines = [m["value"] for m in machine_rows]
-
-    top_reason = max(reason_counts, key=reason_counts.get) if reason_counts else "--"
-    top_machine = max(machine_counts, key=machine_counts.get) if machine_counts else "--"
 
     user_info = {
         "id": user.get("id"),
@@ -188,7 +225,10 @@ async def list_downtime(
         context={
             "user": user_info,
             "entries": entries,
-            "total_count": len(entries),
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "total_minutes": int(round(total_minutes)),
             "total_hours": round(total_minutes / 60.0, 1),
             "top_reason": top_reason,

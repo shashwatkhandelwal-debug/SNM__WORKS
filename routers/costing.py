@@ -18,6 +18,7 @@ Non-Negotiable Rules:
 """
 
 import asyncio
+import math
 import uuid
 from typing import Any, Dict, List, Optional
 import asyncpg
@@ -51,13 +52,57 @@ async def list_costing(
     request: Request,
     status_filter: Optional[str] = "all",
     search: Optional[str] = None,
+    q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn: asyncpg.Connection = Depends(get_db),
     user: Dict[str, Any] = Depends(require("costing", "read")),
 ):
     """
     GET /costing -- Executive register of job cost sheets.
     """
-    query = """
+    where_clauses = ["1=1"]
+    params = []
+    param_idx = 1
+
+    if status_filter and status_filter != "all":
+        where_clauses.append(f"c.status = ${param_idx}")
+        params.append(status_filter)
+        param_idx += 1
+
+    search_term = (search or q or "").strip()
+    if search_term:
+        where_clauses.append(f"(j.job_no ILIKE ${param_idx} OR j.product ILIKE ${param_idx} OR cust.name ILIKE ${param_idx})")
+        params.append(f"%{search_term}%")
+        param_idx += 1
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 1. Full-dataset aggregation query (Rule: Do NOT compute totals from paginated slice)
+    agg_query = f"""
+        SELECT 
+            COUNT(*) FILTER (WHERE c.status = 'Approved')::int AS total_approved,
+            COUNT(*) FILTER (WHERE c.status = 'Draft')::int AS total_draft,
+            COALESCE(SUM(
+                (
+                    (COALESCE(c.yarn_consumption, 0.0) * (COALESCE(c.yarn_rate, 0.0) / 1000.0) * (1.0 + COALESCE(c.wastage_pct, 0.0) / 100.0))
+                    + COALESCE(c.dyeing, 0.0) + COALESCE(c.coating, 0.0) + COALESCE(c.labour, 0.0)
+                    + COALESCE(c.overhead, 0.0) + COALESCE(c.packing, 0.0) + COALESCE(c.freight, 0.0)
+                ) * COALESCE(c.qty, 0.0)
+            ), 0.0)::float AS total_mfg_cost_sum
+        FROM costing c
+        JOIN jobs j ON c.job_id = j.id
+        LEFT JOIN customers cust ON j.customer_id = cust.id
+        WHERE {where_sql}
+    """
+    agg_row = await conn.fetchrow(agg_query, *params)
+    total_approved = int(agg_row["total_approved"]) if agg_row else 0
+    total_draft = int(agg_row["total_draft"]) if agg_row else 0
+    total_mfg_cost_sum = float(agg_row["total_mfg_cost_sum"]) if agg_row else 0.0
+
+    # 2. Paginated row query with windowed total_count
+    offset = (page - 1) * page_size
+    query = f"""
         SELECT 
             c.job_id::text,
             j.job_no,
@@ -81,35 +126,21 @@ async def list_costing(
             c.created_at,
             c.approved_by::text,
             p_ap.full_name AS approver_name,
-            c.approved_at
+            c.approved_at,
+            COUNT(*) OVER() AS total_count
         FROM costing c
         JOIN jobs j ON c.job_id = j.id
         LEFT JOIN customers cust ON j.customer_id = cust.id
         LEFT JOIN profiles p_cr ON c.created_by = p_cr.id
         LEFT JOIN profiles p_ap ON c.approved_by = p_ap.id
-        WHERE 1=1
+        WHERE {where_sql}
+        ORDER BY c.created_at DESC
+        LIMIT ${param_idx} OFFSET ${param_idx + 1};
     """
-    params = []
-    param_idx = 1
-
-    if status_filter and status_filter != "all":
-        query += f" AND c.status = ${param_idx}"
-        params.append(status_filter)
-        param_idx += 1
-
-    if search:
-        query += f" AND (j.job_no ILIKE ${param_idx} OR j.product ILIKE ${param_idx} OR cust.name ILIKE ${param_idx})"
-        params.append(f"%{search.strip()}%")
-        param_idx += 1
-
-    query += " ORDER BY c.created_at DESC;"
-    rows = await conn.fetch(query, *params)
+    row_params = list(params) + [page_size, offset]
+    rows = await conn.fetch(query, *row_params)
 
     items = []
-    total_approved = 0
-    total_draft = 0
-    total_mfg_cost_sum = 0.0
-
     for r in rows:
         item = dict(r)
         yarn_c = calculate_yarn_cost(
@@ -131,14 +162,10 @@ async def list_costing(
         item["overhead_cost_unit"] = costs["overhead_cost"]
         item["mfg_cost_unit"] = costs["total_manufacturing_cost"]
         item["total_mfg_cost"] = round(costs["total_manufacturing_cost"] * float(r["qty"] or 0), 2)
-        total_mfg_cost_sum += item["total_mfg_cost"]
-
-        if r["status"] == "Approved":
-            total_approved += 1
-        elif r["status"] == "Draft":
-            total_draft += 1
-
         items.append(item)
+
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
 
     user_info = {
         "id": user.get("id"),
@@ -152,7 +179,10 @@ async def list_costing(
         context={
             "user": user_info,
             "costings": items,
-            "total_count": len(items),
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
             "total_approved": total_approved,
             "total_draft": total_draft,
             "total_mfg_cost_sum": round(total_mfg_cost_sum, 2),

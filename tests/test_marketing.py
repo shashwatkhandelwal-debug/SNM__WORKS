@@ -533,3 +533,46 @@ async def test_campaign_form_creation_and_queue_html_card_rendering(dev_client):
     assert "camp-card-" in queue_res.text
     assert "CAMPAIGN" in queue_res.text
 
+
+@pytest.mark.asyncio
+async def test_skus_list_pagination(dev_client):
+    """
+    Pagination Test: Seeds 28 SKUs, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"SKU-PAG-{uid}"
+    sku_ids = []
+
+    try:
+        for i in range(1, 29):
+            s_id = await conn.fetchval(
+                """
+                INSERT INTO skus (id, sku_code, family, title, standard, material, status, catalogue_visible, post_status, created_on)
+                VALUES (gen_random_uuid(), $1, 'Narrow woven', $2, 'IS 1969', 'Nylon', 'Ready', true, 'none', '2099-01-01 00:00:00')
+                RETURNING id;
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated SKU Title {uid} #{i:02d}",
+            )
+            sku_ids.append(s_id)
+
+        # Page 1
+        resp1 = await dev_client.get("/skus?page=1&page_size=25")
+        assert resp1.status_code == 200
+        assert "SKU Master Register" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2
+        resp2 = await dev_client.get("/skus?page=2&page_size=25")
+        assert resp2.status_code == 200
+        assert resp2.text.count(prefix) == 3
+    finally:
+        for s_id in sku_ids:
+            await conn.execute("DELETE FROM skus WHERE id = $1;", s_id)
+        await conn.close()
+
+

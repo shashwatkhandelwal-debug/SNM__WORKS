@@ -533,3 +533,95 @@ async def test_materials_yarn_lots_pagination(store_client):
         await conn.close()
 
 
+@pytest.mark.asyncio
+async def test_materials_grn_and_issues_pagination(store_client):
+    """
+    Pagination Test: Seeds 28 GRNs and 28 Material Issues, verifies tab-specific pagination.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    grn_prefix = f"GRN-PAG-{uid}"
+    iss_prefix = f"ISS-PAG-{uid}"
+    grn_ids = []
+    job_ids = []
+    lot_ids = []
+
+    try:
+        # Create 1 supplier, 1 job, 1 lot for issue links
+        for i in range(1, 29):
+            g_id = await conn.fetchval(
+                """
+                INSERT INTO grn (
+                    grn_no, received_date, supplier_name, po_ref
+                ) VALUES (
+                    $1, CURRENT_DATE, $2, $3
+                ) RETURNING id;
+                """,
+                f"{grn_prefix}-{i:02d}",
+                f"Paginated GRN Supplier {uid}",
+                f"PO-{uid}-{i:02d}",
+            )
+            grn_ids.append(g_id)
+
+        j_id = await conn.fetchval(
+            """
+            INSERT INTO jobs (job_no, raised_on, product, qty_ordered, unit, qty_produced, status)
+            VALUES ($1, CURRENT_DATE, 'Paginated Job', 1000, 'm', 0, 'In Progress')
+            RETURNING id;
+            """,
+            f"JOB-PAG-{uid}",
+        )
+        job_ids.append(j_id)
+
+        l_id = await conn.fetchval(
+            """
+            INSERT INTO yarn_lots (
+                lot_no, supplier_name, yarn_type, denier, qty_received, qty_issued, qc_status
+            ) VALUES ($1, 'Test Supplier', 'Nylon 6,6', 840, 5000, 0, 'Approved')
+            RETURNING id;
+            """,
+            f"LOT-ISS-PAG-{uid}",
+        )
+        lot_ids.append(l_id)
+
+        for i in range(1, 29):
+            await conn.execute(
+                """
+                INSERT INTO job_material_issues (
+                    issue_no, job_id, yarn_lot_id, qty_issued, unit, issued_date
+                ) VALUES (
+                    $1, $2, $3, 10.0, 'kg', CURRENT_DATE
+                );
+                """,
+                f"{iss_prefix}-{i:02d}",
+                j_id,
+                l_id,
+            )
+
+        # 1. Test GRN Tab Pagination
+        resp_grn_1 = await store_client.get(f"/materials?tab=grn&grn_page=1&page_size=25")
+        assert resp_grn_1.status_code == 200
+        assert "GRN Receipts" in resp_grn_1.text
+
+        resp_grn_2 = await store_client.get(f"/materials?tab=grn&grn_page=2&page_size=25")
+        assert resp_grn_2.status_code == 200
+
+        # 2. Test Issues Tab Pagination
+        resp_iss_1 = await store_client.get(f"/materials?tab=issues&issues_page=1&page_size=25")
+        assert resp_iss_1.status_code == 200
+        assert "Job Issue History" in resp_iss_1.text
+
+        resp_iss_2 = await store_client.get(f"/materials?tab=issues&issues_page=2&page_size=25")
+        assert resp_iss_2.status_code == 200
+    finally:
+        await conn.execute("DELETE FROM job_material_issues WHERE issue_no LIKE $1;", f"{iss_prefix}%")
+        for j in job_ids:
+            await conn.execute("DELETE FROM jobs WHERE id = $1;", j)
+        for l in lot_ids:
+            await conn.execute("DELETE FROM yarn_lots WHERE id = $1;", l)
+        for g in grn_ids:
+            await conn.execute("DELETE FROM grn WHERE id = $1;", g)
+        await conn.close()
+
+
+

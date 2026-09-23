@@ -4,6 +4,7 @@ routers/trade_docs.py — Trade Documents (Bills, Invoices, Orders) Review & Tal
 
 import json
 import logging
+import math
 import os
 import uuid
 from datetime import date, datetime
@@ -11,7 +12,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -71,9 +72,12 @@ class TradeDocUpdatePayload(BaseModel):
 @router.get("", response_class=HTMLResponse)
 async def list_trade_documents(
     request: Request,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=1, le=100),
     conn=Depends(get_db),
     user: Dict[str, Any] = Depends(require("tally", "read")),
 ):
+    offset = (page - 1) * page_size
     rows = await conn.fetch(
         """
         SELECT 
@@ -90,16 +94,31 @@ async def list_trade_documents(
             total_taxable_value::float,
             net_payable::float,
             pdf_path,
-            created_at
+            created_at,
+            COUNT(*) OVER() AS total_count
         FROM trade_documents
         ORDER BY created_at DESC
-        """
+        LIMIT $1 OFFSET $2
+        """,
+        page_size,
+        offset,
     )
     docs = [dict(r) for r in rows]
+    total_count = int(rows[0]["total_count"]) if rows else 0
+    total_pages = max(1, math.ceil(total_count / page_size))
+
     return templates.TemplateResponse(
         request=request,
         name="trade_docs/documents_list.html",
-        context={"user": user, "documents": docs, "current_page": "trade_docs"},
+        context={
+            "user": user,
+            "documents": docs,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "page": page,
+            "page_size": page_size,
+            "current_page": "trade_docs",
+        },
     )
 
 

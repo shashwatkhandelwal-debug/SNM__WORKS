@@ -520,3 +520,70 @@ async def test_certificates_routes_reject_unauthenticated(anonymous_client):
     resp = await anonymous_client.get("/certificates")
     assert resp.status_code == HTTP_401_UNAUTHORIZED
 
+
+@pytest.mark.asyncio
+async def test_certificates_pagination(chief_quality_client):
+    """
+    Pagination Test: Seeds 28 certificates, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"TC-PAG-{uid}"
+    qa_user_id = TEST_USERS["chief_quality"]["id"]
+    job_id = None
+
+    try:
+        await conn.execute("DELETE FROM test_certificates WHERE cert_no LIKE $1;", f"{prefix}%")
+        cust_id = await conn.fetchval("SELECT id FROM customers LIMIT 1;")
+        if not cust_id:
+            cust_id = await conn.fetchval("INSERT INTO customers (id, name, active) VALUES (gen_random_uuid(), 'Test Customer', true) RETURNING id;")
+
+        job_id = await conn.fetchval(
+            """
+            INSERT INTO jobs (id, job_no, customer_id, product, qty_ordered, unit, status)
+            VALUES (gen_random_uuid(), $1, $2::uuid, 'Test Webbing', 1000, 'm', 'Completed')
+            RETURNING id::text;
+            """,
+            f"JOB-CERT-PAG-{uid}",
+            cust_id,
+        )
+
+        for i in range(1, 29):
+            await conn.execute(
+                """
+                INSERT INTO test_certificates (
+                    id, cert_no, job_id, issued_by, issued_at, sha256_hash,
+                    total_qc_checks, total_lab_tests, status
+                ) VALUES (
+                    gen_random_uuid(), $1, $2::uuid, $3::uuid, now(), $4, 2, 2, 'Issued'
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                uuid.UUID(job_id),
+                uuid.UUID(qa_user_id),
+                f"sha256_dummy_hash_{uid}_{i:02d}",
+            )
+
+        # Page 1
+        resp1 = await chief_quality_client.get(f"/certificates?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == HTTP_200_OK
+        assert "Showing <strong>25</strong> of <strong>28</strong> test certificate" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2
+        resp2 = await chief_quality_client.get(f"/certificates?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == HTTP_200_OK
+        assert "Showing <strong>3</strong> of <strong>28</strong> test certificate" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 3
+    finally:
+        await conn.execute("DELETE FROM test_certificates WHERE cert_no LIKE $1;", f"{prefix}%")
+        if job_id:
+            await conn.execute("DELETE FROM jobs WHERE id = $1::uuid;", uuid.UUID(job_id))
+        await conn.close()
+
+

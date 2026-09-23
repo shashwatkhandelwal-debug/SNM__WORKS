@@ -310,3 +310,50 @@ async def test_capa_routes_reject_unauthenticated(anonymous_client):
         data={"source": "QC Check", "problem": "Test defect"},
     )
     assert resp_create.status_code == HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_capa_pagination(chief_quality_client):
+    """
+    Pagination Test: Seeds 28 CAPA records, queries page 1 (25 rows) and page 2 (3 rows).
+    Verifies:
+    1. page 1 contains exactly 25 rows and total_count = 28.
+    2. page 2 contains exactly 3 rows.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid = uuid.uuid4().hex[:8].upper()
+    prefix = f"CAPA-PAG-{uid}"
+    qa_user_id = TEST_USERS["chief_quality"]["id"]
+
+    try:
+        for i in range(1, 29):
+            await conn.execute(
+                """
+                INSERT INTO capa (
+                    id, capa_no, raised_on, source, problem, status, raised_by
+                ) VALUES (
+                    gen_random_uuid(), $1, CURRENT_DATE, 'Internal QC', $2, 'Open', $3::uuid
+                );
+                """,
+                f"{prefix}-{i:02d}",
+                f"Paginated Problem Description {uid} #{i:02d}",
+                uuid.UUID(qa_user_id),
+            )
+
+        # Page 1
+        resp1 = await chief_quality_client.get(f"/capa?q={uid}&page=1&page_size=25")
+        assert resp1.status_code == HTTP_200_OK
+        assert "Showing <strong>25</strong> of <strong>28</strong> CAPA record" in resp1.text
+        assert "Page 1 of 2" in resp1.text
+        assert resp1.text.count(prefix) == 25
+
+        # Page 2
+        resp2 = await chief_quality_client.get(f"/capa?q={uid}&page=2&page_size=25")
+        assert resp2.status_code == HTTP_200_OK
+        assert "Showing <strong>3</strong> of <strong>28</strong> CAPA record" in resp2.text
+        assert "Page 2 of 2" in resp2.text
+        assert resp2.text.count(prefix) == 3
+    finally:
+        await conn.execute("DELETE FROM capa WHERE capa_no LIKE $1;", f"{prefix}%")
+        await conn.close()
+
