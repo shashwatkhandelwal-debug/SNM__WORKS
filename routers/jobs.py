@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import date, datetime
+import html
 import logging
 from typing import Any, Dict, List, Optional
 import math
@@ -524,34 +525,76 @@ async def create_job(
             )
         except Exception as exc:
             logger.error(f"Error inserting job in database: {exc}")
-            if not generated_job_no:
-                generated_job_no = await get_next_job_no(None)
-
-    if not generated_job_no:
+            is_htmx = request.headers.get("hx-request") == "true"
+            if is_htmx:
+                return HTMLResponse(
+                    content=f'<div class="alert alert-error" style="color: var(--snm-fail); background: #fdf2f2; border: 1px solid var(--snm-fail); padding: 0.75rem 1rem; border-radius: 2px;">✕ Failed to create job: {html.escape(str(exc))}</div>',
+                    status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            customers = await fetch_customers_list(conn)
+            job_form_data = {
+                "id": new_job_id,
+                "job_no": generated_job_no or "",
+                "customer_id": str(resolved_customer_id) if resolved_customer_id else "",
+                "customer_name": resolved_customer_name,
+                "po_ref": clean_po_ref,
+                "po_reference": clean_po_reference,
+                "po_date": parsed_po_date.isoformat() if parsed_po_date else "",
+                "agreed_rate": clean_agreed_rate,
+                "agreed_qty": clean_agreed_qty,
+                "agreed_unit": clean_agreed_unit,
+                "product": clean_product,
+                "spec": clean_spec,
+                "width_mm": width_mm,
+                "colour": clean_colour,
+                "qty_ordered": qty_ordered,
+                "unit": clean_unit,
+                "qty_produced": qty_produced,
+                "machine": clean_machine,
+                "delivery_due": parsed_due_date.isoformat() if parsed_due_date else "",
+                "status": clean_status,
+                "remarks": clean_remarks,
+            }
+            return templates.TemplateResponse(
+                request=request,
+                name="jobs/form.html",
+                context={
+                    "user": user,
+                    "is_edit": False,
+                    "job": job_form_data,
+                    "customers": customers,
+                    "error": f"Database error creating job: {str(exc)}",
+                    "status_stages": STATUS_STAGES,
+                    "current_page": "jobs",
+                    "current_func": "OPS",
+                },
+                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+    else:
+        # Genuine offline fallback (no database pool/conn configured)
         generated_job_no = await get_next_job_no(None)
-
-    MEM_JOBS[new_job_id] = {
-        "id": new_job_id,
-        "job_no": generated_job_no,
-        "raised_on": date.today().isoformat(),
-        "customer_id": str(resolved_customer_id) if resolved_customer_id else None,
-        "customer_name": resolved_customer_name,
-        "po_ref": clean_po_ref,
-        "product": clean_product,
-        "spec": clean_spec,
-        "width_mm": width_mm,
-        "colour": clean_colour,
-        "qty_ordered": qty_ordered,
-        "unit": clean_unit,
-        "qty_produced": qty_produced,
-        "balance": qty_ordered - qty_produced,
-        "machine": clean_machine,
-        "delivery_due": parsed_due_date.isoformat() if parsed_due_date else None,
-        "status": clean_status,
-        "remarks": clean_remarks,
-        "created_at": datetime.now().isoformat(),
-        "has_hold": False,
-    }
+        MEM_JOBS[new_job_id] = {
+            "id": new_job_id,
+            "job_no": generated_job_no,
+            "raised_on": date.today().isoformat(),
+            "customer_id": str(resolved_customer_id) if resolved_customer_id else None,
+            "customer_name": resolved_customer_name,
+            "po_ref": clean_po_ref,
+            "product": clean_product,
+            "spec": clean_spec,
+            "width_mm": width_mm,
+            "colour": clean_colour,
+            "qty_ordered": qty_ordered,
+            "unit": clean_unit,
+            "qty_produced": qty_produced,
+            "balance": qty_ordered - qty_produced,
+            "machine": clean_machine,
+            "delivery_due": parsed_due_date.isoformat() if parsed_due_date else None,
+            "status": clean_status,
+            "remarks": clean_remarks,
+            "created_at": datetime.now().isoformat(),
+            "has_hold": False,
+        }
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
@@ -1099,17 +1142,14 @@ async def update_job(
     delivery_due: Optional[str] = Form(None),
     status: str = Form("Planned"),
     remarks: Optional[str] = Form(None),
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("jobs", "update")),
 ):
     """
     POST /jobs/{job_id}/update -- update job fields.
     Status can only move forward: Planned -> In progress -> Complete -> Despatched.
     Cancelled is always allowed. Never delete.
     """
-    try:
-        claims = await get_user_claims(request)
-    except HTTPException:
-        return RedirectResponse(url="/", status_code=HTTP_303_SEE_OTHER)
-
     if qty_ordered <= 0:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Quantity ordered must be greater than 0.")
 
@@ -1143,111 +1183,161 @@ async def update_job(
     actual_uuid = job_id
     resolved_customer_id = None
     resolved_customer_name = customer_name or ""
+    current_job_no = job_id
 
-    if database.pool is not None:
+    if conn is not None:
         try:
-            async with database.pool.acquire() as conn:
-                async with conn.transaction():
-                    await set_rls_claims(conn, claims)
-                    curr_row = await conn.fetchrow(
-                        "SELECT id::text, status, customer_id::text FROM jobs WHERE id::text = $1 OR job_no = $1",
-                        job_id,
-                    )
-                    if curr_row:
-                        actual_uuid = curr_row["id"]
-                        current_status = curr_row["status"]
+            curr_row = await conn.fetchrow(
+                "SELECT id::text, job_no, status, customer_id::text FROM jobs WHERE id::text = $1 OR job_no = $1",
+                job_id,
+            )
+            if not curr_row:
+                raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Job not found")
 
-                    is_valid, err_msg = validate_status_transition(current_status, new_status)
-                    if not is_valid:
-                        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=err_msg)
+            actual_uuid = curr_row["id"]
+            current_job_no = curr_row["job_no"]
+            current_status = curr_row["status"]
 
-                    if customer_id and customer_id.strip():
-                        try:
-                            cust_row = await conn.fetchrow("SELECT id, name FROM customers WHERE id::text = $1", customer_id.strip())
-                            if cust_row:
-                                resolved_customer_id = cust_row["id"]
-                                resolved_customer_name = cust_row["name"]
-                        except Exception:
-                            pass
+            is_valid, err_msg = validate_status_transition(current_status, new_status)
+            if not is_valid:
+                raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=err_msg)
 
-                    if not resolved_customer_id and customer_name and customer_name.strip():
-                        cust_match = await conn.fetchrow("SELECT id, name FROM customers WHERE name ILIKE $1", customer_name.strip())
-                        if cust_match:
-                            resolved_customer_id = cust_match["id"]
-                            resolved_customer_name = cust_match["name"]
+            if customer_id and customer_id.strip():
+                try:
+                    resolved_customer_id = uuid.UUID(customer_id.strip())
+                except Exception:
+                    pass
+                try:
+                    cust_row = await conn.fetchrow("SELECT id, name FROM customers WHERE id::text = $1", customer_id.strip())
+                    if cust_row:
+                        resolved_customer_name = cust_row["name"]
+                except Exception:
+                    pass
 
-                    await conn.execute(
-                        """
-                        UPDATE jobs
-                        SET customer_id = $1,
-                            po_ref = $2,
-                            po_reference = $3,
-                            po_date = $4,
-                            agreed_rate = $5,
-                            agreed_qty = $6,
-                            agreed_unit = $7,
-                            product = $8,
-                            spec = $9,
-                            width_mm = $10,
-                            colour = $11,
-                            qty_ordered = $12,
-                            unit = $13,
-                            qty_produced = $14,
-                            machine = $15,
-                            delivery_due = $16,
-                            status = $17,
-                            remarks = $18,
-                            updated_at = now()
-                        WHERE id::text = $19
-                        """,
-                        resolved_customer_id,
-                        clean_po_ref,
-                        clean_po_reference,
-                        parsed_po_date,
-                        clean_agreed_rate,
-                        clean_agreed_qty,
-                        clean_agreed_unit,
-                        clean_product,
-                        clean_spec,
-                        width_mm,
-                        clean_colour,
-                        qty_ordered,
-                        clean_unit,
-                        qty_produced,
-                        clean_machine,
-                        parsed_due_date,
-                        new_status,
-                        clean_remarks,
-                        actual_uuid,
-                    )
+            if not resolved_customer_id and customer_name and customer_name.strip():
+                cust_match = await conn.fetchrow("SELECT id, name FROM customers WHERE name ILIKE $1", customer_name.strip())
+                if cust_match:
+                    resolved_customer_id = cust_match["id"]
+                    resolved_customer_name = cust_match["name"]
+
+            await conn.execute(
+                """
+                UPDATE jobs
+                SET customer_id = $1,
+                    po_ref = $2,
+                    po_reference = $3,
+                    po_date = $4,
+                    agreed_rate = $5,
+                    agreed_qty = $6,
+                    agreed_unit = $7,
+                    product = $8,
+                    spec = $9,
+                    width_mm = $10,
+                    colour = $11,
+                    qty_ordered = $12,
+                    unit = $13,
+                    qty_produced = $14,
+                    machine = $15,
+                    delivery_due = $16,
+                    status = $17,
+                    remarks = $18,
+                    updated_at = now()
+                WHERE id::text = $19
+                """,
+                resolved_customer_id,
+                clean_po_ref,
+                clean_po_reference,
+                parsed_po_date,
+                clean_agreed_rate,
+                clean_agreed_qty,
+                clean_agreed_unit,
+                clean_product,
+                clean_spec,
+                width_mm,
+                clean_colour,
+                qty_ordered,
+                clean_unit,
+                qty_produced,
+                clean_machine,
+                parsed_due_date,
+                new_status,
+                clean_remarks,
+                actual_uuid,
+            )
         except HTTPException:
             raise
         except Exception as exc:
             logger.error(f"Error updating job in DB: {exc}")
-
-    if actual_uuid in MEM_JOBS or job_id in MEM_JOBS:
-        target_id = actual_uuid if actual_uuid in MEM_JOBS else job_id
-        is_valid, err_msg = validate_status_transition(MEM_JOBS[target_id].get("status", "Planned"), new_status)
-        if not is_valid:
-            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=err_msg)
-        MEM_JOBS[target_id].update({
-            "customer_id": str(resolved_customer_id) if resolved_customer_id else None,
-            "customer_name": resolved_customer_name,
-            "po_ref": clean_po_ref,
-            "product": clean_product,
-            "spec": clean_spec,
-            "width_mm": width_mm,
-            "colour": clean_colour,
-            "qty_ordered": qty_ordered,
-            "unit": clean_unit,
-            "qty_produced": qty_produced,
-            "balance": qty_ordered - qty_produced,
-            "machine": clean_machine,
-            "delivery_due": parsed_due_date.isoformat() if parsed_due_date else None,
-            "status": new_status,
-            "remarks": clean_remarks,
-            "updated_at": datetime.now().isoformat(),
-        })
+            is_htmx = request.headers.get("hx-request") == "true"
+            if is_htmx:
+                return HTMLResponse(
+                    content=f'<div class="alert alert-error" style="color: var(--snm-fail); background: #fdf2f2; border: 1px solid var(--snm-fail); padding: 0.75rem 1rem; border-radius: 2px;">✕ Failed to update job: {html.escape(str(exc))}</div>',
+                    status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            customers = await fetch_customers_list(conn)
+            job_form_data = {
+                "id": actual_uuid,
+                "job_no": current_job_no,
+                "customer_id": str(resolved_customer_id) if resolved_customer_id else "",
+                "customer_name": resolved_customer_name,
+                "po_ref": clean_po_ref,
+                "po_reference": clean_po_reference,
+                "po_date": parsed_po_date.isoformat() if parsed_po_date else "",
+                "agreed_rate": clean_agreed_rate,
+                "agreed_qty": clean_agreed_qty,
+                "agreed_unit": clean_agreed_unit,
+                "product": clean_product,
+                "spec": clean_spec,
+                "width_mm": width_mm,
+                "colour": clean_colour,
+                "qty_ordered": qty_ordered,
+                "unit": clean_unit,
+                "qty_produced": qty_produced,
+                "machine": clean_machine,
+                "delivery_due": parsed_due_date.isoformat() if parsed_due_date else "",
+                "status": new_status,
+                "remarks": clean_remarks,
+            }
+            return templates.TemplateResponse(
+                request=request,
+                name="jobs/form.html",
+                context={
+                    "user": user,
+                    "is_edit": True,
+                    "job": job_form_data,
+                    "customers": customers,
+                    "error": f"Database error updating job: {str(exc)}",
+                    "status_stages": STATUS_STAGES,
+                    "current_page": "jobs",
+                    "current_func": "OPS",
+                },
+                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+    else:
+        # Genuine offline fallback (no database pool/conn configured)
+        if actual_uuid in MEM_JOBS or job_id in MEM_JOBS:
+            target_id = actual_uuid if actual_uuid in MEM_JOBS else job_id
+            is_valid, err_msg = validate_status_transition(MEM_JOBS[target_id].get("status", "Planned"), new_status)
+            if not is_valid:
+                raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=err_msg)
+            MEM_JOBS[target_id].update({
+                "customer_id": str(resolved_customer_id) if resolved_customer_id else None,
+                "customer_name": resolved_customer_name,
+                "po_ref": clean_po_ref,
+                "product": clean_product,
+                "spec": clean_spec,
+                "width_mm": width_mm,
+                "colour": clean_colour,
+                "qty_ordered": qty_ordered,
+                "unit": clean_unit,
+                "qty_produced": qty_produced,
+                "balance": qty_ordered - qty_produced,
+                "machine": clean_machine,
+                "delivery_due": parsed_due_date.isoformat() if parsed_due_date else None,
+                "status": new_status,
+                "remarks": clean_remarks,
+                "updated_at": datetime.now().isoformat(),
+            })
 
     is_htmx = request.headers.get("hx-request") == "true"
     if is_htmx:
