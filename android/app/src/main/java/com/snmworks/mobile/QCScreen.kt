@@ -49,7 +49,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun QCCheckFormScreen(
     onBack: () -> Unit,
-    onSubmitSuccess: (QCCheckResponse) -> Unit
+    onSubmitSuccess: (QCCheckResponse) -> Unit,
+    prefilledJobId: String? = null,
+    prefilledParameter: String? = null,
+    prefilledSpecValue: String? = null,
+    prefilledUnit: String? = null,
+    prefilledLimitType: String? = null,
+    prefilledStage: String? = null
 ) {
     val scope = rememberCoroutineScope()
     var isLoadingOptions by remember { mutableStateOf(true) }
@@ -63,16 +69,16 @@ fun QCCheckFormScreen(
     var selectedJob by remember { mutableStateOf<JobOption?>(null) }
     var jobDropdownExpanded by remember { mutableStateOf(false) }
 
-    var selectedStage by remember { mutableStateOf("On-Loom Inspection") }
+    var selectedStage by remember { mutableStateOf(prefilledStage ?: "On-Loom Inspection") }
     var stageDropdownExpanded by remember { mutableStateOf(false) }
 
-    var selectedLimitType by remember { mutableStateOf("nominal") }
+    var selectedLimitType by remember { mutableStateOf(prefilledLimitType ?: "nominal") }
     var limitDropdownExpanded by remember { mutableStateOf(false) }
 
-    var parameter by remember { mutableStateOf("Width") }
-    var specValue by remember { mutableStateOf("44.0") }
-    var actualValue by remember { mutableStateOf("44.0") }
-    var unit by remember { mutableStateOf("mm") }
+    var parameter by remember { mutableStateOf(prefilledParameter ?: "Width") }
+    var specValue by remember { mutableStateOf(prefilledSpecValue ?: "44.0") }
+    var actualValue by remember { mutableStateOf(prefilledSpecValue ?: "44.0") }
+    var unit by remember { mutableStateOf(prefilledUnit ?: "mm") }
 
     fun loadOptions() {
         isLoadingOptions = true
@@ -90,12 +96,16 @@ fun QCCheckFormScreen(
                 stages = options.stages
                 limitKinds = options.limitKinds
                 if (options.jobs.isNotEmpty()) {
-                    selectedJob = options.jobs.first()
+                    selectedJob = if (!prefilledJobId.isNullOrBlank()) {
+                        options.jobs.find { it.id == prefilledJobId } ?: options.jobs.first()
+                    } else {
+                        options.jobs.first()
+                    }
                 }
-                if (options.stages.isNotEmpty()) {
+                if (options.stages.isNotEmpty() && prefilledStage.isNullOrBlank()) {
                     selectedStage = options.stages.first()
                 }
-                if (options.limitKinds.isNotEmpty()) {
+                if (options.limitKinds.isNotEmpty() && prefilledLimitType.isNullOrBlank()) {
                     selectedLimitType = options.limitKinds.first()
                 }
                 isLoadingOptions = false
@@ -446,7 +456,8 @@ fun QCCheckFormScreen(
 fun QCResultScreen(
     result: QCCheckResponse,
     onNewCheck: () -> Unit,
-    onDone: () -> Unit
+    onDone: () -> Unit,
+    onViewHistory: (() -> Unit)? = null
 ) {
     val isPass = result.verdict.uppercase() == "PASS"
     val verdictColor = if (isPass) SnmPass else SnmFail
@@ -569,7 +580,21 @@ fun QCResultScreen(
             Text("Record Another Check", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        if (onViewHistory != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = onViewHistory,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SnmDark)
+            ) {
+                Text("View QC History", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedButton(
             onClick = onDone,

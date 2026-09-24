@@ -8,14 +8,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -80,12 +84,17 @@ class MainActivity : ComponentActivity() {
 
 enum class MobileScreen {
     SESSION,
+    JOBS_LIST,
+    INSPECTION_PLAN,
     QC_FORM,
     QC_RESULT,
+    QC_HISTORY,
     DOWNTIME_FORM,
     DOWNTIME_RESULT,
+    DOWNTIME_HISTORY,
     MATERIALS_FORM,
-    MATERIALS_RESULT
+    MATERIALS_RESULT,
+    MATERIALS_HISTORY
 }
 
 @Composable
@@ -95,7 +104,26 @@ fun AppRoot() {
     var lastQCResult by remember { mutableStateOf<QCCheckResponse?>(null) }
     var lastDowntimeResult by remember { mutableStateOf<DowntimeLogResponse?>(null) }
     var lastMaterialsResult by remember { mutableStateOf<MaterialIssueResponse?>(null) }
+    var selectedJobForPlan by remember { mutableStateOf<JobItem?>(null) }
+
+    // Pre-fill fields for QC Form
+    var prefilledJobId by remember { mutableStateOf<String?>(null) }
+    var prefilledParameter by remember { mutableStateOf<String?>(null) }
+    var prefilledSpecValue by remember { mutableStateOf<String?>(null) }
+    var prefilledUnit by remember { mutableStateOf<String?>(null) }
+    var prefilledLimitType by remember { mutableStateOf<String?>(null) }
+    var prefilledStage by remember { mutableStateOf<String?>(null) }
+
     val scope = rememberCoroutineScope()
+
+    fun clearQCPrefills() {
+        prefilledJobId = null
+        prefilledParameter = null
+        prefilledSpecValue = null
+        prefilledUnit = null
+        prefilledLimitType = null
+        prefilledStage = null
+    }
 
     LaunchedEffect(Unit) {
         val user = SupabaseClient.client.auth.currentUserOrNull()
@@ -116,14 +144,27 @@ fun AppRoot() {
             MobileScreen.SESSION -> {
                 SessionScreen(
                     userEmail = loggedInEmail ?: "",
+                    onViewJobs = {
+                        currentScreen = MobileScreen.JOBS_LIST
+                    },
                     onNewQCCheck = {
+                        clearQCPrefills()
                         currentScreen = MobileScreen.QC_FORM
+                    },
+                    onViewQCHistory = {
+                        currentScreen = MobileScreen.QC_HISTORY
                     },
                     onLogDowntime = {
                         currentScreen = MobileScreen.DOWNTIME_FORM
                     },
+                    onViewDowntimeHistory = {
+                        currentScreen = MobileScreen.DOWNTIME_HISTORY
+                    },
                     onIssueMaterial = {
                         currentScreen = MobileScreen.MATERIALS_FORM
+                    },
+                    onViewMaterialsHistory = {
+                        currentScreen = MobileScreen.MATERIALS_HISTORY
                     },
                     onSignOut = {
                         scope.launch {
@@ -136,15 +177,56 @@ fun AppRoot() {
                     }
                 )
             }
+            MobileScreen.JOBS_LIST -> {
+                JobsScreen(
+                    onBack = {
+                        currentScreen = MobileScreen.SESSION
+                    },
+                    onSelectJobForPlan = { job ->
+                        selectedJobForPlan = job
+                        currentScreen = MobileScreen.INSPECTION_PLAN
+                    }
+                )
+            }
+            MobileScreen.INSPECTION_PLAN -> {
+                val job = selectedJobForPlan
+                if (job != null) {
+                    InspectionPlanScreen(
+                        job = job,
+                        onBack = {
+                            currentScreen = MobileScreen.JOBS_LIST
+                        },
+                        onRecordCheckForRequirement = { jobItem, reqItem ->
+                            prefilledJobId = jobItem.id
+                            prefilledParameter = reqItem.parameter
+                            prefilledSpecValue = reqItem.specValue?.toString()
+                            prefilledUnit = reqItem.unit
+                            prefilledLimitType = reqItem.limitType
+                            prefilledStage = reqItem.stage
+                            currentScreen = MobileScreen.QC_FORM
+                        }
+                    )
+                } else {
+                    currentScreen = MobileScreen.JOBS_LIST
+                }
+            }
             MobileScreen.QC_FORM -> {
                 QCCheckFormScreen(
                     onBack = {
+                        clearQCPrefills()
                         currentScreen = MobileScreen.SESSION
                     },
                     onSubmitSuccess = { result ->
                         lastQCResult = result
+                        clearQCPrefills()
                         currentScreen = MobileScreen.QC_RESULT
-                    }
+                    },
+                    prefilledJobId = prefilledJobId,
+                    prefilledParameter = prefilledParameter,
+                    prefilledSpecValue = prefilledSpecValue,
+                    prefilledUnit = prefilledUnit,
+                    prefilledLimitType = prefilledLimitType,
+                    prefilledStage = prefilledStage
                 )
             }
             MobileScreen.QC_RESULT -> {
@@ -153,7 +235,11 @@ fun AppRoot() {
                     QCResultScreen(
                         result = res,
                         onNewCheck = {
+                            clearQCPrefills()
                             currentScreen = MobileScreen.QC_FORM
+                        },
+                        onViewHistory = {
+                            currentScreen = MobileScreen.QC_HISTORY
                         },
                         onDone = {
                             currentScreen = MobileScreen.SESSION
@@ -162,6 +248,13 @@ fun AppRoot() {
                 } else {
                     currentScreen = MobileScreen.SESSION
                 }
+            }
+            MobileScreen.QC_HISTORY -> {
+                QCHistoryScreen(
+                    onBack = {
+                        currentScreen = MobileScreen.SESSION
+                    }
+                )
             }
             MobileScreen.DOWNTIME_FORM -> {
                 DowntimeFormScreen(
@@ -182,6 +275,9 @@ fun AppRoot() {
                         onNewLog = {
                             currentScreen = MobileScreen.DOWNTIME_FORM
                         },
+                        onViewHistory = {
+                            currentScreen = MobileScreen.DOWNTIME_HISTORY
+                        },
                         onDone = {
                             currentScreen = MobileScreen.SESSION
                         }
@@ -189,6 +285,16 @@ fun AppRoot() {
                 } else {
                     currentScreen = MobileScreen.SESSION
                 }
+            }
+            MobileScreen.DOWNTIME_HISTORY -> {
+                DowntimeHistoryScreen(
+                    onBack = {
+                        currentScreen = MobileScreen.SESSION
+                    },
+                    onLogNew = {
+                        currentScreen = MobileScreen.DOWNTIME_FORM
+                    }
+                )
             }
             MobileScreen.MATERIALS_FORM -> {
                 MaterialsFormScreen(
@@ -209,6 +315,9 @@ fun AppRoot() {
                         onNewIssue = {
                             currentScreen = MobileScreen.MATERIALS_FORM
                         },
+                        onViewHistory = {
+                            currentScreen = MobileScreen.MATERIALS_HISTORY
+                        },
                         onDone = {
                             currentScreen = MobileScreen.SESSION
                         }
@@ -216,6 +325,16 @@ fun AppRoot() {
                 } else {
                     currentScreen = MobileScreen.SESSION
                 }
+            }
+            MobileScreen.MATERIALS_HISTORY -> {
+                MaterialsHistoryScreen(
+                    onBack = {
+                        currentScreen = MobileScreen.SESSION
+                    },
+                    onIssueNew = {
+                        currentScreen = MobileScreen.MATERIALS_FORM
+                    }
+                )
             }
         }
     }
@@ -344,44 +463,52 @@ fun LoginScreen(
 @Composable
 fun SessionScreen(
     userEmail: String,
+    onViewJobs: () -> Unit,
     onNewQCCheck: () -> Unit,
+    onViewQCHistory: () -> Unit,
     onLogDowntime: () -> Unit,
+    onViewDowntimeHistory: () -> Unit,
     onIssueMaterial: () -> Unit,
+    onViewMaterialsHistory: () -> Unit,
     onSignOut: () -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .verticalScroll(scrollState)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = SnmGreige)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "SESSION ACTIVE",
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = SnmPass,
                     letterSpacing = 1.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Signed in as:",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
+                    text = "Signed in as:",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
                     text = userEmail,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = SnmDark,
                     fontFamily = FontFamily.Monospace
@@ -389,68 +516,143 @@ fun SessionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 1. New QC Check Button
-        Button(
-            onClick = onNewQCCheck,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = SnmOlive)
-        ) {
-            Text(
-                text = "New QC Check",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // 2. Log Downtime Button
-        Button(
-            onClick = onLogDowntime,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = SnmDark)
-        ) {
-            Text(
-                text = "Log Downtime",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // 3. Issue Material Button
-        Button(
-            onClick = onIssueMaterial,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A6038))
-        ) {
-            Text(
-                text = "Issue Material",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
         Spacer(modifier = Modifier.height(20.dp))
+
+        // 1. Jobs & Inspection Plans
+        Button(
+            onClick = onViewJobs,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3E2D))
+        ) {
+            Text(
+                text = "Active Jobs & Inspection Plans",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. QC Section (Check + History)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onNewQCCheck,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SnmOlive)
+            ) {
+                Text(
+                    text = "New QC",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            OutlinedButton(
+                onClick = onViewQCHistory,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "QC History",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SnmDark
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 3. Downtime Section (Log + History)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onLogDowntime,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SnmDark)
+            ) {
+                Text(
+                    text = "Log Stoppage",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            OutlinedButton(
+                onClick = onViewDowntimeHistory,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Downtime Logs",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SnmDark
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 4. Materials Section (Issue + History)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onIssueMaterial,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A6038))
+            ) {
+                Text(
+                    text = "Issue Material",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            OutlinedButton(
+                onClick = onViewMaterialsHistory,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Issues Log",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SnmDark
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Sign Out
         OutlinedButton(
             onClick = onSignOut,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(46.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
@@ -460,5 +662,7 @@ fun SessionScreen(
                 fontWeight = FontWeight.Medium
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

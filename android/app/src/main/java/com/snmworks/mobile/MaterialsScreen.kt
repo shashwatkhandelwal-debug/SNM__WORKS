@@ -429,7 +429,8 @@ fun MaterialsFormScreen(
 fun MaterialsResultScreen(
     result: MaterialIssueResponse,
     onNewIssue: () -> Unit,
-    onDone: () -> Unit
+    onDone: () -> Unit,
+    onViewHistory: (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
@@ -535,7 +536,21 @@ fun MaterialsResultScreen(
             Text("Issue More Material", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        if (onViewHistory != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = onViewHistory,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SnmDark)
+            ) {
+                Text("View Material Issues History", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedButton(
             onClick = onDone,

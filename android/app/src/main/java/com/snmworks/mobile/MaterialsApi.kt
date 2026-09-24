@@ -51,8 +51,22 @@ data class MaterialIssueResponse(
     val remarks: String?
 )
 
+data class MaterialIssueListItem(
+    val id: String,
+    val issueNo: String,
+    val issuedDate: String?,
+    val jobId: String?,
+    val jobNo: String?,
+    val yarnLotId: String?,
+    val lotNo: String?,
+    val qtyIssued: Double,
+    val unit: String,
+    val remarks: String?
+)
+
 object MaterialsApi {
-    private const val BASE_URL = "http://10.18.221.141:8080"
+    private val BASE_URL: String
+        get() = BuildConfig.API_BASE_URL
 
     suspend fun fetchOptions(accessToken: String): Result<MaterialIssueOptions> = withContext(Dispatchers.IO) {
         try {
@@ -164,6 +178,53 @@ object MaterialsApi {
             )
 
             Result.success(issueResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchRecentIssues(accessToken: String, limit: Int = 50): Result<List<MaterialIssueListItem>> = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$BASE_URL/api/v1/materials/issues?limit=$limit")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", "Bearer $accessToken")
+                setRequestProperty("Accept", "application/json")
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+
+            val responseCode = conn.responseCode
+            if (responseCode !in 200..299) {
+                val errStream = conn.errorStream ?: conn.inputStream
+                val errText = errStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                return@withContext Result.failure(Exception("Failed to load material issue history: $errText"))
+            }
+
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val json = JSONObject(body)
+            val issuesArray = json.optJSONArray("issues") ?: JSONArray()
+            val list = mutableListOf<MaterialIssueListItem>()
+
+            for (i in 0 until issuesArray.length()) {
+                val item = issuesArray.getJSONObject(i)
+                list.add(
+                    MaterialIssueListItem(
+                        id = item.optString("id"),
+                        issueNo = item.optString("issue_no"),
+                        issuedDate = if (item.isNull("issued_date")) null else item.optString("issued_date"),
+                        jobId = if (item.isNull("job_id")) null else item.optString("job_id"),
+                        jobNo = if (item.isNull("job_no")) null else item.optString("job_no"),
+                        yarnLotId = if (item.isNull("yarn_lot_id")) null else item.optString("yarn_lot_id"),
+                        lotNo = if (item.isNull("lot_no")) null else item.optString("lot_no"),
+                        qtyIssued = item.optDouble("qty_issued", 0.0),
+                        unit = item.optString("unit", "kg"),
+                        remarks = if (item.isNull("remarks")) null else item.optString("remarks")
+                    )
+                )
+            }
+
+            Result.success(list)
         } catch (e: Exception) {
             Result.failure(e)
         }

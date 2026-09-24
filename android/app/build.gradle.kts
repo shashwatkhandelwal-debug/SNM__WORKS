@@ -24,6 +24,9 @@ val supabaseUrl = envProperties.getProperty("SUPABASE_URL")
 val supabaseKey = envProperties.getProperty("SUPABASE_KEY")
     ?: localProperties.getProperty("SUPABASE_KEY")
     ?: ""
+val apiBaseUrl = envProperties.getProperty("API_BASE_URL")
+    ?: localProperties.getProperty("API_BASE_URL")
+    ?: "https://REPLACE_WITH_SERVER_URL"
 
 android {
     namespace = "com.snmworks.mobile"
@@ -37,6 +40,7 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {

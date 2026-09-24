@@ -41,8 +41,22 @@ data class QCCheckResponse(
     val unit: String?
 )
 
+data class QCCheckListItem(
+    val id: String,
+    val checkNo: String,
+    val checkedOn: String?,
+    val stage: String,
+    val parameter: String,
+    val specValue: Double?,
+    val actual: Double?,
+    val unit: String?,
+    val verdict: String,
+    val jobNo: String?
+)
+
 object QCApi {
-    private const val BASE_URL = "http://10.18.221.141:8080"
+    private val BASE_URL: String
+        get() = BuildConfig.API_BASE_URL
 
     suspend fun fetchOptions(accessToken: String): Result<QCOptions> = withContext(Dispatchers.IO) {
         try {
@@ -152,6 +166,53 @@ object QCApi {
             )
 
             Result.success(checkResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchRecentChecks(accessToken: String, limit: Int = 50): Result<List<QCCheckListItem>> = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$BASE_URL/api/v1/qc/checks?limit=$limit")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", "Bearer $accessToken")
+                setRequestProperty("Accept", "application/json")
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+
+            val responseCode = conn.responseCode
+            if (responseCode !in 200..299) {
+                val errStream = conn.errorStream ?: conn.inputStream
+                val errText = errStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                return@withContext Result.failure(Exception("Failed to load QC history: $errText"))
+            }
+
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val json = JSONObject(body)
+            val checksArray = json.optJSONArray("checks") ?: JSONArray()
+            val list = mutableListOf<QCCheckListItem>()
+
+            for (i in 0 until checksArray.length()) {
+                val item = checksArray.getJSONObject(i)
+                list.add(
+                    QCCheckListItem(
+                        id = item.optString("id"),
+                        checkNo = item.optString("check_no"),
+                        checkedOn = if (item.isNull("checked_on")) null else item.optString("checked_on"),
+                        stage = item.optString("stage", "Inspection"),
+                        parameter = item.optString("parameter"),
+                        specValue = if (item.isNull("spec_value")) null else item.optDouble("spec_value"),
+                        actual = if (item.isNull("actual")) null else item.optDouble("actual"),
+                        unit = if (item.isNull("unit")) null else item.optString("unit"),
+                        verdict = item.optString("verdict", "UNKNOWN"),
+                        jobNo = if (item.isNull("job_no")) null else item.optString("job_no")
+                    )
+                )
+            }
+
+            Result.success(list)
         } catch (e: Exception) {
             Result.failure(e)
         }

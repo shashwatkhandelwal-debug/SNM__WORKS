@@ -42,8 +42,22 @@ data class DowntimeLogResponse(
     val remarks: String?
 )
 
+data class DowntimeLogListItem(
+    val id: String,
+    val logNo: String,
+    val loggedOn: String?,
+    val machine: String,
+    val shift: String,
+    val reason: String,
+    val minutes: Double,
+    val formattedDuration: String,
+    val remarks: String?,
+    val jobNo: String?
+)
+
 object DowntimeApi {
-    private const val BASE_URL = "http://10.18.221.141:8080"
+    private val BASE_URL: String
+        get() = BuildConfig.API_BASE_URL
 
     suspend fun fetchOptions(accessToken: String): Result<DowntimeOptions> = withContext(Dispatchers.IO) {
         try {
@@ -157,6 +171,53 @@ object DowntimeApi {
             )
 
             Result.success(logResponse)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchRecentLogs(accessToken: String, limit: Int = 50): Result<List<DowntimeLogListItem>> = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("$BASE_URL/api/v1/downtime/logs?limit=$limit")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", "Bearer $accessToken")
+                setRequestProperty("Accept", "application/json")
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+
+            val responseCode = conn.responseCode
+            if (responseCode !in 200..299) {
+                val errStream = conn.errorStream ?: conn.inputStream
+                val errText = errStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                return@withContext Result.failure(Exception("Failed to load downtime history: $errText"))
+            }
+
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val json = JSONObject(body)
+            val logsArray = json.optJSONArray("logs") ?: JSONArray()
+            val list = mutableListOf<DowntimeLogListItem>()
+
+            for (i in 0 until logsArray.length()) {
+                val item = logsArray.getJSONObject(i)
+                list.add(
+                    DowntimeLogListItem(
+                        id = item.optString("id"),
+                        logNo = item.optString("log_no"),
+                        loggedOn = if (item.isNull("logged_on")) null else item.optString("logged_on"),
+                        machine = item.optString("machine"),
+                        shift = item.optString("shift"),
+                        reason = item.optString("reason"),
+                        minutes = item.optDouble("minutes", 0.0),
+                        formattedDuration = item.optString("formatted_duration", "${item.optDouble("minutes", 0.0).toInt()}m"),
+                        remarks = if (item.isNull("remarks")) null else item.optString("remarks"),
+                        jobNo = if (item.isNull("job_no")) null else item.optString("job_no")
+                    )
+                )
+            }
+
+            Result.success(list)
         } catch (e: Exception) {
             Result.failure(e)
         }

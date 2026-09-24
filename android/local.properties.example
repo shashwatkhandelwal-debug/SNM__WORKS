@@ -1,0 +1,12 @@
+## Local Android Configuration Example
+# Copy or merge this file into android/local.properties for your local environment.
+
+# Location of the Android SDK
+sdk.dir=C:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
+
+# Backend API Base URL (Configurable HTTPS or local development endpoint)
+API_BASE_URL=http://10.0.2.2:8080
+
+# Supabase Credentials (optional if defined in root .env)
+# SUPABASE_URL=https://eayrmjmzjokeeuwazmjy.supabase.co
+# SUPABASE_KEY=sb_publishable_...
