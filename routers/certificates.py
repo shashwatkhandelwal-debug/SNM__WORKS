@@ -21,6 +21,7 @@ import asyncio
 from datetime import datetime
 import hashlib
 import io
+import json
 import logging
 import math
 from typing import Any, Dict, List, Optional
@@ -115,7 +116,7 @@ async def fetch_certificate_dataset(
     qc_rows = await conn.fetch(
         """
         SELECT 
-            check_no, checked_on, stage, family, parameter, unit,
+            id::text, check_no, checked_on, stage, family, parameter, unit,
             method, limit_type, spec_value, tolerance, upper_limit,
             actual, verdict
         FROM qc_checks
@@ -129,7 +130,7 @@ async def fetch_certificate_dataset(
     lab_rows = await conn.fetch(
         """
         SELECT 
-            lt.test_id, lt.tested_on, lt.test_type, lt.standard, lt.lab,
+            lt.id::text, lt.test_id, lt.tested_on, lt.test_type, lt.standard, lt.lab,
             lt.requirement, lt.result, lt.unit, lt.parameter, lt.limit_type,
             lt.spec_value, lt.tolerance, lt.upper_limit, lt.is_critical,
             lt.specimens, lt.verdict, lt.approved_by, lt.approved_at,
@@ -190,6 +191,120 @@ async def fetch_certificate_dataset(
     except Exception:
         pass
 
+    # 6. Audit Trail History (Compliance Packet Appendix)
+    candidate_refs = {str(job_id)}
+    if job["job_no"]:
+        candidate_refs.add(job["job_no"])
+    if despatch_id:
+        candidate_refs.add(str(despatch_id))
+    if despatch_data and despatch_data.get("despatch_no"):
+        candidate_refs.add(despatch_data["despatch_no"])
+    if cert_no and not cert_no.startswith("DRAFT"):
+        candidate_refs.add(cert_no)
+    for q in qc_rows:
+        if q.get("id"):
+            candidate_refs.add(str(q["id"]))
+        if q.get("check_no"):
+            candidate_refs.add(q["check_no"])
+    for lt in lab_rows:
+        if lt.get("id"):
+            candidate_refs.add(str(lt["id"]))
+        if lt.get("test_id"):
+            candidate_refs.add(lt["test_id"])
+
+    candidate_refs = {r for r in candidate_refs if r}
+    audit_trail = []
+    if candidate_refs:
+        audit_rows = await conn.fetch(
+            """
+            SELECT 
+                a.id, a.entity, a.entity_ref, a.action, a.at, a.actor_id,
+                a.before, a.after,
+                COALESCE(p.full_name, a.actor_name, 'System') AS actor_name
+            FROM audit_log a
+            LEFT JOIN profiles p ON a.actor_id = p.id
+            WHERE a.entity_ref = ANY($1::text[])
+            ORDER BY a.at ASC;
+            """,
+            list(candidate_refs),
+        )
+
+        for r in audit_rows:
+            b_data = r["before"]
+            a_data = r["after"]
+            if isinstance(b_data, str):
+                try:
+                    b_data = json.loads(b_data)
+                except Exception:
+                    b_data = {}
+            elif not isinstance(b_data, dict):
+                b_data = {}
+
+            if isinstance(a_data, str):
+                try:
+                    a_data = json.loads(a_data)
+                except Exception:
+                    a_data = {}
+            elif not isinstance(a_data, dict):
+                a_data = {}
+
+            action_str = (r["action"] or "").upper()
+            field_diffs = []
+            if action_str == "UPDATE":
+                all_keys = set(b_data.keys()) | set(a_data.keys())
+                for k in sorted(all_keys):
+                    if k in ("updated_at", "created_at"):
+                        continue
+                    v_before = b_data.get(k)
+                    v_after = a_data.get(k)
+                    if str(v_before) != str(v_after):
+                        field_diffs.append({
+                            "field": k,
+                            "before": v_before,
+                            "after": v_after,
+                        })
+            elif action_str == "INSERT":
+                for k in sorted(a_data.keys()):
+                    if k in ("updated_at", "created_at") or a_data[k] is None:
+                        continue
+                    field_diffs.append({
+                        "field": k,
+                        "before": None,
+                        "after": a_data[k],
+                    })
+
+            entity_name = r["entity"]
+            ref_val = r["entity_ref"]
+            if entity_name == "jobs":
+                entity_label = f"Job {job['job_no'] or ref_val}"
+            elif entity_name == "qc_checks":
+                entity_label = f"QC Check {ref_val}"
+            elif entity_name == "lab_tests":
+                entity_label = f"Lab Test {ref_val}"
+            elif entity_name == "despatch":
+                d_no = despatch_data["despatch_no"] if despatch_data else ref_val
+                entity_label = f"Despatch {d_no}"
+            elif entity_name == "test_certificates":
+                c_no = cert_no or ref_val
+                entity_label = f"Certificate {c_no}"
+            else:
+                entity_label = f"{entity_name} ({ref_val})"
+
+            at_dt = r["at"]
+            at_formatted = at_dt.strftime("%Y-%m-%d %H:%M UTC") if isinstance(at_dt, datetime) else str(at_dt)
+
+            audit_trail.append({
+                "id": r["id"],
+                "timestamp": at_formatted,
+                "at": r["at"],
+                "actor_name": r["actor_name"] or "System",
+                "entity": entity_name,
+                "entity_ref": ref_val,
+                "entity_label": entity_label,
+                "action": action_str,
+                "field_diffs": field_diffs,
+            })
+
     dataset = {
         "job_id": str(job_id),
         "job_no": job["job_no"],
@@ -212,6 +327,7 @@ async def fetch_certificate_dataset(
         "yarn_lots": yarn_lots,
         "qc_checks": [dict(q) for q in qc_rows],
         "lab_tests": [dict(l) for l in lab_rows],
+        "audit_trail": audit_trail,
     }
     return dataset
 

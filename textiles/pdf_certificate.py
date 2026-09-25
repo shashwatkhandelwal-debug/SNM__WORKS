@@ -168,6 +168,24 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
         textColor=colors.HexColor("#474B2F"),
     )
 
+    style_audit_meta = ParagraphStyle(
+        "AuditMeta",
+        parent=base_styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7,
+        leading=8.5,
+        textColor=colors.HexColor("#222222"),
+    )
+
+    style_audit_details = ParagraphStyle(
+        "AuditDetails",
+        parent=base_styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7,
+        leading=8.5,
+        textColor=colors.HexColor("#333333"),
+    )
+
     story = []
 
     # 1. Header Block
@@ -431,7 +449,84 @@ def generate_certificate_pdf(cert_data: Dict[str, Any]) -> Tuple[bytes, str]:
     story.append(lab_table)
     story.append(Spacer(1, 10))
 
-    # 6. Conformance Statement & Sign-off Block (KeepTogether)
+    # 7. Audit Trail & Event History Appendix (Compliance Packet)
+    audit_trail: List[Dict[str, Any]] = cert_data.get("audit_trail", [])
+    story.append(Paragraph(f"{sec_idx}. AUDIT TRAIL & CHANGE HISTORY (Compliance Appendix)", style_sec_hdr))
+    story.append(Spacer(1, 3))
+    sec_idx += 1
+
+    if audit_trail:
+        audit_table_data = [[
+            Paragraph("Timestamp", style_th),
+            Paragraph("Actor", style_th),
+            Paragraph("Record / Entity", style_th),
+            Paragraph("Action", style_th),
+            Paragraph("Change Details / Attributes", style_th),
+        ]]
+
+        for a in audit_trail:
+            action_str = str(a.get("action") or "--").upper()
+            diffs = a.get("field_diffs") or []
+            details_parts = []
+            
+            if action_str == "UPDATE":
+                if diffs:
+                    for d in diffs:
+                        details_parts.append(f"<b>{d['field']}:</b> {d.get('before', '--')} -&gt; {d.get('after', '--')}")
+                else:
+                    details_parts.append("Record updated")
+            elif action_str == "INSERT":
+                if diffs:
+                    attr_strs = [f"{d['field']}='{d['after']}'" for d in diffs[:4]]
+                    if len(diffs) > 4:
+                        attr_strs.append(f"+{len(diffs) - 4} more")
+                    details_parts.append("Initial creation: " + ", ".join(attr_strs))
+                else:
+                    details_parts.append("Initial record creation")
+            elif action_str == "DELETE":
+                details_parts.append("Record deleted")
+            else:
+                details_parts.append(f"Action: {action_str}")
+
+            details_html = "<br/>".join(details_parts)
+
+            audit_table_data.append([
+                Paragraph(str(a.get("timestamp") or "--"), style_audit_meta),
+                Paragraph(str(a.get("actor_name") or "System"), style_audit_meta),
+                Paragraph(str(a.get("entity_label") or a.get("entity") or "--"), style_audit_meta),
+                Paragraph(action_str, style_audit_meta),
+                Paragraph(details_html, style_audit_details),
+            ])
+
+        audit_table = Table(audit_table_data, colWidths=[75, 80, 95, 45, 228])
+        audit_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E9E5DA")),
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CFC8B6")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E9E5DA")),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(audit_table)
+    else:
+        story.append(
+            Paragraph(
+                "No audit history recorded for this job.",
+                ParagraphStyle(
+                    "NoAudit",
+                    parent=base_styles["Normal"],
+                    fontName="Helvetica-Oblique",
+                    fontSize=7.5,
+                    leading=9.5,
+                    textColor=colors.HexColor("#666666"),
+                ),
+            )
+        )
+
+    story.append(Spacer(1, 10))
+
+    # 8. Conformance Statement & Sign-off Block (KeepTogether)
     cert_statement = (
         "CONFORMANCE DECLARATION: We hereby certify that the material / consignment detailed above has been "
         "manufactured, sampled, and tested in full compliance with the referenced military / technical standard "

@@ -24,6 +24,7 @@ import uuid
 import asyncpg
 from asyncpg.exceptions import UniqueViolationError
 import httpx
+import pdfplumber
 import pytest
 from starlette.status import (
     HTTP_200_OK,
@@ -585,5 +586,191 @@ async def test_certificates_pagination(chief_quality_client):
         if job_id:
             await conn.execute("DELETE FROM jobs WHERE id = $1::uuid;", uuid.UUID(job_id))
         await conn.close()
+
+
+# ============================================================================
+# 8. COMPLIANCE PACKET: AUDIT TRAIL APPENDIX IN CERTIFICATE PDF
+# ============================================================================
+
+def test_pure_pdf_generation_with_audit_trail():
+    """
+    Proves that generate_certificate_pdf renders the AUDIT TRAIL & CHANGE HISTORY
+    appendix section including actor names, action types, and field-level diffs.
+    """
+    sample_data = {
+        "cert_no": "TC-2026-AUDIT-01",
+        "job_no": "JOB-AUDIT-001",
+        "product": "MIL-W-4088K Type VIII Webbing",
+        "spec": "MIL-W-4088K",
+        "customer_name": "Ordnance Factory Kanpur",
+        "po_ref": "OFK/PO/2026/AUD",
+        "qty": 1500,
+        "unit": "m",
+        "issued_at": "2026-09-25 10:00 UTC",
+        "issuer_name": "QA Specialist",
+        "approver_name": "Chief Quality Officer",
+        "qc_checks": [
+            {"check_no": "QC-AUD-01", "parameter": "Width", "method": "ASTM D3776", "limit_type": "nominal", "spec_value": 44.5, "tolerance": 1.5, "actual": 44.6, "unit": "mm", "verdict": "PASS"}
+        ],
+        "lab_tests": [
+            {"test_id": "LT-AUD-01", "parameter": "Breaking Strength", "standard": "ASTM D5034", "limit_type": "minimum", "spec_value": 4000, "unit": "lbf", "is_critical": True, "specimens": [4200, 4250, 4180], "result": "4180 lbf", "verdict": "PASS"}
+        ],
+        "audit_trail": [
+            {
+                "timestamp": "2026-09-25 08:30 UTC",
+                "actor_name": "Production Planner",
+                "entity": "jobs",
+                "entity_ref": "JOB-AUDIT-001",
+                "entity_label": "Job JOB-AUDIT-001",
+                "action": "INSERT",
+                "field_diffs": [
+                    {"field": "job_no", "before": None, "after": "JOB-AUDIT-001"},
+                    {"field": "product", "before": None, "after": "MIL-W-4088K Type VIII Webbing"},
+                ],
+            },
+            {
+                "timestamp": "2026-09-25 09:15 UTC",
+                "actor_name": "Line Inspector",
+                "entity": "qc_checks",
+                "entity_ref": "QC-AUD-01",
+                "entity_label": "QC Check QC-AUD-01",
+                "action": "INSERT",
+                "field_diffs": [
+                    {"field": "check_no", "before": None, "after": "QC-AUD-01"},
+                    {"field": "actual", "before": None, "after": 44.6},
+                ],
+            },
+            {
+                "timestamp": "2026-09-25 09:45 UTC",
+                "actor_name": "Laboratory Analyst",
+                "entity": "lab_tests",
+                "entity_ref": "LT-AUD-01",
+                "entity_label": "Lab Test LT-AUD-01",
+                "action": "UPDATE",
+                "field_diffs": [
+                    {"field": "result", "before": "4150 lbf", "after": "4180 lbf"},
+                    {"field": "approved_by", "before": None, "after": "Chief Quality Officer"},
+                ],
+            },
+        ],
+    }
+
+    pdf_bytes, sha = generate_certificate_pdf(sample_data)
+    assert pdf_bytes.startswith(b"%PDF-")
+    assert len(pdf_bytes) > 2000
+
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        full_text = "\n".join(page.extract_text() for page in pdf.pages)
+
+    assert "AUDIT TRAIL & CHANGE HISTORY" in full_text
+    assert "Production Planner" in full_text
+    assert "Line Inspector" in full_text
+    assert "Laboratory Analyst" in full_text
+    assert "INSERT" in full_text
+    assert "UPDATE" in full_text
+    assert "4150 lbf -> 4180 lbf" in full_text or ("4150 lbf" in full_text and "4180 lbf" in full_text)
+
+
+def test_pure_pdf_generation_empty_audit_trail():
+    """
+    Proves that generate_certificate_pdf handles an empty audit trail gracefully
+    by rendering the placeholder notice.
+    """
+    sample_data = {
+        "cert_no": "TC-2026-EMPTY-01",
+        "job_no": "JOB-EMPTY-001",
+        "product": "MIL-W-4088K Type VIII Webbing",
+        "spec": "MIL-W-4088K",
+        "customer_name": "Ordnance Factory Kanpur",
+        "po_ref": "OFK/PO/2026/EMP",
+        "qty": 500,
+        "unit": "m",
+        "issued_at": "2026-09-25 10:00 UTC",
+        "issuer_name": "QA Specialist",
+        "approver_name": "Chief Quality Officer",
+        "qc_checks": [],
+        "lab_tests": [],
+        "audit_trail": [],
+    }
+
+    pdf_bytes, sha = generate_certificate_pdf(sample_data)
+    assert pdf_bytes.startswith(b"%PDF-")
+
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        full_text = "\n".join(page.extract_text() for page in pdf.pages)
+
+    assert "AUDIT TRAIL & CHANGE HISTORY" in full_text
+    assert "No audit history recorded for this job." in full_text
+
+
+@pytest.mark.asyncio
+async def test_certificate_download_pdf_contains_audit_trail_and_scopes_strictly(chief_quality_client):
+    """
+    End-to-End Compliance Packet Test:
+    1. Seeds a qualifying Job A with QC check and Lab test.
+    2. Updates Job A's po_ref to trigger an UPDATE audit log entry.
+    3. Seeds an unrelated Job B with a unique secret token.
+    4. Issues Certificate for Job A and downloads the binary PDF.
+    5. Verifies:
+       - Audit trail section exists in Job A's certificate PDF.
+       - Job A's audit history (job number, updated field 'po_ref') is present.
+       - Unrelated Job B's secret token does NOT appear in Job A's PDF.
+    """
+    conn = await asyncpg.connect(LOCAL_TEST_DATABASE_URL)
+    uid_a = uuid.uuid4().hex[:6].upper()
+    uid_b = uuid.uuid4().hex[:6].upper()
+
+    job_id_a, despatch_id_a = await seed_qualifying_job(conn, suffix=f"AUD-{uid_a}")
+    job_id_b, _ = await seed_qualifying_job(conn, suffix=f"UNRELATED-{uid_b}")
+
+    secret_sentinel_b = f"SECRET_JOB_B_NOTE_{uid_b}"
+
+    # Update Job A to create an UPDATE audit row
+    await conn.execute(
+        """
+        UPDATE jobs
+        SET po_ref = $1
+        WHERE id = $2::uuid;
+        """,
+        f"PO-REVISED-A-{uid_a}",
+        uuid.UUID(job_id_a),
+    )
+
+    # Update Job B with unique secret note
+    await conn.execute(
+        """
+        UPDATE jobs
+        SET po_ref = $1
+        WHERE id = $2::uuid;
+        """,
+        secret_sentinel_b,
+        uuid.UUID(job_id_b),
+    )
+
+    await conn.close()
+
+    # Issue certificate for Job A
+    issue_resp = await chief_quality_client.post(
+        "/certificates/issue",
+        data={"job_id": job_id_a, "despatch_id": despatch_id_a},
+        follow_redirects=False,
+    )
+    assert issue_resp.status_code == HTTP_303_SEE_OTHER
+    cert_id_a = issue_resp.headers["location"].split("/")[-1]
+
+    # Download PDF
+    download_resp = await chief_quality_client.get(f"/certificates/{cert_id_a}/download")
+    assert download_resp.status_code == HTTP_200_OK
+    assert download_resp.headers["content-type"] == "application/pdf"
+    pdf_bytes = download_resp.content
+
+    # Inspect PDF text
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        extracted_text = "\n".join(page.extract_text() for page in pdf.pages)
+
+    assert "AUDIT TRAIL & CHANGE HISTORY" in extracted_text
+    assert f"PO-REVISED-A-{uid_a}" in extracted_text
+    assert secret_sentinel_b not in extracted_text, "Unrelated job audit history leaked into certificate PDF!"
+
 
 
