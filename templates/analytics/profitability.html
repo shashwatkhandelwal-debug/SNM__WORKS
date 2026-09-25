@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Margin & Profitability Rollup — Swadeshi Niwar Mills{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase;">Commercial & Manufacturing Intelligence</div>
+    <h1 style="font-family: var(--font-heading); font-size: 1.75rem; margin: 0.2rem 0; font-weight: 700; color: var(--snm-black);">MARGIN &amp; PROFITABILITY ROLLUP</h1>
+    <div style="font-size: 0.85rem; color: #555;">Cross-job manufacturing cost and margin analysis aggregated across Approved costing records, with specification rework metrics.</div>
+  </div>
+
+  <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+    <div class="btn-group" style="display: flex; border: 1px solid var(--snm-line); background: var(--snm-paper);">
+      <a href="/analytics/profitability?period=30d" class="btn btn-sm {% if period == '30d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">30D</a>
+      <a href="/analytics/profitability?period=90d" class="btn btn-sm {% if period == '90d' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">90D</a>
+      <a href="/analytics/profitability?period=12m" class="btn btn-sm {% if period == '12m' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">12M</a>
+      <a href="/analytics/profitability?period=all" class="btn btn-sm {% if period == 'all' %}btn-olive{% else %}btn-outline{% endif %}" style="border: none;">All</a>
+    </div>
+    <a href="/costing" class="btn btn-sm btn-outline">Costing Register</a>
+    <a href="/analytics" class="btn btn-sm btn-outline">← Back to KPIs</a>
+  </div>
+</div>
+
+<!-- Executive KPI Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--snm-olive);">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Total Approved Mfg Cost</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; color: var(--snm-black);">₹ {{ "{:,.2f}".format(summary.total_mfg_cost or 0) }}</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      Yarn, conversion, dyeing &amp; overheads
+    </div>
+  </div>
+
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--snm-pass);">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Total Production Volume</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; color: var(--snm-black);">{{ "{:,.1f}".format(summary.total_qty_produced or 0) }}</span>
+      <span style="font-size: 0.8rem; color: #666;">m</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      Across all costing-approved job orders
+    </div>
+  </div>
+
+  <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--snm-black);">
+    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #666; text-transform: uppercase;">Total Costed Jobs</div>
+    <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+      <span style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; color: var(--snm-black);">{{ summary.total_jobs or 0 }}</span>
+      <span style="font-size: 0.8rem; color: #666;">Jobs</span>
+    </div>
+    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #888;">
+      Approved status only
+    </div>
+  </div>
+</div>
+
+<!-- Section 1: Customer Profitability Rollup -->
+<div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+    <div>
+      <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin: 0; text-transform: uppercase; color: var(--snm-black);">Customer Profitability Rollup</h3>
+      <div style="font-size: 0.75rem; color: #666;">Aggregated order volume, manufacturing cost, and realized margin ranges per account.</div>
+    </div>
+    <span class="badge badge-sm badge-outline">{{ customer_rollups|length }} Customers</span>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+          <th style="padding: 0.75rem 1rem; text-align: left;">Customer</th>
+          <th style="padding: 0.75rem; text-align: right;">Jobs</th>
+          <th style="padding: 0.75rem; text-align: right;">Produced (m)</th>
+          <th style="padding: 0.75rem; text-align: right;">Ordered (m)</th>
+          <th style="padding: 0.75rem; text-align: right;">Total Mfg Cost</th>
+          <th style="padding: 0.75rem; text-align: right;">Avg Margin %</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">Margin Range (Min / Max)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customer_rollups %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem;">
+            <div style="font-weight: 600; color: var(--snm-black);">{{ c.customer_name }}</div>
+          </td>
+          <td class="mono" style="padding: 0.75rem; text-align: right;">{{ c.total_jobs }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right;">{{ "{:,.1f}".format(c.total_qty_produced or 0) }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right;">{{ "{:,.1f}".format(c.total_qty_ordered or 0) }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; font-weight: 600;">₹ {{ "{:,.2f}".format(c.total_manufacturing_cost or 0) }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; font-weight: 700; color: {% if c.avg_margin_pct >= 20.0 %}var(--snm-pass){% elif c.avg_margin_pct >= 10.0 %}var(--snm-hold){% else %}var(--snm-fail){% endif %};">
+            {{ "%.2f"|format(c.avg_margin_pct or 0) }}%
+          </td>
+          <td class="mono" style="padding: 0.75rem 1rem; text-align: right; color: #555;">
+            {{ "%.1f"|format(c.min_margin_pct or 0) }}% – {{ "%.1f"|format(c.max_margin_pct or 0) }}%
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="padding: 2rem; text-align: center; color: #888;">
+            No approved costing records found for the selected period.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Section 2: Specification / Variant Rollup & Rework -->
+<div class="card" style="padding: 1.25rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--snm-line); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+    <div>
+      <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin: 0; text-transform: uppercase; color: var(--snm-black);">Specification &amp; Variant Rollup (Margin vs. Rework)</h3>
+      <div style="font-size: 0.75rem; color: #666;">Manufacturing performance correlated with QC shop-floor flags and laboratory rejections.</div>
+    </div>
+    <span class="badge badge-sm badge-outline">{{ spec_rollups|length }} Specs</span>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+      <thead>
+        <tr style="background: var(--snm-paper); border-bottom: 1px solid var(--snm-line);">
+          <th style="padding: 0.75rem 1rem; text-align: left;">Specification / Variant</th>
+          <th style="padding: 0.75rem; text-align: right;">Jobs</th>
+          <th style="padding: 0.75rem; text-align: right;">Produced (m)</th>
+          <th style="padding: 0.75rem; text-align: right;">Total Mfg Cost</th>
+          <th style="padding: 0.75rem; text-align: right;">Avg Margin %</th>
+          <th style="padding: 0.75rem; text-align: right;">QC Fails</th>
+          <th style="padding: 0.75rem; text-align: right;">Lab Fails</th>
+          <th style="padding: 0.75rem 1rem; text-align: right;">QC Rework Rate %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in spec_rollups %}
+        <tr style="border-bottom: 1px solid var(--snm-line);">
+          <td style="padding: 0.75rem 1rem;">
+            <div style="font-weight: 600; color: var(--snm-black);">{{ s.spec_name }}</div>
+            <div class="mono" style="font-size: 0.75rem; color: #666;">{{ s.spec_code }}</div>
+          </td>
+          <td class="mono" style="padding: 0.75rem; text-align: right;">{{ s.total_jobs }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right;">{{ "{:,.1f}".format(s.total_qty_produced or 0) }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; font-weight: 600;">₹ {{ "{:,.2f}".format(s.total_manufacturing_cost or 0) }}</td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; font-weight: 700; color: {% if s.avg_margin_pct >= 20.0 %}var(--snm-pass){% elif s.avg_margin_pct >= 10.0 %}var(--snm-hold){% else %}var(--snm-fail){% endif %};">
+            {{ "%.2f"|format(s.avg_margin_pct or 0) }}%
+          </td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; color: {% if s.qc_fail_count %}var(--snm-fail){% else %}#888{% endif %}; font-weight: {% if s.qc_fail_count %}700{% else %}normal{% endif %};">
+            {{ s.qc_fail_count }}
+          </td>
+          <td class="mono" style="padding: 0.75rem; text-align: right; color: {% if s.lab_fail_count %}var(--snm-fail){% else %}#888{% endif %}; font-weight: {% if s.lab_fail_count %}700{% else %}normal{% endif %};">
+            {{ s.lab_fail_count }}
+          </td>
+          <td class="mono" style="padding: 0.75rem 1rem; text-align: right; font-weight: 600;">
+            {% if s.qc_rework_rate_pct is not none %}
+            <span style="color: {% if s.qc_rework_rate_pct == 0.0 %}var(--snm-pass){% elif s.qc_rework_rate_pct <= 5.0 %}var(--snm-hold){% else %}var(--snm-fail){% endif %};">
+              {{ "%.2f"|format(s.qc_rework_rate_pct) }}%
+            </span>
+            {% else %}
+            <span style="color: #888;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="padding: 2rem; text-align: center; color: #888;">
+            No approved specification costing records found for the selected period.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

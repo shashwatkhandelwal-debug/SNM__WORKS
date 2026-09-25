@@ -372,3 +372,139 @@ async def supplier_quality_scorecard(
             "current_page": "analytics",
         },
     )
+
+
+@router.get("/profitability", response_class=HTMLResponse)
+async def customer_and_spec_profitability_rollup(
+    request: Request,
+    period: str = Query("all"),
+    conn: asyncpg.Connection = Depends(get_db),
+    user: Dict[str, Any] = Depends(require("costing", "read")),
+):
+    """
+    Renders margin & profitability rollups across jobs:
+    1. Grouped by Customer (Total Jobs, Volume, Total Mfg Cost, Avg/Min/Max Margin %)
+    2. Grouped by Specification / Variant (Jobs, QC/Lab Rework & Fail Counts, Cost, Margin %)
+    Gated strictly by costing.read permission.
+    """
+    user_info = {
+        "id": user.get("id"),
+        "email": user.get("email"),
+        "full_name": user.get("claims", {}).get("user_metadata", {}).get("full_name") or user.get("email"),
+    }
+    start_d, end_d = resolve_period_dates(period)
+
+    # 1. Rollup by Customer
+    cust_rows = await conn.fetch(
+        """
+        SELECT 
+            cust.id::text AS customer_id,
+            COALESCE(cust.name, 'Unassigned Customer') AS customer_name,
+            COUNT(DISTINCT j.id)::int AS total_jobs,
+            COALESCE(SUM(j.qty_produced), 0.0)::float AS total_qty_produced,
+            COALESCE(SUM(j.qty_ordered), 0.0)::float AS total_qty_ordered,
+            COALESCE(SUM(
+                (
+                    (COALESCE(c.yarn_consumption, 0.0) * (COALESCE(c.yarn_rate, 0.0) / 1000.0) * (1.0 + COALESCE(c.wastage_pct, 0.0) / 100.0))
+                    + COALESCE(c.dyeing, 0.0) + COALESCE(c.coating, 0.0) + COALESCE(c.labour, 0.0)
+                    + COALESCE(c.overhead, 0.0) + COALESCE(c.packing, 0.0) + COALESCE(c.freight, 0.0)
+                ) * COALESCE(c.qty, 0.0)
+            ), 0.0)::float AS total_manufacturing_cost,
+            ROUND(COALESCE(AVG(c.margin_pct), 0.0)::numeric, 2)::float AS avg_margin_pct,
+            ROUND(COALESCE(MIN(c.margin_pct), 0.0)::numeric, 2)::float AS min_margin_pct,
+            ROUND(COALESCE(MAX(c.margin_pct), 0.0)::numeric, 2)::float AS max_margin_pct
+        FROM costing c
+        JOIN jobs j ON c.job_id = j.id
+        LEFT JOIN customers cust ON j.customer_id = cust.id
+        WHERE c.status = 'Approved'
+          AND (c.created_at::date BETWEEN $1 AND $2)
+        GROUP BY cust.id, cust.name
+        ORDER BY total_manufacturing_cost DESC, total_jobs DESC;
+        """,
+        start_d, end_d
+    )
+
+    # 2. Rollup by Spec / Variant (with QC & Lab Rework / Fails)
+    spec_rows = await conn.fetch(
+        """
+        SELECT 
+            COALESCE(v.designation, NULLIF(j.spec, ''), NULLIF(j.product, ''), 'Unspecified Specification') AS spec_name,
+            COALESCE(sp.spec_no, j.spec, 'Custom / Internal') AS spec_code,
+            COUNT(DISTINCT j.id)::int AS total_jobs,
+            COALESCE(SUM(j.qty_produced), 0.0)::float AS total_qty_produced,
+            COALESCE(SUM(j.qty_ordered), 0.0)::float AS total_qty_ordered,
+            COALESCE(SUM(
+                (
+                    (COALESCE(c.yarn_consumption, 0.0) * (COALESCE(c.yarn_rate, 0.0) / 1000.0) * (1.0 + COALESCE(c.wastage_pct, 0.0) / 100.0))
+                    + COALESCE(c.dyeing, 0.0) + COALESCE(c.coating, 0.0) + COALESCE(c.labour, 0.0)
+                    + COALESCE(c.overhead, 0.0) + COALESCE(c.packing, 0.0) + COALESCE(c.freight, 0.0)
+                ) * COALESCE(c.qty, 0.0)
+            ), 0.0)::float AS total_manufacturing_cost,
+            ROUND(COALESCE(AVG(c.margin_pct), 0.0)::numeric, 2)::float AS avg_margin_pct,
+            ROUND(COALESCE(MIN(c.margin_pct), 0.0)::numeric, 2)::float AS min_margin_pct,
+            ROUND(COALESCE(MAX(c.margin_pct), 0.0)::numeric, 2)::float AS max_margin_pct,
+            COALESCE(qc_fails.fail_count, 0)::int AS qc_fail_count,
+            COALESCE(lab_fails.fail_count, 0)::int AS lab_fail_count,
+            ROUND(COALESCE(qc_fails.fail_count * 100.0 / NULLIF(qc_fails.total_count, 0), 0.0)::numeric, 2)::float AS qc_rework_rate_pct
+        FROM costing c
+        JOIN jobs j ON c.job_id = j.id
+        LEFT JOIN spec_variants v ON j.variant_id = v.id
+        LEFT JOIN specifications sp ON v.spec_id = sp.id
+        LEFT JOIN (
+            SELECT 
+                COALESCE(v2.designation, NULLIF(j2.spec, ''), NULLIF(j2.product, ''), 'Unspecified Specification') AS spec_group,
+                COUNT(*) AS total_count,
+                COUNT(*) FILTER (WHERE qc.verdict = 'FAIL') AS fail_count
+            FROM qc_checks qc
+            JOIN jobs j2 ON qc.job_id = j2.id
+            LEFT JOIN spec_variants v2 ON j2.variant_id = v2.id
+            WHERE (qc.checked_on BETWEEN $1 AND $2)
+            GROUP BY COALESCE(v2.designation, NULLIF(j2.spec, ''), NULLIF(j2.product, ''), 'Unspecified Specification')
+        ) qc_fails ON qc_fails.spec_group = COALESCE(v.designation, NULLIF(j.spec, ''), NULLIF(j.product, ''), 'Unspecified Specification')
+        LEFT JOIN (
+            SELECT 
+                COALESCE(v3.designation, NULLIF(j3.spec, ''), NULLIF(j3.product, ''), 'Unspecified Specification') AS spec_group,
+                COUNT(*) AS total_count,
+                COUNT(*) FILTER (WHERE lt.verdict = 'FAIL') AS fail_count
+            FROM lab_tests lt
+            JOIN jobs j3 ON lt.job_id = j3.id
+            LEFT JOIN spec_variants v3 ON j3.variant_id = v3.id
+            WHERE (lt.tested_on BETWEEN $1 AND $2 OR lt.created_at::date BETWEEN $1 AND $2)
+            GROUP BY COALESCE(v3.designation, NULLIF(j3.spec, ''), NULLIF(j3.product, ''), 'Unspecified Specification')
+        ) lab_fails ON lab_fails.spec_group = COALESCE(v.designation, NULLIF(j.spec, ''), NULLIF(j.product, ''), 'Unspecified Specification')
+        WHERE c.status = 'Approved'
+          AND (c.created_at::date BETWEEN $1 AND $2)
+        GROUP BY 
+            COALESCE(v.designation, NULLIF(j.spec, ''), NULLIF(j.product, ''), 'Unspecified Specification'),
+            COALESCE(sp.spec_no, j.spec, 'Custom / Internal'),
+            qc_fails.fail_count,
+            qc_fails.total_count,
+            lab_fails.fail_count
+        ORDER BY total_manufacturing_cost DESC, total_jobs DESC;
+        """,
+        start_d, end_d
+    )
+
+    total_mfg_cost_all = sum(float(r["total_manufacturing_cost"] or 0) for r in cust_rows)
+    total_jobs_all = sum(int(r["total_jobs"] or 0) for r in cust_rows)
+    total_qty_produced_all = sum(float(r["total_qty_produced"] or 0) for r in cust_rows)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="analytics/profitability.html",
+        context={
+            "user": user_info,
+            "period": period,
+            "start_date": start_d,
+            "end_date": end_d,
+            "customer_rollups": [dict(r) for r in cust_rows],
+            "spec_rollups": [dict(r) for r in spec_rows],
+            "summary": {
+                "total_mfg_cost": round(total_mfg_cost_all, 2),
+                "total_jobs": total_jobs_all,
+                "total_qty_produced": round(total_qty_produced_all, 2),
+            },
+            "current_page": "analytics",
+        },
+    )
+
